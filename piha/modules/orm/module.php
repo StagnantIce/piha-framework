@@ -7,11 +7,7 @@ class COrmModule extends AModule {
     }
 
     public function getPaths() {
-        return array('classes');
-    }
-
-    public static function GetAdminMenu() {
-        return array();
+        return array('classes', 'models');
     }
 
     public function configure($config=null) {

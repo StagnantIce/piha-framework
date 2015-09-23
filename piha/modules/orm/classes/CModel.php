@@ -30,7 +30,7 @@
 * @method static array Set(array|int $where, array $fields) делает, что и Update, но условие идет впереди
 */
 
-class CModel extends CAdminModel {
+class CModel extends CDataObject {
 
     /** @var static array Кеширование объектов моделей */
     private static $_models = array();
@@ -62,6 +62,80 @@ class CModel extends CAdminModel {
     public $_modelType = self::MODEL_TYPE_ARRAY;
 
     /**
+      * Возвращает тип модели, object|array
+      * @return string
+      */
+    public static function modelType() {return self::m()->_modelType;}
+    /**
+      * Возвращает имя таблицы БД для модели к которой обратились через данный метод
+      * @return string
+      */
+    public static function tableName() {
+        $name = self::m()->_name;
+        $prefix = COrmModule::GetInstance()->config('prefix', '');
+        return str_replace('{{' . $name . '}}', $prefix . $name, $name);
+    }
+    /**
+      * Возвращает имя модели к которой обратились через данный метод
+      * @return string
+      */
+    public static function label() { return self::m()->_label;}
+    /**
+      * Возвращает список столбцов модели к которой обратились через данный метод
+      * @return array
+      */
+    public static function tableColumns() { return self::m()->_columns;}
+
+    /** @ignore */
+    public static function getColumn($k) { $cols = self::tableColumns(); return isset($cols[$k]) ? $cols[$k] : false;}
+    /** @ignore */
+    public static function getType($k) { $col = self::getColumn($k); return $col ? $col['type'] : false;}
+    /** @ignore */
+    public static function getFieldKeys() { return array_keys(self::tableColumns());}
+    /** @ignore */
+    public static function getSize($k) { $col = self::getColumn($k); return ($col && isset($col['size'])) ? $col['size'] : 0;}
+    /** @ignore */
+    public static function getLabel($k) { $col = self::getColumn($k); return ($col && isset($col['label'])) ? $col['label'] : $k;}
+    /** @ignore */
+    public static function getObject($k) { $col = self::getColumn($k); return ($col && isset($col['object'])) ? $col['object'] : false;}
+    /** @ignore */
+    public static function getFieldNames() { $arr = array(); foreach(self::getFieldKeys() as $k) $arr[$k] = self::getLabel($k); return $arr;}
+    /** @ignore */
+    public static function getTableRelations() {$arr = array(); foreach(self::getFieldKeys() as $k) if ($ob = self::getObject($k)) $arr[$k] = $ob; return $arr;}
+    /**
+      * Возвращает пустой массив записи модели к которой обратились через данный метод
+      * @todo Нужно сделать согласно типу столбцов
+      * @return array
+      */
+    public static function getEmpty() {return self::m()->emptyArray();}
+    /**
+      * Обновляет строку в БД таблицу модели
+      *
+      * @param int|array ;where - массив с условиями или id
+      * @return int сколько строк затронуто
+      */
+    public static function Update(Array $fields, $where = "") {
+        return self::q()->update($fields, $where);
+    }
+    /**
+      * Вставляет строку в БД таблицу модели
+      * @param array $fields - данные для вставки
+      * @return int id новой записи
+      * @todo Добавить обработку default в fields из self::tableColumns();
+      */
+    public static function Insert(Array $fields = null) {
+        return self::q()->insert($fields);
+    }
+    /**
+      * Удаляет строку из БД таблицы модели
+      * @param int|array $where - массив с условиями или id
+      * @return int сколько строк затронуто
+      */
+    public static function Delete($where = false) {
+        return self::q()->remove($where);
+    }
+
+    /**
       * Создание модели
       *
       * @param array $data Данные для инициализации
@@ -77,116 +151,20 @@ class CModel extends CAdminModel {
         }
     }
 
-    /**
-      * Удаление всех индексов из таблицы
-      *
-      * @return null
-      */
-    public function dropIndexTable() {
-        $table = $this->tableName();
-        $res = CQuery::create()->setQuery("SHOW CREATE TABLE $table")->execute();
-        while ($row = $res->Fetch()) {
-            // remove constrains
-            if(preg_match_all('/CONSTRAINT `(.*)` FOREIGN KEY/', next($row), $matchArr)) {
-                foreach($matchArr[1] as $key) {
-                    try { $this->dropForeignKey($key); } catch(Exception $e){}
-                }
-            }
-            // remove keys
-            if(preg_match_all('/KEY `(.*)` \(/', $row[1], $matchArr)) {
-                foreach($matchArr[1] as $key) {
-                    try { $this->dropIndex($key); } catch(Exception $e){}
-                }
-            }
+    private $_schema = '';
+    public static function schema() {
+        if (self::m()->_schema) {
+            return self::m()->_schema;
         }
+        self::m()->_schema = new CMigration(self::tableName());
+        return self::m()->_schema;
     }
-
-    /**
-      * Создание индексов для таблицы (должно быть в описании столбцов)
-      *
-      * @param boolean $drop Нужно ли удалять индекс перед созданием
-      * @return null
-      */
-    public function createIndexTable($drop = true) {
-        if ($drop) {
-            $this->dropIndexTable();
-        }
-        $types = $this->_columns;
-        $prefix = CCore::module('orm')->config('prefix', '');
-        foreach($this->_columns as $key => $column) {
-            if (is_array($column)) {
-                if ($model = self::getObject($key)) {
-                    $name = $model::tableName();
-                    $delete = isset($column['delete']) ? $column['delete']: null;
-                    $update = isset($column['update']) ? $column['update']: null;
-                    $keyName = 'fk_' . strtolower($key) . '__' . str_replace($prefix, '', $this->_name) . '__' . str_replace($prefix, '', $name);
-                    if (mb_strlen($keyName) > 30) {
-                        $keyName = 'fk_' . strtolower($key) . '_'. md5($keyName);
-                    }
-                    $this->addForeignKey($keyName, $key, $name, 'ID', $delete, $update);
-                }
-                if (isset($column['index'])) {
-                    if ($column['index'] === true) {
-                        $this->createIndex('k_'. strtolower($key), $key, isset($column['unique']));
-                    } else {
-                        $columns=preg_split('/\s*,\s*/',$column['index'],-1,PREG_SPLIT_NO_EMPTY);
-                        $this->createIndex('k_'. strtolower(implode('__', $columns)), $column['index'], isset($column['unique']));
-                    }
-                }
-            }
-        }
-    }
-    /**
-      * Добавление столбца на основании описания
-      *
-      * @param string $key название столбца
-      * @param string $type тип столбца (не обязательно)
-      * @return string SQL код
-      */
-    public function addColumn($key, $type=null)
-    {
-        $column = $this->_columns[$key];
-        $type = $type ?: $column['type'] . (isset($column['default']) ? " DEFAULT '".$column['default']."'": '');
-        return $this->addColumn2($key, $type);
-    }
-    /**
-      * Создание таблицы на основании описания столбцов
-      *
-      * @param boolean $index Нужно ли индексы после создания таблицы
-      * @return null
-      */
-    public function createTable($index = false) {
-        $types = $this->_columns;
-        foreach($this->_columns as $key => $column) {
-            if (is_array($column)) {
-                $types[$key] = $column['type'] . (isset($column['default']) ? " DEFAULT '".$column['default']."'": '');
-            } else {
-                $types[$key] = $column;
-            }
-        }
-        $this->createTable2($types);
-        if ($index) {
-            $this->createIndexTable();
-        }
-    }
-
-    /**
-      * Инстяляция модуля, метод можно переопределить если необходимо
-      */
-    public function install() {}
-
     /**
       * @ignore
       */
     public function __call($name, $ps) {
         $result = false;
-        if(method_exists('CMigration', $name)) {
-            $object = new CMigration();
-            array_unshift($ps, $this->_name);
-            $query = call_user_func_array(array(&$object, $name), $ps);
-            unset($object);
-            return CQuery::create()->setQuery($query)->execute();
-        } else if($this->_modelType === self::MODEL_TYPE_ARRAY && method_exists(self::model(), 'Static' . $name)) {
+        if($this->_modelType === self::MODEL_TYPE_ARRAY && method_exists(self::model(), 'Static' . $name)) {
             return call_user_func_array(array(self::model(), 'Static' . $name), $ps);
         }
         return parent::__call($name, $ps);
@@ -239,7 +217,7 @@ class CModel extends CAdminModel {
      * @param string $className Имя класса
      * @return bool|CModel
      */
-    public static function model($className = "") {
+    public static function m($className = "") {
         if ($className === "") {
             $className = self::className();
         }
@@ -253,6 +231,11 @@ class CModel extends CAdminModel {
             return false;
         }
     }
+
+    public static function q() {
+        return new CQuery(self::tableName(), self::m()->_columns);
+    }
+
     /**
       * Формирует запись согласно объекту CQuery
       * @static
@@ -321,48 +304,6 @@ class CModel extends CAdminModel {
       */
     public static function Exists($where) {
         return self::StaticGet($where) ? true: false;
-    }
-    /**
-      * @ignore
-      */
-    public static function StaticGetArrayRelated($key = 'ID', $name = "", $where = array(), $inner = array()) {
-        CCore::Validate($where, array('int', 'array'), true);
-        return CTools::toArray(self::selectAll(false, array('WHERE' => $where, 'inner' => $inner), true), $key, $name);
-    }
-
-    /**
-      * @ignore
-      * @deprecated
-      */
-    public static function StaticGetObject($where = array(), $fields = false) {
-        $row = self::StaticGet($where, $fields);
-        return new CObjectModel($row['ID'], $row, self::m());
-    }
-
-    /**
-      * @ignore
-      * @deprecated
-      */
-    public static function StaticGetObjects($where = array(), $fields = false) {
-        $arr = self::StaticGetAll($where, $fields);
-        $objs = array();
-        foreach($arr as $row) {
-            $objs[] = new CObjectModel($row['ID'], $row, self::m());
-        }
-        return $objs;
-    }
-    /**
-      * @ignore
-      */
-    public static function StaticGetArray($key = 'ID', $name = "", $where = array(), $inner = array(), $order = array()) {
-        CCore::Validate($where, array('int', 'array'), true);
-        return CTools::toArray(self::selectAll(false, array('WHERE' => $where, 'inner' => $inner, 'order' => $order), false), $key, $name);
-    }
-    /**
-      * @ignore
-      */
-    public static function StaticGetArrayFromQuery($query, $key = 'ID', $name = "") {
-        return CTools::toArray(self::fetchAll(self::execute($query)), $key, $name);
     }
 
     /**
@@ -505,33 +446,5 @@ class CModel extends CAdminModel {
     public static function StaticSet($where = "", Array $fields) {
         CCore::Validate($where, array('int', 'array'), true);
         return self::Update($fields, $where);
-    }
-
-    /**
-      * Делает выбор записи из БД
-      * @param array $fields поля таблиц
-      * @param array $methods методы объекта CQuery
-      * @param boolean @related загружать ли связанные таблицы
-      * @deprecated �?спользуйте статический метод q() для выполнения запросов
-      * @return array|CModel
-      * @static
-      */
-    public static function Select($fields = false, $methods = null, $related = false) {
-        $res = $related ? self::m()->queryRelated($methods) : self::m()->query($methods);
-        return self::m()->fetch($res, $fields);
-    }
-
-    /**
-      * Делает выбор записей из БД
-      * @param array $fields поля таблиц
-      * @param array $methods методы объекта CQuery
-      * @param boolean @related загружать ли связанные таблицы
-      * @deprecated �?спользуйте статический метод q() для выполнения запросов
-      * @return array
-      * @static
-      */
-    public static function SelectAll($fields = false, $methods = null, $related = false) {
-        $res = $related ? self::m()->queryRelated($methods) : self::m()->query($methods);
-        return self::m()->fetchAll($res, $fields);
     }
 }

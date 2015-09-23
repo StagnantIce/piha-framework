@@ -29,10 +29,11 @@ class CQuery extends AExtendClass {
     private $_having = '';
 
     private $_object = '';
-    const SECRETKEY = '73434d5f1cf38fda38f8fb4767f14e3d';
+
+    private static $secret = '';
 
     public static function extend() {
-        return array(CCore::module('orm')->config('dbClass', 'CMysqlConnection'));
+        return array(COrmModule::GetInstance()->config('dbClass', 'CMysqlConnection'));
     }
     /**
       * Конструктор
@@ -325,7 +326,7 @@ class CQuery extends AExtendClass {
                     break;
                 }
             }
-            $param = CCore::module('orm')->config('use_quotes') ? '`'.$param.'`' : $param;
+            $param = COrmModule::GetInstance()->config('use_quotes') ? '`'.$param.'`' : $param;
             $new_fields[$param] = $value;
         }
         return $new_fields;
@@ -734,7 +735,8 @@ class CQuery extends AExtendClass {
                 } else {
                     $value = self::escape($value);
                 }
-            } elseif (is_null($value)) {
+            } elseif (is_null($value) || $value === 'NULL') {
+                $c = ($c == '=' ? ' IS ' : ' IS NOT ');
                 $value = 'NULL';
             } elseif (is_bool($value)) {
                 $value = (int)$value;
@@ -745,13 +747,13 @@ class CQuery extends AExtendClass {
                 return new Exception('Error condition. Unexpected type param.');
             }
 
+            // prepare key
             if (strpos($key, '*.') !== false) {
                 $key = $this->findAndReplaceTableName($key);
             } elseif (strpos($key, '.') === false) {
                 $key = "`$key`";
             }
 
-            if ($value === 'NULL') $c = ' IS ';
             $res[] = $key.$c.$value;
         }
         return count($res) > 0 ? '(' . implode(' '.$cond.' ', $res) .')' : '';
@@ -892,6 +894,9 @@ class CQuery extends AExtendClass {
       * @todo Сделать генерируемый ключ
       */
     private static function getSecretKey() {
-        return '{'.self::SECRETKEY.'}';
+        if (!self::$secret) {
+            self::$secret = CTool::random(16);
+        }
+        return '{'.self::$secret.'}';
     }
 }

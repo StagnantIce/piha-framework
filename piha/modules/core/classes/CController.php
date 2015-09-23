@@ -121,8 +121,8 @@ class CController {
         if ($params) {
             extract($params, EXTR_SKIP);
         }
-        $this->viewPath = CCore::module()->config('viewPath') . DS .  $this->id . DS . $this->action_id . '.php';
-        $this->layoutPath = CCore::module()->config('layoutPath') . DS . $this->layout .'.php';
+        $this->viewPath = CCoreModule::GetInstance()->config('viewPath') . DS .  $this->id . DS . $this->action_id . '.php';
+        $this->layoutPath = CCoreModule::GetInstance()->config('layoutPath') . DS . $this->layout .'.php';
 
         if ($this->layout) {
             $this->requireFile($this->layoutPath);
@@ -132,7 +132,7 @@ class CController {
     }
 
     public function part($path, $name) {
-        $this->requireFile(CCore::module()->config('viewPath') . DS .  $path . DS . $name . '.php');
+        $this->requireFile(CCoreModule::GetInstance()->config('viewPath') . DS .  $path . DS . $name . '.php');
     }
 
     public function content() {

@@ -6,130 +6,14 @@
 *
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 * @abstract
+* @todo refactoring....
 */
 
-abstract class CAdminModel extends CDataObject {
+class CAdminModel {
 
-    /**
-      * Возвращает объект для модели к которой обратились через данный метод
-      * @return CModel
-      */
-    public static function m() {return static::model();}
-
-    /**
-      * Возвращает новый объект запроса для модели к которой обратились через данный метод
-      * @return CQuery
-      */
-    public static function q() {return new CQuery(self::m()->_name, self::m()->_columns);}
-    /**
-      * Выполняет sql запрос к таблице модели к которой обратились через данный метод
-      * @return CQuery
-      */
-    public static function execute($query) {return self::q()->setQuery($query)->execute();}
-    /**
-      * Выполняет sql запрос с пейджинацией к таблице модели к которой обратились через данный метод
-      * @return CQuery
-      */
-    public static function executeNav($query, $size = 20, $numPage = false) {return self::q()->setQuery($query)->execute($size, $numPage);}
-    /**
-      * Возвращает тип модели, object|array
-      * @return string
-      */
-    public static function modelType() {return self::m()->_modelType;}
-    /**
-      * Возвращает имя таблицы БД для модели к которой обратились через данный метод
-      * @return string
-      */
-    public static function tableName() { return self::m()->_name;}
-    /**
-      * Возвращает имя модели к которой обратились через данный метод
-      * @return string
-      */
-    public static function label() { return self::m()->_label;}
-    /**
-      * Возвращает список столбцов модели к которой обратились через данный метод
-      * @return array
-      */
-    public static function tableColumns() { return self::m()->_columns;}
-
-    /** @ignore */
-    public static function getColumn($k) { $cols = self::tableColumns(); return isset($cols[$k]) ? $cols[$k] : false;}
-    /** @ignore */
-    public static function getType($k) { $col = self::getColumn( str_replace(array('_1', '_2'), '', $k) ); return $col ? $col['type'] : false;}
-    /** @ignore */
-    public static function getFieldKeys() { return array_keys(self::tableColumns());}
-    /** @ignore */
-    public static function getSize($k) { $col = self::getColumn($k); return (isset($col) && isset($col['size'])) ? $col['size'] : 0;}
-    /** @ignore */
-    public static function getLabel($k) { $col = self::getColumn($k); return (isset($col) && isset($col['label'])) ? $col['label'] : $k;}
-    /** @ignore */
-    public static function getObject($k) { $col = self::getColumn($k); return (isset($col) && isset($col['object'])) ? $col['object'] : false;}
-    /** @ignore */
-    public static function getFieldNames() { $arr = array(); foreach(self::getFieldKeys() as $k) $arr[$k] = self::getLabel($k); return $arr;}
-    /** @ignore */
-    public static function getTableRelations() {$arr = array(); foreach(self::getFieldKeys() as $k) if ($ob = self::getObject($k)) $arr[$k] = $ob; return $arr;}
-    /**
-      * Возвращает пустой массив записи модели к которой обратились через данный метод
-      * @todo Нужно сделать согласно типу столбцов
-      * @return array
-      */
-    public static function getEmpty() {$arr = array(); foreach(self::getFieldKeys() as $k) $arr[$k] = "";return $arr;}
-    /**
-      * Обновляет строку в БД таблицу модели
-      *
-      * @param int|array ;where - массив с условиями или id
-      * @return int сколько строк затронуто
-      */
-    public static function Update(Array $fields, $where = "") {
-        return self::q()->update($fields, $where);
-    }
-    /**
-      * Вставляет строку в БД таблицу модели
-      * @param array $fields - данные для вставки
-      * @return int id новой записи
-      * @todo Добавить обработку default в fields из self::tableColumns();
-      */
-    public static function Insert(Array $fields = null) {
-        return self::q()->insert($fields);
-    }
-    /**
-      * Удаляет строку из БД таблицы модели
-      * @param int|array $where - массив с условиями или id
-      * @return int сколько строк затронуто
-      */
-    public static function Delete($where = false) {
-        return self::q()->remove($where);
-    }
-    /**
-      * Выполняет запрос к модели через массив методов
-      * @deprecated используйте метод q() для построения запросов
-      * @param array $methods - методы объекта CQuery
-      * @param boolean $nav - с пейджинацией или без
-      * @param int $pageSize - количество строк для вывода
-      * @return CQuery
-      */
-    public static function query(Array $methods = null, $nav = false, $pageSize = 20) {
-        $cQuery = self::buildQuery($methods);
-        return $nav ? self::executeNav($cQuery->getQuery(), $pageSize, false) : self::execute($cQuery->getQuery());
-    }
-
-    /**
-     * @deprecated используйте метод q() для построения запросов
-     * @param $methods
-     * @return CQuery
-     */
-    public static function buildQuery($methods){
-        if (!is_null($methods)) {
-            $obj = self::q();
-            foreach($methods as $method => $param) {
-                if(is_numeric($method)) {
-                    $method = $param;
-                    $param = null;
-                }
-                call_user_func(array($obj, $method), $param);
-            }
-        }
-        return $obj;
+    private $_modelName = '';
+    public function __construct($modelName) {
+        $this->_modelName = $modelName;
     }
     /**
       * Выполняет запрос к модели через массив методов с присоединением смежных таблиц
@@ -195,7 +79,7 @@ abstract class CAdminModel extends CDataObject {
                     $type = $value['type'];
                     $value = $value['value'];
                 } else {
-                    $type = self::getType($filterName);
+                    $type = self::getType(str_replace(array('_1', '_2', '', $filterName)));
                 }
 
                 $tableName = '*.';

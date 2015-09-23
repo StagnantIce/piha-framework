@@ -1,19 +1,20 @@
 <?php
 
+/** Класс для организации модулей */
+
 abstract class AModule {
 
     private static $modules = array();
-    private $config;
 
+    /** пути для автолоадера */
     abstract function GetPaths();
 
+    /** путь до папки модуля */
     abstract function GetRoot();
 
     public static function GetID() {
         return basename(static::GetRoot());
     }
-
-    abstract static function GetAdminMenu();
 
     public static function file($path, $message = '') {
         if (!file_exists($path)) {
@@ -22,7 +23,7 @@ abstract class AModule {
         return require($path);
     }
 
-    public static function Add($module, $path=CORE_PATH) {
+    public static function Add($module, $path=PIHA_CORE_PATH) {
         $module = 'modules' . DS . $module . DS;
         $abs_module = $path . DS . $module;
         if (is_dir( $abs_module )) {
@@ -54,7 +55,7 @@ abstract class AModule {
         $configs = is_array($configs) ? $configs : (is_string($configs) ? self::file($configs) : null);
         if ($configs) {
             foreach($configs as $key => $config) {
-                self::GetModule($key)->configure($config);
+                self::GetInstance($key)->configure($config);
             }
         }
     }
@@ -77,23 +78,17 @@ abstract class AModule {
         return self::$modules[static::GetID()];
     }
 
-    public static function GetModule($module=null) {
-        $module = $module ? $module : static::GetID();
-        if (isset(self::$modules[$module])) {
-            return self::$modules[$module];
+    public static function GetInstance($id=null) {
+        $id = $id?:static::GetID();
+        if (isset(self::$modules[$id])) {
+            return self::$modules[$id];
         }
-        throw new Exception("Module $module not found");
+        throw new Exception("Module $id not found");
     }
 
     public function getObjectModule() {
         $className = get_called_class();
-        return self::GetModule($className::GetID());
-    }
-
-    public static function AddModuleMenu() {
-        foreach(self::$modules as $name => $className) {
-           //CBitrixMenu::GetParent()->Add($className::GetMenu());
-        }
+        return $className::GetInstance();
     }
 
     public function config($param, $default=null) {

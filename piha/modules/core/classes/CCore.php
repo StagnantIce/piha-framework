@@ -16,10 +16,6 @@ class CCore {
         return (time() + microtime()) - self::app()->start_time;
     }
 
-    public static function module($moduleName='core') {
-        return AModule::GetModule($moduleName);
-    }
-
     private $controller = null;
 
     /**
