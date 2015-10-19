@@ -140,6 +140,7 @@ class CController {
     }
 
     public function requireFile($path) {
+        $path = PIHA_BASE_PATH . DS . $path;
         if (!file_exists($path)) {
             throw new CCoreException("File $path not found! $message");
         }

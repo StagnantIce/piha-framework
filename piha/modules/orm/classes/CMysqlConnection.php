@@ -14,16 +14,21 @@ class CMysqlConnection {
     public static $numPages = 0;
     public static $last = '';
 
-    public function query($query) {
+    public static function q($query) {
         self::$last = $query;
         if (self::$conn->connect_errno) {
             printf("Соединение не удалось: %s\n", self::$conn->connect_error);
             exit();
         }
-        $this->_res = self::$conn->query($query);
-        if (!$this->_res) {
+        $res = self::$conn->query($query);
+        if (!$res) {
             throw new Exception($query . ' error' . self::$conn->error);
         }
+        return $res;
+    }
+
+    public function query($query) {
+        $this->_res = self::q($query);
         return $this->_res;
     }
 
@@ -60,15 +65,15 @@ class CMysqlConnection {
     }
 
     public static function transaction() {
-        self::$conn->query("START TRANSACTION");
+        self::q("START TRANSACTION");
     }
 
     public static function commit() {
-        self::$conn->query("COMMIT");
+        self::q("COMMIT");
     }
 
     public static function rollback() {
-        self::$conn->rollback();
+        self::q("ROLLBACK");
     }
 
     public static $column_cache = array();
@@ -77,7 +82,7 @@ class CMysqlConnection {
         if(!array_key_exists($table, self::$column_cache))
         {
             self::$column_cache[$table] = array();
-            $res = self::$conn->query("SHOW COLUMNS FROM $table");
+            $res = self::q("SHOW COLUMNS FROM $table");
             while($row = $res->fetch_assoc())
             {
                 self::$column_cache[$table][$row["Field"]] = preg_replace('/\(\d+\)/', '', $row['Type']);
@@ -88,9 +93,9 @@ class CMysqlConnection {
 
 
     public static function tableInsert($table, $prepareFields) {
-        $q = 'INSERT INTO `'.$table.'` ('. implode(', ', array_keys($prepareFields)). ') VALUES ('. implode(', ', array_values($prepareFields)) .')';
+        $q = 'INSERT INTO '.$table.' ('. implode(', ', array_keys($prepareFields)). ') VALUES ('. implode(', ', array_values($prepareFields)) .')';
         self::$last = $q;
-        self::$conn->query($q);
+        $res = self::q($q);
         return self::$conn->insert_id;
     }
 
@@ -99,12 +104,12 @@ class CMysqlConnection {
     }
 
     public static function tableUpdate($table, $prepareFields, $where = "") {
-        $q = 'UPDATE `'.$table .'` SET ';
+        $q = 'UPDATE '.$table .' SET ';
         foreach($prepareFields as $k => &$v) $v = $k.' = '.$v;
         $q .= implode(',', $prepareFields);
         $q .= $where;
         self::$last = $q;
-        self::$conn->query($q);
+        $res = $this->query($q);
         return self::affectedRows();
     }
 }

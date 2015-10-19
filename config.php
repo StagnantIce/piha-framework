@@ -12,6 +12,10 @@ return array(
 	),
 	COrmModule::GetID() =>  array(
 		'className' => 'CMysqlConnection',
+		'migrationPaths' => array(
+			'piha' => PIHA_MIGRATION_PATH,
+			'app'  => PIHA_BASE_PATH . DS . 'migrations'
+		),
 		'database' => array(
 		    'host' => '127.0.0.1',
 		    'login' => 'root',

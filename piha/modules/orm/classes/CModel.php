@@ -156,7 +156,7 @@ class CModel extends CDataObject {
         if (self::m()->_schema) {
             return self::m()->_schema;
         }
-        self::m()->_schema = new CMigration(self::tableName());
+        self::m()->_schema = new CMigration(self::tableName(), self::tableColumns());
         return self::m()->_schema;
     }
     /**
@@ -282,7 +282,7 @@ class CModel extends CDataObject {
       * @todo переписать на CQuery
       */
     public static function Parse($query, $fields = false) {
-        return self::fetch(self::execute($query), $fields);
+        return self::fetch(self::q()->setQuery($query)->execute(), $fields);
     }
     /**
       * Создает записи согласно sql запросу
@@ -293,7 +293,7 @@ class CModel extends CDataObject {
       * @todo переписать на CQuery
       */
     public static function ParseAll($query, $fields = false) {
-        return self::fetchAll(self::execute($query), $fields);
+        return self::fetchAll(self::q()->setQuery($query)->execute(), $fields);
     }
 
     /**
@@ -410,7 +410,6 @@ class CModel extends CDataObject {
     public static function StaticGetAll($where = array(), $fields = false) {
         CCore::Validate($where, array('int', 'array'), true);
         CCore::Validate($fields, array('string', 'array', 'boolean'), true);
-
         return self::parseAll(self::q()->where($where)->getQuery($fields), $fields);
     }
 

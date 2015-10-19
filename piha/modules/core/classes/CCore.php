@@ -56,6 +56,8 @@ class CCore {
     }
 
     public function start() {
-        $this->controller = new CRouter();
+        if (PIHA_CONSOLE == false) {
+            $this->controller = new CRouter();
+        }
     }
 }

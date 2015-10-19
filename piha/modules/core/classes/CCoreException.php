@@ -42,6 +42,9 @@ class CCoreException extends Exception {
      */
     public static function ErrorHandler($backtrace=1, $html=true) {
         $trace = '';
+        if (PIHA_CONSOLE) {
+            $html = false;
+        }
         $backtrace = is_numeric($backtrace) ? self::GetBacktrace($backtrace) : $backtrace;
         foreach ($backtrace as $k => $v) {
             array_walk($v['args'], function (&$item, $key) {

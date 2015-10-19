@@ -96,9 +96,9 @@ class CMigration {
         }
     }
 
-    public function quoteTableName($name)
+    public static function quoteTableName($name)
     {
-        return '`'.$name.'`';
+        return COrmModule::quoteTableName($name);
     }
 
     public function quoteColumnName($name)
@@ -117,22 +117,6 @@ class CMigration {
         }
         else
             return $type;
-    }
-
-    public function createTable($columns, $options=null)
-    {
-        $table = $this->_table;
-        $cols=array();
-        foreach($columns as $name=>$type)
-        {
-            if(is_string($name))
-                $cols[]="\t".$this->quoteColumnName($name).' '.$this->getColumnType($type);
-            else
-                $cols[]="\t".$type;
-        }
-        $sql="CREATE TABLE IF NOT EXISTS".$this->quoteTableName($table)." (\n".implode(",\n",$cols)."\n)";
-        $this->_q = $options===null ? $sql . ' DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci': $sql.' '.$options;
-        return $this->execute();
     }
 
     public function renameTable($newName)
@@ -163,7 +147,7 @@ class CMigration {
       * @param boolean $index Нужно ли индексы после создания таблицы
       * @return null
       */
-    public function createTable($index = false) {
+    public function createTable($index = false, $options = null) {
         $types = array();
         foreach($this->_columns as $key => $column) {
             if (is_array($column)) {
@@ -174,14 +158,14 @@ class CMigration {
         }
         $table = $this->_table;
         $cols=array();
-        foreach($columns as $name=>$type)
+        foreach($types as $name=>$type)
         {
             if(is_string($name))
                 $cols[]="\t".$this->quoteColumnName($name).' '.$this->getColumnType($type);
             else
                 $cols[]="\t".$type;
         }
-        $sql="CREATE TABLE IF NOT EXISTS".$this->quoteTableName($table)." (\n".implode(",\n",$cols)."\n)";
+        $sql="CREATE TABLE IF NOT EXISTS ".$this->quoteTableName($table)." (\n".implode(",\n",$cols)."\n)";
         $this->_q = $options===null ? $sql . ' DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci': $sql.' '.$options;
         $this->execute();
 

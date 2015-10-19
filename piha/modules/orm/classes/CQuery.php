@@ -142,9 +142,9 @@ class CQuery extends AExtendClass {
         } else {
             $q = ($this->_select ? 'SELECT SQL_CALC_FOUND_ROWS ' . $this->_select: $this->_delete) . $this->_from . $this->_join . ($this->_where ? ' WHERE ' . $this->_where: '') .$this->_group . ($this->_having ? ' HAVING ' . $this->_having: '') .$this->_order . $this->_limit;
         }
-        if ($this->_name) {
-            $q =  str_replace('*.', '`'. $this->_name . '`.',  $q);
-        }
+        //if ($this->_name) {
+        //    $q =  str_replace('*.', COrmModule::quoteTableName($this->_name),  $q);
+        //}
         CQuery::$last = $q;
         $this->_q = "";
         $this->_from = "";
@@ -244,7 +244,7 @@ class CQuery extends AExtendClass {
       * @return int - ID вставленной записи
       */
     public function insert(Array $fields = null) {
-        return self::tableInsert($this->_name, $this->prepare($fields));
+        return self::tableInsert($this->getName(), $this->prepare($fields));
     }
 
     /** @ignore */
@@ -252,7 +252,7 @@ class CQuery extends AExtendClass {
         if (!$fields) return array();
 
         $new_fields = array();
-        $types = self::tableFields($this->_name);
+        $types = self::tableFields($this->getName());
 
         foreach ($fields as $param => &$value) {
             // not field
@@ -326,7 +326,7 @@ class CQuery extends AExtendClass {
                     break;
                 }
             }
-            $param = COrmModule::GetInstance()->config('use_quotes') ? '`'.$param.'`' : $param;
+            $param = COrmModule::GetInstance()->config('database/use_quotes', true) ? '`'.$param.'`' : $param;
             $new_fields[$param] = $value;
         }
         return $new_fields;
@@ -342,7 +342,7 @@ class CQuery extends AExtendClass {
     public function update(Array $fields = null, $where = false) {
         $this->where($where);
         $where = $this->_where;
-        return self::tableUpdate($this->_name, $this->prepare($fields), $where ? ' WHERE ' . $where : '');
+        return self::tableUpdate($this->getName(), $this->prepare($fields), $where ? ' WHERE ' . $where : '');
     }
     /**
       * Удаляет данные согласную фильтру
@@ -457,7 +457,7 @@ class CQuery extends AExtendClass {
             $columns =  array_keys($this->_columns);
             $arr = array();
             foreach($columns as $column) {
-                $arr[] = "`{$this->_name}`.$column";
+                $arr[] = $this->getName() . ".`$column`";
             }
             return implode(', ', $arr);
         }
@@ -474,7 +474,7 @@ class CQuery extends AExtendClass {
         if (!$fields) {
             $this->_select = $this->getColumns();
         } else if (is_string($fields)) {
-            $this->_select = self::escape($fields). " ";
+            $this->_select = '`'. self::escape($fields). "` ";
         } else if (is_array($fields)) {
             $f = array();
             foreach($fields as $key => $value) {
@@ -488,7 +488,7 @@ class CQuery extends AExtendClass {
                     $field = $value;
                 }
                 if (isset($this->_columns[$field])) {
-                    $field = "`{$this->_name}`.$field";
+                    $field = $this->getName() . ".`$field`";
                 }
                 if (!is_numeric($key)) {
                     $field .= ' AS '. $value;
@@ -509,7 +509,7 @@ class CQuery extends AExtendClass {
       */
     public function from(Array $mixed = null) {
         if (!$mixed) {
-            $this->_from = " FROM `{$this->_name}` ";
+            $this->_from = " FROM " . $this->getName() . ' ';
         } else {
             foreach($mixed as $key => $value) {
                 if (is_numeric($key)) {
@@ -580,11 +580,11 @@ class CQuery extends AExtendClass {
                 $rel = $this->_columns[$f];
                 if (isset($rel['object'])) {
                     $tableName = self::GetTableName($rel['object']);
-                    $cond = "`{$name}`.ID = `{$this->_name}`.`{$f}`";
+                    $cond = "`{$name}`.ID = ".$this->getName().".`{$f}`";
                 } else {
                     if (is_string($name)) {
                         $tableName = $name;
-                        $cond = "`{$name}`.ID = `{$this->_name}`.`{$f}`";
+                        $cond = "`{$name}`.ID = ".$this->getName().".`{$f}`";
                     } elseif(is_array($name)) {
                         $tableName = $name = self::GetTableName($f);
                         $cond = $this->condition($name, 'AND', true);
@@ -670,8 +670,12 @@ class CQuery extends AExtendClass {
         return trim(preg_replace('/[^<>=\%]+/', '', $c));
     }
 
+    public function getName() {
+        return COrmModule::quoteTableName($this->_name);
+    }
+
     public function findAndReplaceTableName($value) {
-        return preg_replace('/\*\.[`]?([A-Za-z_0-9]+)/', "`{$this->_name}`.`$1`", $value);
+        return preg_replace('/\*\.[`]?([A-Za-z_0-9]+)/', $this->getName() . ".`$1`", $value);
     }
 
     /** @ignore */
@@ -771,13 +775,12 @@ class CQuery extends AExtendClass {
       * @return CQuery
       */
     public function where($mixed = false, $cond = 'AND') {
+        $where = false;
         if ($mixed) {
             if (is_numeric($mixed) || is_array($mixed) && key($mixed) === 0 && is_numeric(current($mixed))) {
                 $where = $this->condition(array('ID' => self::int($mixed)));
             } else if (is_array($mixed)) {
                 $where = $this->condition($mixed, $cond);
-            } else {
-                $where = '';
             }
         }
         if ($where) {

@@ -1,12 +1,12 @@
 <?php
 
-class COrmModule extends AModule {
+class COrmModule extends AModule implements IModule {
 
-    public function getRoot() {
+    public function getDir() {
         return __DIR__;
     }
 
-    public function getPaths() {
+    public function getDirPaths() {
         return array('classes', 'models');
     }
 
@@ -16,6 +16,11 @@ class COrmModule extends AModule {
 		$className = $this->config('className');
 		$className::$conn = new mysqli($db['host'], $db['login'], $db['password'], $db['name']);
 		$className::$conn->query("SET NAMES '".$db['encode']."'");
+    }
+
+    public static function quoteTableName($name)
+    {
+        return  '`'. (trim($name, '{}') <> $name ? self::GetInstance()->config('database/prefix', '') . trim($name, '{}') : $name) .'`';
     }
 }
 

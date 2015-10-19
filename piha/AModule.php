@@ -1,19 +1,14 @@
 <?php
 
 /** Класс для организации модулей */
+require 'IModule.php';
 
 abstract class AModule {
 
     private static $modules = array();
 
-    /** пути для автолоадера */
-    abstract function GetPaths();
-
-    /** путь до папки модуля */
-    abstract function GetRoot();
-
     public static function GetID() {
-        return basename(static::GetRoot());
+        return basename(static::getDir());
     }
 
     public static function file($path, $message = '') {
@@ -61,8 +56,8 @@ abstract class AModule {
     }
 
     private function autoloader($className) {
-        $root = $this->getRoot();
-        foreach( $this->getPaths() as $dir ) {
+        $root = static::getDir();
+        foreach( $this->getDirPaths() as $dir ) {
             $dir = strpos($dir, DS) === false ? $root . DS . $dir : $dir;
             $file = $dir . DS . $className. '.php';
             if (file_exists($file)) {
@@ -86,7 +81,7 @@ abstract class AModule {
         throw new Exception("Module $id not found");
     }
 
-    public function getObjectModule() {
+    public static function getObjectModule() {
         $className = get_called_class();
         return $className::GetInstance();
     }
