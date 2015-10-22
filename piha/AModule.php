@@ -1,39 +1,29 @@
 <?php
 
-/** Класс для организации модулей */
-require 'IModule.php';
+/**
+* AModule
+* класс для организации модулей
+*
+* @author Alexeew Artemiy <tria-aa@mail.ru>
+* @package piha
+*/
+
+namespace piha;
+
 
 abstract class AModule {
 
+    /** @var static array Массив объектов модулей */
     private static $modules = array();
 
     public static function GetID() {
         return basename(static::getDir());
     }
 
-    public static function file($path, $message = '') {
-        if (!file_exists($path)) {
-            throw new Exception("File $path not found! $message");
-        }
-        return require($path);
-    }
-
-    public static function Add($module, $path=PIHA_CORE_PATH) {
-        $module = 'modules' . DS . $module . DS;
-        $abs_module = $path . DS . $module;
-        if (is_dir( $abs_module )) {
-            // attach module.php
-            if (file_exists($abs_module . 'module.php')) {
-                require($abs_module . 'module.php');
-            }
-            // attach events.php
-            $eventFile = $abs_module . DS . 'events.php';
-            if (file_exists($eventFile)) {
-                require($eventFile);
-            }
-        } else {
-            throw new Exception("Module path $abs_module not found.");
-        }
+    public static function Add($module, $path=null) {
+        CAlias::path($module, array('modules', $module));
+        CAlias::requireFile('module.php', $module);
+        CAlias::includeFile('events.php', $module);
     }
 
     public static function AddAll() {
@@ -43,11 +33,11 @@ abstract class AModule {
     }
 
     public function configure($config=null) {
-        $this->getObjectModule()->config = is_array($config) ? $config : (is_string($config) ? self::file($config) : null);
+        $this->getObjectModule()->config = is_array($config) ? $config : (is_string($config) ? CAlias::requireFile($config) : null);
     }
 
     public static function ConfigureAll($configs) {
-        $configs = is_array($configs) ? $configs : (is_string($configs) ? self::file($configs) : null);
+        $configs = is_array($configs) ? $configs : (is_string($configs) ? CAlias::requireFile($configs) : null);
         if ($configs) {
             foreach($configs as $key => $config) {
                 self::GetInstance($key)->configure($config);
@@ -56,13 +46,13 @@ abstract class AModule {
     }
 
     private function autoloader($className) {
-        $root = static::getDir();
+        $className = explode('\\', $className);
+        $className = end($className) . '.php';
         foreach( $this->getDirPaths() as $dir ) {
-            $dir = strpos($dir, DS) === false ? $root . DS . $dir : $dir;
-            $file = $dir . DS . $className. '.php';
-            if (file_exists($file)) {
-                require_once($file);
-                return;
+            if (is_array($dir)) {
+                CAlias::includeFile($className, $dir);
+            } else {
+                CAlias::includeFile($className, array($dir));
             }
         }
     }
@@ -86,18 +76,18 @@ abstract class AModule {
         return $className::GetInstance();
     }
 
-    public function config($param, $default=null) {
+    public static function config($param, $default=null) {
         if (is_string($param)) {
-            $res = $this->config;
+            $res = static::GetInstance()->config;
             foreach(explode('/', $param) as $p) {
                 if (!array_key_exists($p, $res)) {
                     if(!is_null($default)) return $default;
-                    throw new Exception("Module '".static::GetID()."' config not found. Param with name '$param' not found in config.php");
+                    throw new \Exception("Module '".static::GetID()."' config not found. Param with name '$param' not found in config.php");
                 }
                 $res = $res[$p];
             }
             return $res;
         }
-        throw new Exception('Error '.static::GetID().'::config. Please, see documentation');
+        throw new \Exception('Error '.static::GetID().'::config. Please, see documentation');
     }
 }

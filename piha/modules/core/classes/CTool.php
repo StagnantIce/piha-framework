@@ -1,5 +1,7 @@
 <?php
 
+namespace piha\modules\core\classes;
+
 class CTool {
 
 	public static function in($scalarNeed, $mixedList) {

@@ -1,5 +1,11 @@
 <?php
 
+namespace piha\modules\core;
+
+use \piha\IModule;
+use \piha\AModule;
+use \piha\CAlias;
+
 class CCoreModule extends AModule implements IModule {
 
     public function getDir() {
@@ -7,9 +13,9 @@ class CCoreModule extends AModule implements IModule {
     }
 
     public function getDirPaths() {
-    	$paths = array('classes');
+    	$paths = array( array(self::GetID(), 'classes') );
         foreach ($this->config('paths') as $path) {
-        	$paths[] = PIHA_BASE_PATH . DS . $path;
+        	$paths[] = $path;
         }
         return $paths;
     }

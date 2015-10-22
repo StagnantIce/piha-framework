@@ -7,6 +7,7 @@
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 * @package piha
 */
+namespace piha\modules\core\classes;
 
 
 abstract class AExtendClass {

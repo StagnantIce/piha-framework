@@ -1,5 +1,7 @@
 <?php
 
+namespace piha\modules\core\classes;
+
 class CCore {
 
     private $start_time = null;
@@ -37,7 +39,7 @@ class CCore {
             }
         }
         if (!$empty && !$v) {
-            self::ThrowException("Empty value not expected.");
+            throw new CCoreException("Empty value not expected.");
         }
         if ($types) {
             $types = (array)$types;

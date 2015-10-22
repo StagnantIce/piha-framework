@@ -1,4 +1,5 @@
 <?php
+namespace piha\modules\orm\classes;
 
 /**
 * CMysqlConnection

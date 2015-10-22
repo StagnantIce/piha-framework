@@ -1,5 +1,7 @@
 <?php
 
+namespace piha;
+
 interface IModule {
 	/**
 	  * Return absolute module path

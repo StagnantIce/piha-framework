@@ -6,6 +6,9 @@
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 * @package piha
 */
+namespace piha\modules\core\classes;
+use piha\modules\core\CCoreModule;
+use piha\CAlias;
 
 class CController {
 
@@ -121,30 +124,30 @@ class CController {
         if ($params) {
             extract($params, EXTR_SKIP);
         }
-        $this->viewPath = CCoreModule::GetInstance()->config('viewPath') . DS .  $this->id . DS . $this->action_id . '.php';
-        $this->layoutPath = CCoreModule::GetInstance()->config('layoutPath') . DS . $this->layout .'.php';
+        //$this->viewPath = CAlias::path(array(CCoreModule::Config('viewPath'))) . DS .  $this->id . DS . $this->action_id . '.php';
+        //$this->layoutPath = CCoreModule::Config('layoutPath') . DS . $this->layout .'.php';
 
         if ($this->layout) {
-            $this->requireFile($this->layoutPath);
+            $this->requireFile($this->layout .'.php', CCoreModule::Config('layoutPath'));
         } else {
             $this->content();
         }
     }
 
+    public function requireFile($file, $alias) {
+        $file = CAlias::file($file, $alias);
+        if (!file_exists($file)) {
+            throw new CCoreException("File {$file} not found.");
+        }
+        require($file);
+    }
+
     public function part($path, $name) {
-        $this->requireFile(CCoreModule::GetInstance()->config('viewPath') . DS .  $path . DS . $name . '.php');
+        $this->requireFile($name . '.php', CCoreModule::Config('viewPath'));
     }
 
     public function content() {
-        $this->requireFile($this->viewPath);
-    }
-
-    public function requireFile($path) {
-        $path = PIHA_BASE_PATH . DS . $path;
-        if (!file_exists($path)) {
-            throw new CCoreException("File $path not found! $message");
-        }
-        return require($path);
+        $this->requireFile(CAlias::path(array($this->id, $this->action_id)) . '.php', CCoreModule::Config('viewPath'));
     }
 
     /**

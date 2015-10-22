@@ -1,5 +1,11 @@
 <?php
 
+namespace piha\modules\orm;
+
+use \piha\IModule;
+use \piha\AModule;
+//use \piha\modules\orm\classes\CMysqlConnection;
+
 class COrmModule extends AModule implements IModule {
 
     public function getDir() {
@@ -7,14 +13,17 @@ class COrmModule extends AModule implements IModule {
     }
 
     public function getDirPaths() {
-        return array('classes', 'models');
+        return array(
+            array(self::GetID(), 'classes'),
+            array(self::GetID(), 'models')
+        );
     }
 
     public function configure($config=null) {
     	parent::configure($config);
 		$db = $this->config('database');
 		$className = $this->config('className');
-		$className::$conn = new mysqli($db['host'], $db['login'], $db['password'], $db['name']);
+		$className::$conn = new \mysqli($db['host'], $db['login'], $db['password'], $db['name']);
 		$className::$conn->query("SET NAMES '".$db['encode']."'");
     }
 

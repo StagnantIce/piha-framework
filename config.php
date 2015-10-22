@@ -1,17 +1,17 @@
 <?php
 
 return array(
-	CCoreModule::GetID() => array(
+	'core' => array(
 		'homeController' => 'home/index',
 		'paths' => array(
-			'controllers',
-			'models'
+			array(__DIR__, 'controllers'),
+			array(__DIR__, 'models')
 		),
-		'viewPath' => 'views',
-		'layoutPath' => 'views' . DS . 'layouts'
+		'viewPath' => array(__DIR__, 'views'),
+		'layoutPath' => array(__DIR__, 'views', 'layouts')
 	),
-	COrmModule::GetID() =>  array(
-		'className' => 'CMysqlConnection',
+	'orm' =>  array(
+		'className' => 'piha\modules\orm\classes\CMysqlConnection',
 		'migrationPaths' => array(
 			'piha' => PIHA_MIGRATION_PATH,
 			'app'  => PIHA_BASE_PATH . DS . 'migrations'

@@ -1,5 +1,7 @@
 <?php
 
+namespace piha\modules\core\classes;
+
 /**
 * класс CCoreException
 * класс для работы с исключениями
@@ -9,7 +11,7 @@
 * @namespace
 */
 
-class CCoreException extends Exception {
+class CCoreException extends \Exception {
     private $backtrace='';
     public function __construct($message, $code = 0, Exception $previous = null) {
         $this->backtrace = self::GetBacktrace(1);
