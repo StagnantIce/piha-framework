@@ -17,7 +17,7 @@ class CBitrixConnection {
     public function query($query) {
         global $DB;
         CQuery::$last = $query;
-        if (!is_object($DB)) throw new Exception("No bitrix connect ". serialize($DB));
+        if (!is_object($DB)) throw new \Exception("No bitrix connect ". serialize($DB));
         $this->_res = $DB->Query($query);
         return $this->_res;
     }

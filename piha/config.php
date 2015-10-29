@@ -1,15 +1,19 @@
 <?php
 
 return array(
-    'core' => array(
-        'homeController' => 'home/index',
-        'paths' => array(
+    'piha' => array(
+        'autoload' => array(
             array(__DIR__, 'controllers'),
             array(__DIR__, 'models')
-        ),
+        )
+    ),
+    'core' => array(
+        'homeController' => 'home/index',
         'configFile' => __FILE__,
         'viewPath' => array(__DIR__, 'views'),
-        'layoutPath' => array(__DIR__, 'views', 'layouts')
+        'layoutPath' => array(__DIR__, 'views', 'layouts'),
+        'cleanView' => true,
+        'prettyUrl' => true
     ),
     'orm' =>  array(
         'className' => 'piha\modules\orm\classes\CMysqlConnection',

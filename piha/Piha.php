@@ -2,22 +2,34 @@
 
 use piha\CAlias;
 use piha\AModule;
+use piha\IModule;
+use piha\modules\core\classes\CRouter;
 
 require 'CAlias.php';
+require 'AModule.php';
+require 'IModule.php';
 
-class Piha {
+class Piha extends AModule implements IModule {
 
     private $start_time = null;
-    private static $app = null;
+
+    public function getDir() {
+        return __DIR__;
+    }
 
     public static function autoloader($className) {
-        if (strpos($className, 'piha\\') !== false) {
-            $className = explode('\\', $className);
+        //if (strpos($className, 'piha\\') !== false) {
+        $className = explode('\\', $className);
+        if ($className[0] === 'piha') {
             array_shift($className);
             array_unshift($className, '@piha');
             $fileName = end($className) . '.php';
             array_pop($className);
             CAlias::requireFile($fileName, $className);
+        } else {
+            foreach(self::app()->config('autoload', array()) as $path) {
+                CAlias::includeFile(end($className) . '.php', $path);
+            }
         }
     }
 
@@ -27,17 +39,23 @@ class Piha {
 
     private $controller = null;
 
-    public function app(Array $modules=null, Array $config=null) {
-        if (!self::$app) {
+    public static function app(Array $modules=null, Array $config=null) {
+        if (!self::HasInstance()) {
             if (!$modules) {
                 throw new \Exception('Piha modules not defined');
             }
-            self::$app = new self($modules, $config);
+            $app = new self($modules);
+            self::SetInstance($app);
+
+            $config = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
+            AModule::ConfigureAll($config);
+
+            $app->start();
         }
-        return self::$app;
+        return self::GetInstance();
     }
 
-    private function __construct(Array $modules, Array $config=null, $route=false) {
+    private function __construct(Array $modules) {
         CAlias::path('@piha', __DIR__);
         CAlias::path('@modules', array('@piha', 'modules'));
 
@@ -48,10 +66,9 @@ class Piha {
         foreach($modules as $module) {
             AModule::Add($module);
         }
+    }
 
-        $config = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
-        AModule::ConfigureAll($config);
-
+    private function start() {
         defined('PIHA_CONSOLE') or define('PIHA_CONSOLE', false);
         defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
 

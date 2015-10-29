@@ -24,7 +24,7 @@ abstract class AModule {
         $alias = '@'.$module;
         CAlias::path($alias, array('@modules', $module));
         $obj = CAlias::requireFile('module.php', $alias);
-        self::$modules[$obj->GetID()] = $obj;
+        self::SetInstance($obj);
         CAlias::includeFile('events.php', $alias);
     }
 
@@ -41,12 +41,20 @@ abstract class AModule {
         }
     }
 
+    public static function HasInstance() {
+        return isset(self::$modules[static::GetID()]);
+    }
+
+    public static function SetInstance($obj) {
+        self::$modules[basename($obj->getDir())] = $obj;
+    }
+
     public static function GetInstance($id=null) {
         $id = $id?:static::GetID();
         if (isset(self::$modules[$id])) {
             return self::$modules[$id];
         }
-        throw new Exception("Module $id not found");
+        throw new \Exception("Module $id not found");
     }
 
     public static function getObjectModule() {

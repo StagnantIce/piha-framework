@@ -23,7 +23,7 @@ class COrmModule extends AModule implements IModule {
 		$db = $this->config('database');
 		$className = $this->config('className');
         $conn = $className::$conn;
-        if (!is_null($conn)) {
+        if (is_null($conn)) {
     		$className::$conn = new \mysqli($db['host'], $db['login'], $db['password'], $db['name']);
     		$className::$conn->query("SET NAMES '".$db['encode']."'");
         }

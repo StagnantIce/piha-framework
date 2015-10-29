@@ -18,20 +18,27 @@ class CController {
     public $location = '';
     public $id;
     public $action_id;
+    public $view_id;
     public $viewPath;
     public $layoutPath;
+    public $layout = null;
+    private $layoutRendering = false;
 
     /** @ignore */
     public function __construct($action) {
         $this->location = $_SERVER['PHP_SELF'];
         $this->action_id = $action;
         $this->id = static::GetID();
-        $method = self::METHOD_NAME . $action;
+        $method = self::METHOD_NAME . ucfirst($action);
         if (method_exists($this, $method)) {
+            $this->beforeAction($this->action_id);
             $this->$method();
         } else {
-            throw new BadMethodCallException(get_called_class().'->'.$method);
+            throw new CCoreException('Bad method call ' . get_called_class().'->'.$method);
         }
+    }
+
+    public function beforeAction($action) {
     }
 
     /**
@@ -44,14 +51,25 @@ class CController {
 
     /**
       * Возвращает путь для вызова экшена
-      * @param string $actionName имя экешна без "action" вначале
+      * @param string $action_id имя экешна без "action" вначале
       * @return string Путь для вызова экшена
       */
-    public function getUrl($actionName) {
-        if (strpos($actionName, '/') > 0) {
-            return $this->location . '?'. self::PARAM_NAME . '=' . $actionName;
+    public function url($action_id=null) {
+        if (CCoreModule::Config('prettyUrl', false)) {
+            if (strpos($action_id, '/') > 0) {
+                $route = parse_url('/' . $action_id);
+            } else {
+              $route = parse_url('/' . static::GetID() . '/' . $action_id);
+            }
+            $route = '/' . trim($route['path'], '/');
+            return $route;
         }
-        return $this->location . '?' . self::PARAM_NAME. '=' . static::GetID() . '/' . $actionName;
+        $action_id = $action_id ?: $this->action_id;
+        if (strpos($action_id, '/') > 0) {
+            return $this->location . '?'. CRouter::PARAM_NAME . '=' . $action_id;
+        }
+
+        return $this->location . '?' . CRouter::PARAM_NAME. '=' . static::GetID() . '/' . $action_id;
     }
 
     /**
@@ -119,16 +137,20 @@ class CController {
       * @param array $params список параметров
       * @return null
       */
-    public function render($path = null, Array $params = null) {
-        unset($_POST, $_GET, $_REQUEST);
+    public function render($view_id = null, Array $params = null) {
+        if (CCoreModule::Config('cleanView', true)) {
+            unset($_POST, $_GET, $_REQUEST);
+        }
         if ($params) {
             extract($params, EXTR_SKIP);
         }
-        //$this->viewPath = CAlias::path(array(CCoreModule::Config('viewPath'))) . DS .  $this->id . DS . $this->action_id . '.php';
-        //$this->layoutPath = CCoreModule::Config('layoutPath') . DS . $this->layout .'.php';
+
+        $this->view_id = $view_id ?: $this->action_id;
 
         if ($this->layout) {
+            $this->layoutRendering = true;
             $this->requireFile($this->layout .'.php', CCoreModule::Config('layoutPath'));
+            $this->layoutRendering = false;
         } else {
             $this->content();
         }
@@ -142,12 +164,12 @@ class CController {
         require($file);
     }
 
-    public function part($path, $name) {
-        $this->requireFile($name . '.php', CCoreModule::Config('viewPath'));
+    public function part($name) {
+        $this->requireFile($name . '.php', $this->layoutRendering ? CCoreModule::Config('layoutPath') : CCoreModule::Config('viewPath'));
     }
 
     public function content() {
-        $this->requireFile(CAlias::path(array($this->id, $this->action_id)) . '.php', CCoreModule::Config('viewPath'));
+        $this->requireFile(CAlias::path(array($this->id, $this->view_id)) . '.php', CCoreModule::Config('viewPath'));
     }
 
     /**
@@ -157,6 +179,7 @@ class CController {
       */
     public function redirect($url = '') {
         if (!$url) $url = $this->location;
+        $url = $this->url($url);
         //CAjaxHelper::clear();
         Header("Location: $url");
         exit();

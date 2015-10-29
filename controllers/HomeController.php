@@ -1,7 +1,5 @@
 <?php
 
-//namespace controller;
-
 use piha\modules\core\classes\CController;
 
 class HomeController extends CController {
