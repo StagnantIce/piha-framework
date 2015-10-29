@@ -6,6 +6,7 @@
 *
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 */
+namespace piha\modules\orm\classes;
 
 /* Adapter for DB and CDBResult */
 class CBitrixConnection {

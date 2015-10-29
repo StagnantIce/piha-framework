@@ -7,7 +7,12 @@
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 * @todo сделать подзапросы, рефакторинг
 */
+namespace piha\modules\orm\classes;
 
+use piha\modules\orm\COrmModule;
+use piha\modules\core\classes;
+use piha\modules\core\classes\AExtendClass;
+use piha\modules\core\classes\CTool;
 
 class CQuery extends AExtendClass {
     public static $last = '';
@@ -33,7 +38,7 @@ class CQuery extends AExtendClass {
     private static $secret = '';
 
     public static function extend() {
-        return array(COrmModule::GetInstance()->config('dbClass', 'CMysqlConnection'));
+        return array(COrmModule::GetInstance()->config('className', 'CMysqlConnection'));
     }
     /**
       * Конструктор
@@ -53,7 +58,7 @@ class CQuery extends AExtendClass {
     }
 
     public static function GetTableName($className) {
-        $object = CModel::model($className);
+        $object = CModel::m($className);
         if ($object) {
             return $object->_name;
         }
@@ -61,7 +66,7 @@ class CQuery extends AExtendClass {
     }
 
     public static function fromModel($className) {
-        $object = $className::model();
+        $object = $className::m();
         $q = new CQuery($object->_name, $object->_columns, $object->getRelations());
         unset($object);
         $q->_object = $className;
@@ -142,9 +147,6 @@ class CQuery extends AExtendClass {
         } else {
             $q = ($this->_select ? 'SELECT SQL_CALC_FOUND_ROWS ' . $this->_select: $this->_delete) . $this->_from . $this->_join . ($this->_where ? ' WHERE ' . $this->_where: '') .$this->_group . ($this->_having ? ' HAVING ' . $this->_having: '') .$this->_order . $this->_limit;
         }
-        //if ($this->_name) {
-        //    $q =  str_replace('*.', COrmModule::quoteTableName($this->_name),  $q);
-        //}
         CQuery::$last = $q;
         $this->_q = "";
         $this->_from = "";
@@ -416,7 +418,7 @@ class CQuery extends AExtendClass {
                 $data[] = self::parseRow($r, $fields);
             }
         }
-        return $data;
+        return $one ? false : $data;
     }
     /**
       * Добавляет к запросу конструкцию DELETE
@@ -538,6 +540,18 @@ class CQuery extends AExtendClass {
         return $this->condition($result, $type, true);
     }
 
+    private function getFieldRelation($fieldName) {
+        if (isset($this->_relations[$fieldName])) {
+            return $this->_relations[$fieldName];
+        }
+        foreach($this->_relations as $key => $values) {
+            if ($values[0] === $fieldName) {
+                return $this->_relations[$key];
+            }
+        }
+        return false;
+    }
+
     /**
       * Добавляет к запросу конструкцию JOIN
       * @param array|string $table имя таблицы, связующего поля или список таблиц/полей, а также условий для связки
@@ -559,71 +573,48 @@ class CQuery extends AExtendClass {
       * @return CQuery
       */
     public function join($table = false, $rewrite_cond = "", $type = "") {
-        if (!$table) {
-            return;
-        }
+        if (!$table) return;
         $q = "";
         if (!is_array($table)) $table = array($table);
-        foreach($table as $f => $name) {
-            if (is_numeric($f)) {
-                if (is_string($name)) {
-                    $f = $name;
-                } else {
-                    throw new CCoreException("JOIN Error. Expected string value in Array.");
+        foreach($table as $alias => $field) {
+            $tableName = $cond = '';
+
+            $alias = is_numeric($alias) ? $field : $alias;
+
+            if (is_string($field) && is_string($alias)) {
+                if (isset($this->_columns[$alias]) || $this->getFieldRelation($alias)) {
+                    list($alias, $field) = array($field, $alias);
                 }
-            }
-            $cond = '';
-            if (!isset($this->_columns[$f]) && is_string($name) && isset($this->_columns[$name])) {
-                list($f, $name) = array($name, $f);
-            }
-            if (isset($this->_columns[$f])) {
-                $rel = $this->_columns[$f];
-                if (isset($rel['object'])) {
-                    $tableName = self::GetTableName($rel['object']);
-                    $cond = "`{$name}`.ID = ".$this->getName().".`{$f}`";
-                } else {
-                    if (is_string($name)) {
-                        $tableName = $name;
-                        $cond = "`{$name}`.ID = ".$this->getName().".`{$f}`";
-                    } elseif(is_array($name)) {
-                        $tableName = $name = self::GetTableName($f);
-                        $cond = $this->condition($name, 'AND', true);
+
+                if ($rel = $this->getFieldRelation($field)) {
+                    list($own_field, $class, $class_field, $type_f) = array_pad($rel, 4, null);
+                    $class_field = is_string($class_field) ? array('*.'.$own_field => '#.'.$class_field) : $class_field;
+                    $cond = $this->getJoinCondition($alias, $class_field);
+                    $tableName = self::GetTableName($class);
+                } else if (isset($this->_columns[$field]) && $rel = $this->_columns[$field]) {
+                    if (isset($rel['object'])) {
+                        $tableName = self::GetTableName($rel['object']);
+                        $cond = "`{$alias}`.ID = ".$this->getName().".`{$field}`";
                     } else {
-                        throw new CCoreException("JOIN Error. Expected string or array for $f column.");
+                        throw new CAFTException("JOIN Error. Expected string or array for '$field' field.");
                     }
+                } else {
+                    $tableName = $field;
                 }
+            } else if (is_array($field)) {
+                $className = isset($field['__object']) ? $field['__object'] : $alias;
+                $tableName = class_exists($className) ? self::GetTableName($className) : $alias;
+                $asName = isset($field['__table']) ? $field['__table'] : $tableName;
+                unset($field['__table'], $field['__object']);
+                $cond = $this->getJoinCondition($asName, $field);
+                $alias = $asName;
+                unset($asName);
             } else {
-                if (is_array($name)) {
-                    $className = isset($name['__object']) ? $name['__object'] : $f;
-                    $tableName = class_exists($className) ? self::GetTableName($className) : $f;
-                    $asName = isset($name['__table']) ? $name['__table'] : $tableName;
-                    unset($name['__table'], $name['__object']);
-
-                    $cond = $this->getJoinCondition($asName, $name);
-                    $name = $asName;
-                    unset($asName);
-                } elseif (is_string($name)) {
-                    if (isset($this->_relations[$name])) {
-                        $rel = $this->_relations[$name];
-                        if (is_array($rel) && isset($rel['object']) && isset($rel['condition'])) {
-                            $cond = $this->getJoinCondition($name, $rel['condition']);
-                            $tableName = self::GetTableName($rel['object']);
-                        } else {
-                            throw new CCoreException("JOIN Error. Expected array value with object and relation key in relations.");
-                        }
-                    } else {
-                        $tableName = $name;
-                        if (!is_numeric($f)) {
-                            $name = $f;
-                        }
-                    }
-                } else {
-                    throw new CCoreException("JOIN Error. Expected string value in Array.");
-                }
+                throw new CAFTException("JOIN Error. Not support format.");
             }
 
-            $cond = $rewrite_cond ? $this->getJoinCondition($name, $rewrite_cond) : $cond;
-            $q .= " $type JOIN `{$tableName}` AS {$name} " . ($cond ?  ' ON '. $cond : '');
+            $cond = $rewrite_cond ? $this->getJoinCondition($alias, $rewrite_cond) : $cond;
+            $q .= " $type JOIN `{$tableName}` AS {$alias} " . ($cond ?  ' ON '. $cond : '');
         }
         $this->_join .= $q;
         return $this;
@@ -813,7 +804,7 @@ class CQuery extends AExtendClass {
                 if (is_numeric($field)) {
                     $res[0] .= ' '.$order;
                 } else {
-                    $res[] = $field. ' '.$order;
+                    $res[] = $this->findAndReplaceTableName($field). ' '.$order;
                 }
             }
             $this->_order = ' ORDER BY '. implode(', ', $res).' ';

@@ -8,6 +8,7 @@
 * @abstract
 * @todo refactoring....
 */
+namespace piha\modules\orm\classes;
 
 class CAdminModel {
 

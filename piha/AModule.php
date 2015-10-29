@@ -21,15 +21,11 @@ abstract class AModule {
     }
 
     public static function Add($module, $path=null) {
-        CAlias::path($module, array('modules', $module));
-        CAlias::requireFile('module.php', $module);
-        CAlias::includeFile('events.php', $module);
-    }
-
-    public static function AddAll() {
-        foreach(func_get_args() as $module) {
-            self::Add($module);
-        }
+        $alias = '@'.$module;
+        CAlias::path($alias, array('@modules', $module));
+        $obj = CAlias::requireFile('module.php', $alias);
+        self::$modules[$obj->GetID()] = $obj;
+        CAlias::includeFile('events.php', $alias);
     }
 
     public function configure($config=null) {
@@ -43,24 +39,6 @@ abstract class AModule {
                 self::GetInstance($key)->configure($config);
             }
         }
-    }
-
-    private function autoloader($className) {
-        $className = explode('\\', $className);
-        $className = end($className) . '.php';
-        foreach( $this->getDirPaths() as $dir ) {
-            if (is_array($dir)) {
-                CAlias::includeFile($className, $dir);
-            } else {
-                CAlias::includeFile($className, array($dir));
-            }
-        }
-    }
-
-    public static function Register() {
-        self::$modules[static::GetID()] = new static;
-        spl_autoload_register(array(self::$modules[static::GetID()], 'autoloader'));
-        return self::$modules[static::GetID()];
     }
 
     public static function GetInstance($id=null) {

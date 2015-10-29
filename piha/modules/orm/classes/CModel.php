@@ -29,6 +29,10 @@
 * @method static array GetOrCreate(array $where) создает запись в БД если ее нет, и возвращает ее
 * @method static array Set(array|int $where, array $fields) делает, что и Update, но условие идет впереди
 */
+namespace piha\modules\orm\classes;
+
+use piha\modules\orm\COrmModule;
+use piha\modules\core\classes\CCore;
 
 class CModel extends CDataObject {
 
@@ -164,8 +168,8 @@ class CModel extends CDataObject {
       */
     public function __call($name, $ps) {
         $result = false;
-        if($this->_modelType === self::MODEL_TYPE_ARRAY && method_exists(self::model(), 'Static' . $name)) {
-            return call_user_func_array(array(self::model(), 'Static' . $name), $ps);
+        if($this->_modelType === self::MODEL_TYPE_ARRAY && method_exists(self::m(), 'Static' . $name)) {
+            return call_user_func_array(array(self::m(), 'Static' . $name), $ps);
         }
         return parent::__call($name, $ps);
     }

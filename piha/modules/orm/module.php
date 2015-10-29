@@ -2,9 +2,8 @@
 
 namespace piha\modules\orm;
 
-use \piha\IModule;
-use \piha\AModule;
-//use \piha\modules\orm\classes\CMysqlConnection;
+use piha\IModule;
+use piha\AModule;
 
 class COrmModule extends AModule implements IModule {
 
@@ -23,8 +22,11 @@ class COrmModule extends AModule implements IModule {
     	parent::configure($config);
 		$db = $this->config('database');
 		$className = $this->config('className');
-		$className::$conn = new \mysqli($db['host'], $db['login'], $db['password'], $db['name']);
-		$className::$conn->query("SET NAMES '".$db['encode']."'");
+        $conn = $className::$conn;
+        if (!is_null($conn)) {
+    		$className::$conn = new \mysqli($db['host'], $db['login'], $db['password'], $db['name']);
+    		$className::$conn->query("SET NAMES '".$db['encode']."'");
+        }
     }
 
     public static function quoteTableName($name)
@@ -33,4 +35,4 @@ class COrmModule extends AModule implements IModule {
     }
 }
 
-return COrmModule::Register();
+return new COrmModule();

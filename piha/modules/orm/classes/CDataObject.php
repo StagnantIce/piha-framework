@@ -7,8 +7,11 @@
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 * @abstract
 */
+namespace piha\modules\orm\classes;
 
-abstract class CDataObject implements IteratorAggregate, ArrayAccess {
+use piha\modules\core\classes\CCoreException;
+
+abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     /** @ignore */
 
     /* функции имеющие перед собой это слово могут быть вызваны как статические, без этого слова */

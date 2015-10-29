@@ -3,23 +3,6 @@
 namespace piha\modules\core\classes;
 
 class CCore {
-
-    private $start_time = null;
-    private static $app = null;
-    public static function app() {
-        if (!self::$app) {
-            self::$app = new self();
-            self::$app->start_time = time() + microtime();
-        }
-        return self::$app;
-    }
-
-    public function getTime() {
-        return (time() + microtime()) - self::app()->start_time;
-    }
-
-    private $controller = null;
-
     /**
       * Валидирует переменную на тип и пустоту, иначе вызывает исключение
       * @param mixed $v переменная для проверки
@@ -55,11 +38,5 @@ class CCore {
             }
         }
         return $v;
-    }
-
-    public function start() {
-        if (PIHA_CONSOLE == false) {
-            $this->controller = new CRouter();
-        }
     }
 }

@@ -8,10 +8,4 @@ interface IModule {
 	  * @return string equal __DIR__
 	  */
 	function GetDir();
-
-	/**
-	  * Return paths with module classes
-	  * @return Array of paths
-	  */
-	function GetDirPaths();
 }

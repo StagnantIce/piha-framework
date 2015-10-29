@@ -38,9 +38,9 @@ class CAlias {
 			$paths[] = isset(self::$aliases[$name]) ? self::$aliases[$name] : $name;
 		}
 		$path = self::trim(implode(self::$ds, $paths));
-		if ($mixed) {
+		if ($mixed && strpos($mixed, '@') !== false) {
 			if (!file_exists($path)) {
-				throw new \Exception("Path {$path} not found");
+				throw new \Exception("Path {$path} not found.");
 			}
 			self::$aliases[$mixed] = $path;
 		}

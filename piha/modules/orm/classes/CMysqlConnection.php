@@ -1,5 +1,4 @@
 <?php
-namespace piha\modules\orm\classes;
 
 /**
 * CMysqlConnection
@@ -8,9 +7,12 @@ namespace piha\modules\orm\classes;
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 */
 
+namespace piha\modules\orm\classes;
+use piha\modules\core\classes\CCoreException;
+
 class CMysqlConnection {
 
-    public static $conn; //mysqli
+    public static $conn = null; //mysqli
     private $_res = null;
     public static $numPages = 0;
     public static $last = '';
@@ -23,7 +25,7 @@ class CMysqlConnection {
         }
         $res = self::$conn->query($query);
         if (!$res) {
-            throw new Exception($query . ' error' . self::$conn->error);
+            throw new CCoreException($query . ' error' . self::$conn->error);
         }
         return $res;
     }

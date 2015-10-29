@@ -1,5 +1,6 @@
 <?php
 
+namespace piha\modules\orm\classes;
 
 class CMigration {
 
