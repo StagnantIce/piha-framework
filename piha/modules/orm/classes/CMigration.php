@@ -1,6 +1,8 @@
 <?php
 
 namespace piha\modules\orm\classes;
+use piha\modules\orm\COrmModule;
+use piha\CException;
 
 class CMigration {
 
@@ -49,13 +51,13 @@ class CMigration {
             // remove constrains
             if(preg_match_all('/CONSTRAINT `(.*)` FOREIGN KEY/', next($row), $matchArr)) {
                 foreach($matchArr[1] as $key) {
-                    try { $this->dropForeignKey($key); } catch(Exception $e){}
+                    try { $this->dropForeignKey($key); } catch(\Exception $e){}
                 }
             }
             // remove keys
             if(preg_match_all('/KEY `(.*)` \(/', $row[1], $matchArr)) {
                 foreach($matchArr[1] as $key) {
-                    try { $this->dropIndex($key); } catch(Exception $e){}
+                    try { $this->dropIndex($key); } catch(\Exception $e){}
                 }
             }
         }
@@ -76,10 +78,16 @@ class CMigration {
         foreach($this->_columns as $key => $column) {
             if (is_array($column)) {
                 if (isset($column['object']) && $model = $column['object']) {
+                    if (!class_exists($model)) {
+                        throw new CException("Class {$model} not found");
+                    }
+                    if (!in_array(__NAMESPACE__ . '\CModel', class_parents($model))) {
+                        throw new CException("Class {$model} is not instance of CModel");
+                    }
                     $name = $model::tableName();
                     $delete = isset($column['delete']) ? $column['delete']: null;
                     $update = isset($column['update']) ? $column['update']: null;
-                    $keyName = 'fk_' . strtolower($key) . '__' . str_replace($prefix, '', $this->_name) . '__' . str_replace($prefix, '', $name);
+                    $keyName = 'fk_' . strtolower($key) . '__' . str_replace($prefix, '', trim($this->_name, '{}')) . '__' . str_replace($prefix, '', trim($name, '{}'));
                     if (mb_strlen($keyName) > 30) {
                         $keyName = 'fk_' . strtolower($key) . '_'. md5($keyName);
                     }
@@ -171,7 +179,7 @@ class CMigration {
         $this->execute();
 
         if ($index) {
-            $this->createIndexTable();
+            $this->createIndexTable(false);
         }
     }
 

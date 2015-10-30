@@ -7,6 +7,7 @@
 * @author Alexeew Artemiy <tria-aa@mail.ru>
 */
 namespace piha\modules\orm\classes;
+use piha\CException;
 
 /* Adapter for DB and CDBResult */
 class CBitrixConnection {
@@ -17,7 +18,7 @@ class CBitrixConnection {
     public function query($query) {
         global $DB;
         CQuery::$last = $query;
-        if (!is_object($DB)) throw new \Exception("No bitrix connect ". serialize($DB));
+        if (!is_object($DB)) throw new CException("No bitrix connect ". serialize($DB));
         $this->_res = $DB->Query($query);
         return $this->_res;
     }
@@ -69,7 +70,7 @@ class CBitrixConnection {
         $dbRes = new CDBResult();
         $nPageSize = array("nPageSize" => $size, "iNumPage" => $numPage);
 
-        if ($count === false) throw new Exception("Not valid count query: ".  $countQuery);
+        if ($count === false) throw new CException("Not valid count query: ".  $countQuery);
 
         // init navigation session
         //$dbRes->NavStart();
@@ -98,7 +99,7 @@ class CBitrixConnection {
             return $ss;
         }
         global $DB;
-        if (!is_object($DB)) throw new Exception("No bitrix connect");
+        if (!is_object($DB)) throw new CException("No bitrix connect");
         return $DB->ForSql($string);
     }
 
@@ -152,7 +153,7 @@ class CBitrixConnection {
                     $DB->column_cache[$table][$ar["NAME"]] = $ar["TYPE"];
                 }
             } else {
-                throw new CCoreException("Table $table not exists, or db connect failed");
+                throw new CException("Table $table not exists, or db connect failed");
             }
         }
         return $DB->column_cache[$table];
@@ -237,7 +238,7 @@ class CBitrixConnection {
             }
             return call_user_func_array(array(&$this->_res, $name), $arguments);
         } else {
-            throw new CCoreException(sprintf('The required method "%s" does not exist for %s', $name, get_class($this)));
+            throw new CException(sprintf('The required method "%s" does not exist for %s', $name, get_class($this)));
         }
     }
 
@@ -253,7 +254,7 @@ class CBitrixConnection {
             if ($result instanceof CDBResult) {
                 $this->_res = $result;
             }else{
-                throw new CCoreException(sprintf('$result should be instanceof CDBResult, not %s', get_class($result)));
+                throw new CException(sprintf('$result should be instanceof CDBResult, not %s', get_class($result)));
             }
         }else{
             $this->_res = new CDBResult();

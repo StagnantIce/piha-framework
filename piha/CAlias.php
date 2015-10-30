@@ -25,7 +25,7 @@ class CAlias {
 				$folders = $mixed;
 				$mixed = '';
 			} else if (!isset(self::$aliases[$mixed])) {
-				throw new \Exception("Alias name {$mixed} not found");
+				throw new CException("Alias name {$mixed} not found");
 			} else {
 				return self::$aliases[$mixed];
 			}
@@ -40,7 +40,7 @@ class CAlias {
 		$path = self::trim(implode(self::$ds, $paths));
 		if ($mixed && strpos($mixed, '@') !== false) {
 			if (!file_exists($path)) {
-				throw new \Exception("Path {$path} not found.");
+				throw new CException("Path {$path} not found.");
 			}
 			self::$aliases[$mixed] = $path;
 		}
@@ -50,7 +50,7 @@ class CAlias {
 	public static function requireFile($name, $path=null) {
 		$file = self::file($name, $path);
 		if (!file_exists($file)) {
-			throw new \Exception("File {$file} not found.");
+			throw new CException("File {$file} not found.");
 		}
 		return require($file);
 	}

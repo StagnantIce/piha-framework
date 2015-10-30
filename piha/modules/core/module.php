@@ -4,7 +4,6 @@ namespace piha\modules\core;
 
 use \piha\IModule;
 use \piha\AModule;
-use \piha\CAlias;
 
 class CCoreModule extends AModule implements IModule {
 

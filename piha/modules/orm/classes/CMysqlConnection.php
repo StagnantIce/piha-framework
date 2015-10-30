@@ -8,7 +8,7 @@
 */
 
 namespace piha\modules\orm\classes;
-use piha\modules\core\classes\CCoreException;
+use piha\CException;
 
 class CMysqlConnection {
 
@@ -25,7 +25,7 @@ class CMysqlConnection {
         }
         $res = self::$conn->query($query);
         if (!$res) {
-            throw new CCoreException($query . ' error' . self::$conn->error);
+            throw new CException($query . ' error' . self::$conn->error);
         }
         return $res;
     }

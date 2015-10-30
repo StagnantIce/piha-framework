@@ -9,7 +9,7 @@
 */
 namespace piha\modules\orm\classes;
 
-use piha\modules\core\classes\CCoreException;
+use piha\CException;
 
 abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     /** @ignore */
@@ -71,9 +71,9 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
                     return array($class, $method);
                 }
             }
-            throw new CCoreException('Not callable ' . $class . '::' . $method);
+            throw new CException('Not callable ' . $class . '::' . $method);
         }
-        throw new CCoreException('Not callable method');
+        throw new CException('Not callable method');
     }
 
     // ONE_TIME to oneTime, _ONE_TIME to _oneTime
@@ -113,7 +113,7 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
         } else if (is_callable($method) && substr($method, 0, 6) === 'array_') {
             return call_user_func_array($method, array_merge(array($this->_data), $ps));
         }
-        throw new CCoreException(get_class($this).' do not have a method named '.$method);
+        throw new CException(get_class($this).' do not have a method named '.$method);
     }
 
     /** @ignore */
@@ -123,14 +123,14 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
         foreach($vars as &$vv) $vv = $this->toKey($vv);
         foreach($data as $k => $v) {
             if (in_array(strtoupper($k), $vars)) {
-                throw new CCoreException('Can not redeclare property '.$k.'. Property exists ');
+                throw new CException('Can not redeclare property '.$k.'. Property exists ');
             }
             if (!is_numeric($k)) {
                 $this->_data[strtoupper($k)] = $v;
             } else if (!is_numeric($v)) {
                 $this->_data[strtoupper($v)] = null;
             } else {
-                throw new CCoreException(__CLASS__.' error in __construct');
+                throw new CException(__CLASS__.' error in __construct');
             }
         }
     }
@@ -144,7 +144,7 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
             $callable = self::className(self::STATIC_PREFIX . $method);
             return call_user_func_array($callable, $ps);
         }
-        throw new CCoreException(__CLASS__.' do not have a static method named '.$method);
+        throw new CException(__CLASS__.' do not have a static method named '.$method);
     }
     /**
       * Проверить, является ли объект массивом или наследником CDataObject
@@ -210,7 +210,7 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     }
     /** @ignore */
     public function BadPropertyCallException($name) {
-        throw new CCoreException(get_class($this) . ' do not have a property named "'. $name . '".');
+        throw new CException(get_class($this) . ' do not have a property named "'. $name . '".');
     }
     /** @ignore */
     public function property_exists($name) {

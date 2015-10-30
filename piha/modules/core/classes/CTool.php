@@ -1,8 +1,21 @@
 <?php
 
 namespace piha\modules\core\classes;
+use piha\CException;
 
 class CTool {
+
+    /**
+      * Получить из массива значение по имени ключа
+      * @param string $arr массив со значениями
+      * @param string $key имя ключа
+      * @param string $default значение по умолчанию в случае отсутствия параметра
+      * @return mixed значение параметра
+      */
+    public static function fromArray(Array $arr, $key, $default = null) {
+        if (isset($arr[$key])) return $arr[$key];
+        return $default;
+    }
 
 	public static function in($scalarNeed, $mixedList) {
 		if (is_scalar($scalarNeed)) {
@@ -13,7 +26,7 @@ class CTool {
 				return in_array($scalarNeed, $mixedList);
 			}
 		}
-		throw new CCoreException("Error in function");
+		throw new CException("Error in function");
 	}
 
 	public static function random($length = 8, $chars = 'Aa1') {
@@ -28,7 +41,7 @@ class CTool {
         	$rnd .= '0123456789';
         }
         if ($rnd == '' || $length == 0) {
-            throw new CCoreException("No letters to generate");
+            throw new CException("No letters to generate");
         }
         return substr(str_shuffle($rnd), 0, $length);
     }

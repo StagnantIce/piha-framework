@@ -8,6 +8,7 @@
 * @package piha
 */
 namespace piha\modules\core\classes;
+use piha\CException;
 
 
 abstract class AExtendClass {
@@ -20,7 +21,7 @@ abstract class AExtendClass {
       * @return array список классов для наследования
       */
     public static function extend() {
-        throw new CCoreException("Extend function not define");
+        throw new CException("Extend function not define");
     }
 
     protected function getObject($className) {
@@ -61,7 +62,7 @@ abstract class AExtendClass {
             $res =  call_user_func_array(array(&$object, $name), $ps);
             return $res;
         }
-        throw new CCoreException("Method $method not found in objects ". get_called_class() . ',' . implode(', ', static::extend()));
+        throw new CException("Method $method not found in objects ". get_called_class() . ',' . implode(', ', static::extend()));
     }
 
     public static function __callStatic($name, $ps) {
@@ -75,7 +76,7 @@ abstract class AExtendClass {
         if ($className) {
             return call_user_func_array(array($className, $name), $ps);
         }
-        throw new CCoreException("Static method $method not found in objects ".  get_called_class() . ',' . implode(', ', static::extend()));
+        throw new CException("Static method $method not found in objects ".  get_called_class() . ',' . implode(', ', static::extend()));
     }
 
 
@@ -87,7 +88,7 @@ abstract class AExtendClass {
             $object = $this->getObject($className);
             return $object->__get($key);
         }
-        throw new CCoreException(get_called_class() . ',' . implode(', ', static::extend()) . ' do not have a property named "'. $key . '".');
+        throw new CException(get_called_class() . ',' . implode(', ', static::extend()) . ' do not have a property named "'. $key . '".');
     }
 
     public function __set($key, $value) {
@@ -99,6 +100,6 @@ abstract class AExtendClass {
             $object = $this->getObject($className);
             return $object->__set($key, $value);
         }
-        throw new CCoreException(get_called_class() . ',' . implode(', ', static::extend()) . ' do not have a property named "'. $key . '".');
+        throw new CException(get_called_class() . ',' . implode(', ', static::extend()) . ' do not have a property named "'. $key . '".');
     }
 }

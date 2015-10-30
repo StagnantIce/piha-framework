@@ -10,7 +10,7 @@
 namespace piha\modules\orm\classes;
 
 use piha\modules\orm\COrmModule;
-use piha\modules\core\classes;
+use piha\CException;
 use piha\modules\core\classes\AExtendClass;
 use piha\modules\core\classes\CTool;
 
@@ -49,7 +49,7 @@ class CQuery extends AExtendClass {
       */
     public function __construct($mixed = '', $columns = array(), $relations = array()) {
         $mixed = trim($mixed);
-        if (strpos($mixed, ' ') > 0) {
+        if (strpos($mixed, ' ') > 0 || in_array(strtoupper($mixed), array('ROLLBACK', 'COMMIT'))) {
             $this->_q = $mixed;
         }
         $this->_name = $mixed;
@@ -62,7 +62,7 @@ class CQuery extends AExtendClass {
         if ($object) {
             return $object->_name;
         }
-        throw new CCoreException("CQuery link error. Class $className not exists");
+        throw new CException("CQuery link error. Class $className not exists");
     }
 
     public static function fromModel($className) {
@@ -176,12 +176,12 @@ class CQuery extends AExtendClass {
     public function object($mixed = false, $cond = 'AND') {
         if ($mixed) {
             if ($this->_where) {
-                throw new CCoreException("Use objects() method with where().");
+                throw new CException("Use objects() method with where().");
             }
             $this->where($mixed, $cond);
         }
         if (!$object = $this->_object) {
-            throw new CCoreException("Execute object() method without object.");
+            throw new CException("Execute object() method without object.");
         }
         if (!$this->_execute) {
             $this->execute();
@@ -197,12 +197,12 @@ class CQuery extends AExtendClass {
     public function objects($mixed = false, $cond = 'AND') {
         if ($mixed) {
             if ($this->_where) {
-                throw new CCoreException("Use objects() method with where().");
+                throw new CException("Use objects() method with where().");
             }
             $this->where($mixed, $cond);
         }
         if (!$object = $this->_object) {
-            throw new CCoreException("Execute objects() method without object.");
+            throw new CException("Execute objects() method without object.");
         }
         if (!$this->_execute) {
             $this->execute();
@@ -284,7 +284,7 @@ class CQuery extends AExtendClass {
                             $value = '"' . self::escape($value) . '"';
                         } else {
                             $value = serialize($value);
-                            throw new CCoreException("Error prepare $param field with not string value $value.");
+                            throw new CException("Error prepare $param field with not string value $value.");
                         }
                     break;
                     case 'real':
@@ -296,7 +296,7 @@ class CQuery extends AExtendClass {
                             $value = 0;
                         } else {
                             $value = serialize($value);
-                            throw new CCoreException("Error prepare $param field with not float value $value.");
+                            throw new CException("Error prepare $param field with not float value $value.");
                         }
                     break;
                     case 'int':
@@ -307,7 +307,7 @@ class CQuery extends AExtendClass {
                             $value = 0;
                         } else {
                             $value = serialize($value);
-                            throw new CCoreException("Error prepare $param field with not int value $value.");
+                            throw new CException("Error prepare $param field with not int value $value.");
                         }
                     break;
                     case 'datetime':
@@ -320,11 +320,11 @@ class CQuery extends AExtendClass {
                             $value = '"' . self::escape($value) . '"';
                         } else {
                             $value = serialize($value);
-                            throw new CCoreException("Error prepare $param field with not date/time value $value.");
+                            throw new CException("Error prepare $param field with not date/time value $value.");
                         }
                     break;
                     default:
-                        throw new CCoreException("Prepare error. Unexpected field type ". $types[$param] .'.');
+                        throw new CException("Prepare error. Unexpected field type ". $types[$param] .'.');
                     break;
                 }
             }
@@ -388,25 +388,23 @@ class CQuery extends AExtendClass {
             if ($groups) {
                 $d = &$data;
                 foreach($groups as $group) {
-                    if (!isset($r[$group])) throw new CCoreException('Key for group by "'.$group. '" not found in ' . implode(',', array_keys($r)));
+                    if (!isset($r[$group])) throw new CException('Key for group by "'.$group. '" not found in ' . implode(',', array_keys($r)));
                     if (!isset($d[$r[$group]])) $d[$r[$group]] = array();
                     $d = &$d[$r[$group]];
                 }
-                if ($fields) {
-                    if (count($d) === 0) {
-                        $d = self::parseRow($r, $fields);
-                        if ($flat===false) {
-                            $d = array($d);
-                        }
-                    } else {
-                        if ($flat===true) {
-                            throw new CCoreException("Unexpected array value with flat parameter.");
-                        }
-                        if (!is_numeric(key($d))) {
-                            $d = array($d);
-                        }
-                        $d[] = self::parseRow($r, $fields);
+                if (count($d) === 0) {
+                    $d = self::parseRow($r, $fields);
+                    if ($flat===false) {
+                        $d = array($d);
                     }
+                } else {
+                    if ($flat===true) {
+                        throw new CException("Unexpected array value with flat parameter.");
+                    }
+                    if (!is_numeric(key($d))) {
+                        $d = array($d);
+                    }
+                    $d[] = self::parseRow($r, $fields);
                 }
                 if ($one) {
                     return $data;
@@ -448,7 +446,7 @@ class CQuery extends AExtendClass {
             } elseif (is_numeric($ar)) {
                 $r[] = intval($ar);
             } else {
-                throw new CCoreException("Range Invalid ". serialize($v));
+                throw new CException("Range Invalid ". serialize($v));
             }
         }
         return '('. implode(', ', $r) . ')';
@@ -596,7 +594,7 @@ class CQuery extends AExtendClass {
                         $tableName = self::GetTableName($rel['object']);
                         $cond = "`{$alias}`.ID = ".$this->getName().".`{$field}`";
                     } else {
-                        throw new CAFTException("JOIN Error. Expected string or array for '$field' field.");
+                        throw new CException("JOIN Error. Expected string or array for '$field' field.");
                     }
                 } else {
                     $tableName = $field;
@@ -610,7 +608,7 @@ class CQuery extends AExtendClass {
                 $alias = $asName;
                 unset($asName);
             } else {
-                throw new CAFTException("JOIN Error. Not support format.");
+                throw new CException("JOIN Error. Not support format.");
             }
 
             $cond = $rewrite_cond ? $this->getJoinCondition($alias, $rewrite_cond) : $cond;
@@ -688,7 +686,7 @@ class CQuery extends AExtendClass {
 
             if (in_array($key, array('OR', 'AND', 'XOR'))) {
                 if (!is_array($value)) {
-                    throw new CCoreException("Error condition. Expected array for key $key.");
+                    throw new CException("Error condition. Expected array for key $key.");
                 }
                 if (is_array(current($value))) {
                     // OR => array( array( ) )
@@ -739,7 +737,7 @@ class CQuery extends AExtendClass {
                 $value = self::range($value);
                 $c = ($c == "=" ? " IN " : " NOT IN ");
             } else {
-                return new Exception('Error condition. Unexpected type param.');
+                return new CException('Error condition. Unexpected type param.');
             }
 
             // prepare key

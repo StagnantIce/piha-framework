@@ -4,7 +4,9 @@ use piha\CAlias;
 use piha\AModule;
 use piha\IModule;
 use piha\modules\core\classes\CRouter;
+use piha\modules\core\classes\CRequest;
 
+require 'CException.php';
 require 'CAlias.php';
 require 'AModule.php';
 require 'IModule.php';
@@ -37,12 +39,21 @@ class Piha extends AModule implements IModule {
         return (time() + microtime()) - self::app()->start_time;
     }
 
-    public $router = null;
+    private $request = null;
+    private $router = null;
+
+    public static function request() {
+        return self::app()->request;
+    }
+
+    public static function router() {
+        return self::app()->router;
+    }
 
     public static function app(Array $modules=null, Array $config=null) {
         if (!self::HasInstance()) {
             if (!$modules) {
-                throw new \Exception('Piha modules not defined');
+                throw new CException('Piha modules not defined');
             }
             self::SetInstance(new self($modules));
 
@@ -72,6 +83,7 @@ class Piha extends AModule implements IModule {
         defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
 
         if (PIHA_CONSOLE == false && PIHA_INCLUDE == false) {
+            $this->request = new CRequest();
             $this->router = new CRouter();
             $this->router->runController();
         }

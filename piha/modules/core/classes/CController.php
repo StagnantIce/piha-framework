@@ -9,6 +9,7 @@
 namespace piha\modules\core\classes;
 use piha\modules\core\CCoreModule;
 use piha\CAlias;
+use piha\CException;
 
 class CController {
 
@@ -20,8 +21,8 @@ class CController {
     public $viewPath;
     public $layoutPath;
     public $layout = null;
-    private $router = null;
     private $layoutRendering = false;
+    private $viewParams = null;
 
     /** @ignore */
     public function __construct($action) {
@@ -35,7 +36,7 @@ class CController {
             $this->beforeAction($this->action_id);
             $this->$method();
         } else {
-            throw new CCoreException('Bad method call ' . get_called_class().'->'.$method);
+            throw new CException('Bad method call ' . get_called_class().'->'.$method);
         }
     }
 
@@ -56,7 +57,7 @@ class CController {
       * @return string Путь для вызова экшена
       */
     public function url($route = '', Array $params=null) {
-        return \Piha::app()->router->buildUrl($route, $params);
+        return \Piha::router()->buildUrl($route, $params);
     }
 
     /**
@@ -67,39 +68,6 @@ class CController {
     public function renderJSON($arr = array()) {
         CAjaxHelper::send($arr);
     }
-
-    /**
-      * Получить из массива значение по имени ключа
-      * @param string $arr массив со значениями
-      * @param string $key имя ключа
-      * @param string $default значение по умолчанию в случае отсутствия параметра
-      * @return mixed значение параметра
-      */
-    public function fromArray(Array $arr, $key, $default = null) {
-        if (isset($arr[$key])) return $arr[$key];
-        return $default;
-    }
-
-    /**
-      * Получить из массива $_GET значение по имени ключа
-      * @param string $key имя ключа
-      * @param string $default значение по умолчанию в случае отсутствия параметра
-      * @return mixed значение параметра
-      */
-    public function get($key, $default = null) {
-        return $this->fromArray($_GET, $key, $default);
-    }
-
-    /**
-      * Получить из массива $_POST значение по имени ключа
-      * @param string $key имя ключа
-      * @param string $default значение по умолчанию в случае отсутствия параметра
-      * @return mixed значение параметра
-      */
-    public function post($key, $default = null) {
-        return $this->fromArray($_POST, $key, $default);
-    }
-
     /**
       * Установить, проверить существование или вытащить flash сообщение
       * @param string $type тип сообщения
@@ -128,35 +96,41 @@ class CController {
         if (CCoreModule::Config('cleanView', true)) {
             unset($_POST, $_GET, $_REQUEST);
         }
-        if ($params) {
-            extract($params, EXTR_SKIP);
-        }
-
         $this->view_id = $view_id ?: $this->action_id;
 
         if ($this->layout) {
+            $this->viewParams = $params;
             $this->layoutRendering = true;
-            $this->requireFile($this->layout .'.php', CCoreModule::Config('layoutPath'));
+            $this->requireFile($this->layout .'.php', CCoreModule::Config('layoutPath'), $params);
             $this->layoutRendering = false;
         } else {
-            $this->content();
+            $this->content($params);
         }
     }
 
-    public function requireFile($file, $alias) {
+    public function requireFile($file, $alias, $context) {
         $file = CAlias::file($file, $alias);
         if (!file_exists($file)) {
-            throw new CCoreException("File {$file} not found.");
+            throw new CException("File {$file} not found.");
+        }
+        if ($context) {
+            extract($context, EXTR_SKIP);
+            unset($context);
         }
         require($file);
     }
 
-    public function part($name) {
-        $this->requireFile($name . '.php', $this->layoutRendering ? CCoreModule::Config('layoutPath') : CCoreModule::Config('viewPath'));
+    /*public function __get($name) {
+        if (isset($this->params[$name])) return $this->params[$name];
+        throw new CException("Param {$name} not found.");
+    }*/
+
+    public function part($name, Array $params = null) {
+        $this->requireFile($name . '.php', $this->layoutRendering ? CCoreModule::Config('layoutPath') : CCoreModule::Config('viewPath'), $params);
     }
 
     public function content() {
-        $this->requireFile(CAlias::path(array($this->id, $this->view_id)) . '.php', CCoreModule::Config('viewPath'));
+        $this->requireFile(CAlias::path(array($this->id, $this->view_id)) . '.php', CCoreModule::Config('viewPath'), $this->viewParams);
     }
 
     /**

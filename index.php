@@ -2,4 +2,4 @@
 
 require_once('piha/Piha.php');
 
-Piha::app(array('core', 'orm'), require(__DIR__ . '/config.php'));
+Piha::app(array('core', 'orm', 'bootstrap'), require(__DIR__ . '/config.php'));

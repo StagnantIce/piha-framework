@@ -1,6 +1,7 @@
 <?php
 
 namespace piha\modules\core\classes;
+use piha\CException;
 
 class CCore {
     /**
@@ -22,7 +23,7 @@ class CCore {
             }
         }
         if (!$empty && !$v) {
-            throw new CCoreException("Empty value not expected.");
+            throw new CException("Empty value not expected.");
         }
         if ($types) {
             $types = (array)$types;
@@ -30,11 +31,11 @@ class CCore {
             if ($type == 'integer') $type = 'int';
             if ($type == 'double') $type = 'float';
             if ($type != 'object' && !in_array($type, $types)) {
-                throw new CCoreException("Type $type not expected. Expect " . implode(', ', $types) . '.');
+                throw new CException("Type $type not expected. Expect " . implode(', ', $types) . '.');
             } else if ($type == 'object' && !in_array(get_class($v), $types)) {
-                throw new CCoreException("Object ".get_class($v)." not expected. Expect " . implode(', ', $types) . '.');
+                throw new CException("Object ".get_class($v)." not expected. Expect " . implode(', ', $types) . '.');
             } else if (!in_array($type, $types)) {
-                throw new CCoreException("Unknown type $type in ". implode(', ', $types));
+                throw new CException("Unknown type $type in ". implode(', ', $types));
             }
         }
         return $v;

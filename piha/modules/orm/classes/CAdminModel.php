@@ -9,6 +9,7 @@
 * @todo refactoring....
 */
 namespace piha\modules\orm\classes;
+use piha\CException;
 
 class CAdminModel {
 
@@ -35,7 +36,7 @@ class CAdminModel {
             foreach($relations as $key => $modelName) {
                 $model = CModel::model($modelName);
                 if (!is_object($model)) {
-                    throw new Exception ($modelName . ' model does not exists');
+                    throw new CException ($modelName . ' model does not exists');
                 }
                 $keys = $model->getFieldKeys();
                 $getters = $model->_getters;
@@ -136,7 +137,7 @@ class CAdminModel {
         $model = self::m();
         $where = static::filterToWhere($filters);
         if ($where === false) {
-            throw new Exception("Тип фильтра не определен");
+            throw new CException("Тип фильтра не определен");
         }
 
         $methods = array();
