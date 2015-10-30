@@ -13,7 +13,7 @@ class Piha extends AModule implements IModule {
 
     private $start_time = null;
 
-    public function getDir() {
+    public static function getDir() {
         return __DIR__;
     }
 
@@ -37,20 +37,19 @@ class Piha extends AModule implements IModule {
         return (time() + microtime()) - self::app()->start_time;
     }
 
-    private $controller = null;
+    public $router = null;
 
     public static function app(Array $modules=null, Array $config=null) {
         if (!self::HasInstance()) {
             if (!$modules) {
                 throw new \Exception('Piha modules not defined');
             }
-            $app = new self($modules);
-            self::SetInstance($app);
+            self::SetInstance(new self($modules));
 
             $config = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
             AModule::ConfigureAll($config);
 
-            $app->start();
+            self::GetInstance()->start();
         }
         return self::GetInstance();
     }
@@ -73,7 +72,8 @@ class Piha extends AModule implements IModule {
         defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
 
         if (PIHA_CONSOLE == false && PIHA_INCLUDE == false) {
-            $this->controller = new CRouter();
+            $this->router = new CRouter();
+            $this->router->runController();
         }
     }
 }

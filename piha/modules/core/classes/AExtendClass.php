@@ -19,7 +19,9 @@ abstract class AExtendClass {
       * Функция для определения списка классов для наследования
       * @return array список классов для наследования
       */
-    abstract public static function extend();
+    public static function extend() {
+        throw new CCoreException("Extend function not define");
+    }
 
     protected function getObject($className) {
         if (!isset($this->_objects[ $className ])) {

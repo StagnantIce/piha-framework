@@ -8,7 +8,7 @@ use \piha\CAlias;
 
 class CCoreModule extends AModule implements IModule {
 
-    public function getDir() {
+    public static function getDir() {
         return __DIR__;
     }
 }

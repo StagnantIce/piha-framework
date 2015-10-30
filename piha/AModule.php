@@ -54,7 +54,7 @@ abstract class AModule {
         if (isset(self::$modules[$id])) {
             return self::$modules[$id];
         }
-        throw new \Exception("Module $id not found");
+        throw new \Exception("Module '{$id}' not found");
     }
 
     public static function getObjectModule() {

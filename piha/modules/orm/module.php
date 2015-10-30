@@ -7,7 +7,7 @@ use piha\AModule;
 
 class COrmModule extends AModule implements IModule {
 
-    public function getDir() {
+    public static function getDir() {
         return __DIR__;
     }
 

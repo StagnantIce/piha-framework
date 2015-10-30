@@ -14,22 +14,23 @@ class CController {
 
     const METHOD_NAME = 'action';
 
-    /** @var string $location путь до скрипта, вызвавший action */
-    public $location = '';
     public $id;
     public $action_id;
     public $view_id;
     public $viewPath;
     public $layoutPath;
     public $layout = null;
+    private $router = null;
     private $layoutRendering = false;
 
     /** @ignore */
     public function __construct($action) {
-        $this->location = $_SERVER['PHP_SELF'];
-        $this->action_id = $action;
+        $this->action_id = $action ?: 'index';
         $this->id = static::GetID();
-        $method = self::METHOD_NAME . ucfirst($action);
+    }
+
+    public function run() {
+        $method = self::METHOD_NAME . ucfirst($this->action_id);
         if (method_exists($this, $method)) {
             $this->beforeAction($this->action_id);
             $this->$method();
@@ -54,22 +55,8 @@ class CController {
       * @param string $action_id имя экешна без "action" вначале
       * @return string Путь для вызова экшена
       */
-    public function url($action_id=null) {
-        if (CCoreModule::Config('prettyUrl', false)) {
-            if (strpos($action_id, '/') > 0) {
-                $route = parse_url('/' . $action_id);
-            } else {
-              $route = parse_url('/' . static::GetID() . '/' . $action_id);
-            }
-            $route = '/' . trim($route['path'], '/');
-            return $route;
-        }
-        $action_id = $action_id ?: $this->action_id;
-        if (strpos($action_id, '/') > 0) {
-            return $this->location . '?'. CRouter::PARAM_NAME . '=' . $action_id;
-        }
-
-        return $this->location . '?' . CRouter::PARAM_NAME. '=' . static::GetID() . '/' . $action_id;
+    public function url($route = '', Array $params=null) {
+        return \Piha::app()->router->buildUrl($route, $params);
     }
 
     /**
