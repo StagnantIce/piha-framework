@@ -2,8 +2,6 @@
 
 namespace piha\modules\core\classes;
 
-use piha\CException;
-
 
 class CHtml {
 
@@ -15,7 +13,7 @@ class CHtml {
 		return new static();
 	}
 
-	private function start($name, $options, $close=false) {
+	protected function start($name, $options, $close=false) {
 		$text = '';
 		$attrs = array();
 		foreach($options as $attr => $value) {
@@ -25,9 +23,11 @@ class CHtml {
 			}
 			$attrs[] = $attr . '="'.$value.'"';
 		}
-		$this->html .= '<'.$name. ' '. implode(' ', $attrs) . ($close ? '/':'') .'>' . $text;
+		$this->html .= '<'.$name. ' '. implode(' ', $attrs) . ($close && $text ==='' ? '/':'') .'>' . $text;
 		if (!$close) {
 			$this->stack[] = $name;
+		} else if ($text !== '') {
+			$this->html .= '</'.$name.'>';
 		}
 		return $this;
 	}

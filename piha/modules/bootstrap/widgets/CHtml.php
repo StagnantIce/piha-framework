@@ -9,47 +9,37 @@ use piha\modules\core\classes\CTool;
 
 class CHtml extends CBaseHtml {
 
-	const BUTTON_NONE = '';
-	const BUTTON_INFO = 'btn-info';
-	const BUTTON_PRIMARY = 'btn-primary';
-	const BUTTON_SUCCESS = 'btn-success';
-	const BUTTON_WARNING = 'btn-warning';
-	const BUTTON_DANGER = 'btn-danger';
-	const BUTTON_INVERSE = 'btn-inverse';
+	const BUTTON_NONE = 'btn';
+	const BUTTON_INFO = 'btn btn-info';
+	const BUTTON_PRIMARY = 'btn btn-primary';
+	const BUTTON_SUCCESS = 'btn btn-success';
+	const BUTTON_WARNING = 'btn btn-warning';
+	const BUTTON_DANGER = 'btn btn-danger';
+	const BUTTON_INVERSE = 'btn btn-inverse';
 
-	public function button($options) {
+	public function a($options) {
 		$default = array(
-			'href' => 'javascript:void(0)',
-			'class' => 'btn'
+			'href' => 'javascript:void(0)'
 		);
-		if (isset($options['class'])) {
-			$default['class'] .= ' '.$options['class'];
-			unset($options['class']);
-		}
 		return parent::a(array_replace($default, $options));
 	}
 
 	private function group($options) {
 		$stack = $this->popStack();
-		if (isset($options['label'])) {
-			$this
+		$this
 			->div(array('class' => 'control-group'))
-				->label(array('class' =>'control-label', 'for' => $options['name']))
-					->text($options['label'])
-				->end()
+				->label(array('class' =>'control-label', 'for' => $options['name'], 'text' => $options['label']), true)
 				->div(array('class' => 'controls'));
-			unset($options['label']);
-		}
+		unset($options['label']);
 		return $options;
 	}
 
-	public function selectGroup($options) {
+	public function selectGroup(Array $arr, $options) {
 		$stack = $this->popStack();
 		$options = $this->group($options);
 		parent::select($options);
-		$options = CTool::fromArray($options, 'options', array());
 		$htmlOptions = array();
-		foreach($options as $key => $text) {
+		foreach($arr as $key => $text) {
 			$htmlOptions[] = array('value' => $key, 'text' => $text);
 		}
 		$this

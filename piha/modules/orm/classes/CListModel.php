@@ -14,6 +14,10 @@ class CListModel extends CListData {
 		$this->q = $q;
 	}
 
+	public function getModel() {
+		return $this->q->getModel();
+	}
+
 	public function getData() {
 		$this->data = $this->data ?: $this->q->limit(($this->getCurrentPage() -1) * $this->getPageSize(), $this->getPageSize())->execute()->all(false, 'ID');
 		$this->total = CQuery::getTotal();

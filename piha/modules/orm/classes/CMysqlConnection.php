@@ -112,7 +112,7 @@ class CMysqlConnection {
         $q .= implode(',', $prepareFields);
         $q .= $where;
         self::$last = $q;
-        $res = $this->query($q);
+        $res = self::q($q);
         return self::affectedRows();
     }
 }

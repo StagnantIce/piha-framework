@@ -237,7 +237,7 @@ class CModel extends CDataObject {
     }
 
     public static function q() {
-        return new CQuery(self::tableName(), self::m()->_columns);
+        return CQuery::fromModel(static::className());
     }
 
     /**

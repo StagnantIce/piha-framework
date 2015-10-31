@@ -5,6 +5,7 @@ namespace piha\modules\bootstrap\widgets;
 use piha\CException;
 use piha\modules\core\classes\CTool;
 use piha\modules\core\classes\CListData;
+use piha\modules\orm\classes\CListModel;
 
 class CGridWidget {
 
@@ -14,6 +15,16 @@ class CGridWidget {
 	public function __construct(CListData $l, Array $columns = null) {
 		$this->listData = $l;
 		$this->columns = $columns ?: array();
+		if ($this->listData instanceof CListModel) {
+			$model = $this->listData->getModel();
+			if ($model) {
+				foreach($this->columns as &$column) {
+					if (!isset($column['label'])) {
+						$column['label'] = $model::getLabel($column['id']);
+					}
+				}
+			}
+		}
 	}
 
 	public function render() {

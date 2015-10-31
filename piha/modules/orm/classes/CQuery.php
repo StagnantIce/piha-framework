@@ -73,6 +73,10 @@ class CQuery extends AExtendClass {
         return $q;
     }
 
+    public function getModel() {
+        return $this->_object;
+    }
+
     /**
       * Конструктор для вызова из цепочки
       * @param string $tableName имя таблицы или запрос к БД
