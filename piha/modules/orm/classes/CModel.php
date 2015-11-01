@@ -51,7 +51,12 @@ class CModel extends CDataObject {
     /** @var array Список сохраненных связей */
     public $_relations = array();
 
-    /** @var array Список связей моделей */
+    /** @var array Список связей моделей
+      * <pre>
+      * array('myModelsAdvanced' => array('ID',          'CMyModels',   'MY_MODEL_id', self::RELATION_TYPE_MANY))
+      * array('myModelSimple'    => array('RELATION_ID', 'CMyRelation', 'ID',          self::RELATION_TYPE_ONE))
+      * </pre>
+    */
     public function getRelations() {
         return array();
     }
@@ -145,14 +150,14 @@ class CModel extends CDataObject {
       * @param array $data Данные для инициализации
       * @return CModel
       */
-    public function __construct(Array $data = null) {
-        if (!is_null($data)) {
-            $this->_modelType = self::MODEL_TYPE_OBJECT;
+    public function __construct(Array $data = null, Array $defaults = null) {
+        $this->_modelType = self::MODEL_TYPE_OBJECT;
+        $columnDefaults = array();
+        foreach($this->_columns as $key => $column) {
+            $columnDefaults[$key] = is_array($column) && isset($column['default']) ? $column['default'] : null;
         }
-
-        if ($this->_modelType == self::MODEL_TYPE_OBJECT) {
-            parent::__construct($data);
-        }
+        $defaults = $defaults ? array_intersect_key(array_replace($columnDefaults, $defaults), $columnDefaults) : $columnDefaults;
+        parent::__construct($data, $defaults);
     }
 
     private $_schema = '';
@@ -181,21 +186,27 @@ class CModel extends CDataObject {
             if (isset($this->_relations[$name])) {
                 return $this->_relations[$name];
             }
+            /** advanced define */
             $relations = static::m()->getRelations();
             if (isset($relations[$name])) {
-                $r = $relations[$name];
-                $object = $r['object'];
-                $type = isset($r['type']) ? $r['type']: self::RELATION_TYPE_MANY;
-                $condition = $r['condition'];
-                $where = array();
-                foreach($this->toArray() as $k => $v) {
-                    if (isset($condition['*.'.$k])) {
-                        $where[str_replace('#', '*', $condition['*.'.$k])] = $v;
+                list($field, $class, $class_field, $type) = array_pad($relations[$name], 4, null);
+                $type = $type ?: self::RELATION_TYPE_MANY;
+                if (is_array($class_field)) {
+                    $where = array();
+                    foreach($this->toArray() as $k => $v) {
+                        if (isset($class_field['*.'.$k])) {
+                            $where[str_replace('#', '*', $class_field['*.'.$k])] = $v;
+                        }
                     }
+                } elseif (is_string($class_field)) {
+                    $where = array('*.'.$class_field => $this->$field);
+                } else {
+                    throw new CException("Error relation $name");
                 }
-                $this->_relations[$name] = $type == self::RELATION_TYPE_MANY ? $object::GetAll($where) : $object::Get($where);
+                $this->_relations[$name] = $type == self::RELATION_TYPE_MANY ? $class::GetAll($where) : $class::Get($where);
                 return $this->_relations[$name];
             }
+            /** simple define */
             $key = strtoupper($name . '_ID');
             if (isset($this->_columns[$key]) && isset($this->_columns[$key]['object'])) {
                 $object = $this->_columns[$key]['object'];
@@ -335,11 +346,13 @@ class CModel extends CDataObject {
 
     /**
       * Пытается удалить объект из БД по ID
+      * @param array $by список параметров для условия
       * @return boolean удалось ли удалить объект по ID
       */
-    public function Erase() {
-        if ($id = $this->GetID()) {
-            return self::Delete( $id );
+    public function Remove(Array $by = null) {
+        $where = $by ? $this->toArray($by) : $this->GetID();
+        if ($where) {
+            return self::Delete( $where );
         }
         return false;
     }
@@ -378,14 +391,20 @@ class CModel extends CDataObject {
     /**
       * @ignore
       */
-    public static function StaticGetArrayName($where = array(), $inner = array(), $order = array()) {
-        return self::StaticGetArray('ID', 'NAME', $where, $inner, $order);
+    public static function StaticGetArray($key='ID', $field=false, $where = array(), $order = array()) {
+        return self::q()->where($where)->order($order)->all($field, $key);
     }
     /**
       * @ignore
       */
-    public static function StaticGetArrayCode($where = array(), $inner = array()) {
-        return self::StaticGetArray('ID', 'CODE', $where, $inner);
+    public static function StaticGetArrayName($where = array(), $order = array()) {
+        return self::StaticGetArray('ID', 'NAME', $where, $order);
+    }
+    /**
+      * @ignore
+      */
+    public static function StaticGetArrayCode($where = array(), $order = array()) {
+        return self::StaticGetArray('ID', 'CODE', $where, $order);
     }
     /**
       * @ignore

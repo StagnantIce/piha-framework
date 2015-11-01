@@ -38,12 +38,8 @@ class CHtml extends CBaseHtml {
 		$stack = $this->popStack();
 		$options = $this->group($options);
 		parent::select($options);
-		$htmlOptions = array();
-		foreach($arr as $key => $text) {
-			$htmlOptions[] = array('value' => $key, 'text' => $text);
-		}
 		$this
-			->each($htmlOptions)
+			->each($this->arrayToAttributes($arr, 'value', 'text'))
 				->option();
 		return $this->endStack($stack);
 	}
@@ -51,7 +47,7 @@ class CHtml extends CBaseHtml {
 	public function inputGroup($options) {
 		$stack = $this->popStack();
 		$options = $this->group($options);
-		parent::input($options, true);
+		$this->input($options, true);
 		return $this->endStack($stack);
 	}
 
@@ -62,5 +58,12 @@ class CHtml extends CBaseHtml {
 			'class' => 'form-horizontal'
 		);
 		return parent::form(array_replace($default, $options));
+	}
+
+	public function input($options) {
+		$default = array(
+			'type' => 'text'
+		);
+		return parent::input(array_replace($default, $options));
 	}
 }

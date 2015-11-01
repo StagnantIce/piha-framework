@@ -16,7 +16,11 @@ class CForm extends CHtml {
 	protected function start($name, $options, $close=false) {
 		$className = get_class($this->_model);
 		if (isset($options['name'])) {
-			$options['name'] = $className . '['.$options['name'].']';
+			if (strpos($options['name'], '[') !== false) {
+				$options['name'] = $className . '['.substr($options['name'],0, strpos($options['name'], '[')).']' . substr($options['name'], strpos($options['name'], '['));
+			} else {
+				$options['name'] = $className . '['.$options['name'] .']';
+			}
 		}
 		if ($name === 'label' && !isset($options['text']) && isset($options['for'])) {
 			$options['text'] = $this->_model->getLabel($options['for']);

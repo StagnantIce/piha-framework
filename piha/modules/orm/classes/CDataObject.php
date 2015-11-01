@@ -18,8 +18,8 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     const STATIC_PREFIX = 'Static';
     /** @var данные объекта в виде массива */
     private $_data = array();
-    /** @var названия переменных объекта, хранящиеся в массиве $_data, формат array('id' => array('default' => null)) */
-    public $_columns = array();
+    /** @var дефолтовые значения переменных */
+    public $_defaults = array();
     /** @var события объекта, повешенные при помощи функции on */
     private static $_events = array();
 
@@ -117,15 +117,31 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     }
 
     /** @ignore */
-    public function __construct(Array $data = null) {
-        $data = $data === null ? $this->emptyArray() : array_replace($this->emptyArray(), $data);
-        $vars = array_keys(get_class_vars(get_class($this)));
-        foreach($vars as &$vv) $vv = $this->toKey($vv);
-        foreach($data as $k => $v) {
-            if (in_array(strtoupper($k), $vars)) {
-                throw new CException('Can not redeclare property '.$k.'. Property exists ');
+    public function __construct(Array $data = null, Array $defaults = null) {
+        if ($defaults) {
+            $this->_defaults = $defaults;
+            if ($data) {
+                $data = array_replace($defaults, $data);
+            } else {
+                $data = $defaults;
             }
-            if (!is_numeric($k)) {
+        } else {
+            $this->_defaults = array_fill_keys(array_keys($data), null);
+        }
+
+        //var_dump($this->_defaults); die();
+        $vars = array_keys(get_class_vars(get_class($this)));
+        foreach($vars as $v) {
+            $vv = $this->toKey($v);
+            if (isset($this->_defaults[$vv])) {
+                $this->$v = $this->_defaults[$vv];
+            }
+        }
+        //print_r($this->_defaults); die();
+        foreach($data as $k => $v) {
+            if ($var = $this->toVar($k) and in_array($var, $vars)) {
+                $this->$var = $v;
+            } else if (!is_numeric($k)) {
                 $this->_data[strtoupper($k)] = $v;
             } else if (!is_numeric($v)) {
                 $this->_data[strtoupper($v)] = null;
@@ -179,17 +195,6 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
         return get_class($this) . 'Object ' . substr(print_r($this->_data, true), 6);
     }
 
-    public function emptyArray() {
-        $defaults = array();
-        foreach($this->_columns as $key => $column) {
-            if (is_array($column)) {
-                $defaults[ $key ] = isset($column['default']) ? $column['default'] : null;
-            } else {
-                return array_fill_keys(array_values($this->_columns), null);
-            }
-        }
-        return $defaults;
-    }
     /**
       * Вернуть объект CDataObject как массив
       * @param array $props имена параметров
@@ -206,7 +211,14 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
       * Загрузить в объект CDataObject массив
       */
     public function fromArray(Array $arr) {
-        $this->_data = array_replace($this->emptyArray(), $arr);
+        $this->_data = array_intersect_key(array_replace($this->_defaults, $arr), $this->_defaults);
+        $vars = array_keys(get_class_vars(get_class($this)));
+        foreach($vars as $v) {
+            $vv = $this->toKey($v);
+            if (isset($arr[$vv])) {
+                $this->$v = $arr[$vv];
+            }
+        }
     }
     /** @ignore */
     public function BadPropertyCallException($name) {

@@ -79,4 +79,12 @@ class CHtml {
 		$this->each = $arr;
 		return $this;
 	}
+
+	public function arrayToAttributes(Array $arr, $keyAttr, $valAttr) {
+		$result = array();
+		foreach($arr as $key => $val) {
+			$result[] = array($keyAttr => $key, $valAttr => $val);
+		}
+		return $result;
+	}
 }

@@ -60,7 +60,7 @@ class CQuery extends AExtendClass {
     public static function GetTableName($className) {
         $object = CModel::m($className);
         if ($object) {
-            return $object->_name;
+            return COrmModule::quoteTableName($object->_name);
         }
         throw new CException("CQuery link error. Class $className not exists");
     }
@@ -536,6 +536,7 @@ class CQuery extends AExtendClass {
       */
     private function getJoinCondition($tableName, Array $condition, $type = 'AND') {
         $result = array();
+        $tableName = COrmModule::quoteTableName($tableName);
         foreach($condition as $k => $v) {
             $result[str_replace('#', $tableName, $k)] = str_replace('#', $tableName, $v);
         }
@@ -616,7 +617,7 @@ class CQuery extends AExtendClass {
             }
 
             $cond = $rewrite_cond ? $this->getJoinCondition($alias, $rewrite_cond) : $cond;
-            $q .= " $type JOIN `{$tableName}` AS {$alias} " . ($cond ?  ' ON '. $cond : '');
+            $q .= " $type JOIN {$tableName} AS {$alias} " . ($cond ?  ' ON '. $cond : '');
         }
         $this->_join .= $q;
         return $this;
