@@ -50,18 +50,19 @@ class Piha extends AModule implements IModule {
         return self::app()->router;
     }
 
-    public static function app(Array $modules=null, Array $config=null) {
+    public static function app(Array $modules=null) {
         if (!self::HasInstance()) {
             if (!$modules) {
                 throw new CException('Piha modules not defined');
             }
             self::SetInstance(new self($modules));
-
-            $config = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
-            AModule::ConfigureAll($config);
-
-            self::GetInstance()->start();
         }
+        return self::GetInstance();
+    }
+
+    public function setConfig(Array $config = null) {
+        $config = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
+        AModule::ConfigureAll($config);
         return self::GetInstance();
     }
 

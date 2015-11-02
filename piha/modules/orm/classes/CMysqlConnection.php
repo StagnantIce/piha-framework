@@ -20,7 +20,7 @@ class CMysqlConnection {
     public static function q($query) {
         self::$last = $query;
         if (self::$conn->connect_errno) {
-            printf("Соединение не удалось: %s\n", self::$conn->connect_error);
+            throw new CException("Соединение не удалось: ". self::$conn->connect_error);
             exit();
         }
         $res = self::$conn->query($query);

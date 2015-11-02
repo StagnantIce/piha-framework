@@ -54,7 +54,7 @@ abstract class AModule {
         if (isset(self::$modules[$id])) {
             return self::$modules[$id];
         }
-        throw new \Exception("Module '{$id}' not found");
+        throw new CException("Module '{$id}' not found");
     }
 
     public static function getObjectModule() {
@@ -67,13 +67,19 @@ abstract class AModule {
             $res = static::GetInstance()->config;
             foreach(explode('/', $param) as $p) {
                 if (!array_key_exists($p, $res)) {
-                    if(!is_null($default)) return $default;
-                    throw new \Exception("Module '".static::GetID()."' config not found. Param with name '$param' not found in config.php");
+                    if (strpos($param, '@') !== false) {
+                        if(!is_null($default)) {
+                            return $default;
+                        }
+                    } else {
+                        return $default;
+                    }
+                    throw new CException("Module '".static::GetID()."' config require and not found. Param with name '$param' not found in config.php");
                 }
                 $res = $res[$p];
             }
             return $res;
         }
-        throw new \Exception('Error '.static::GetID().'::config. Please, see documentation');
+        throw new CException('Error '.static::GetID().'::config. Please, see documentation');
     }
 }
