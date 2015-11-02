@@ -13,10 +13,6 @@ use piha\CException;
 
 class CAdminModel {
 
-    private $_modelName = '';
-    public function __construct($modelName) {
-        $this->_modelName = $modelName;
-    }
     /**
       * Выполняет запрос к модели через массив методов с присоединением смежных таблиц
       * @deprecated используйте метод q() для построения запросов
@@ -155,7 +151,7 @@ class CAdminModel {
       * Обновляет запись из формы в админке, загружая файлы и картинки
       * @return int возвращает количество затронутых записей, то есть 0 или 1
       */
-    public static function UpdateForm( $id = false ) {
+    public static function UpdateForm(CModel $model, $id = false ) {
         if ($id === false) {
             if (isset($_GET['ID'])) {
                 $id = intval($_GET['ID']);
@@ -165,16 +161,16 @@ class CAdminModel {
             }
         }
         $data = array();
-        foreach(self::getFieldKeys() as $key) {
-            $type = self::getType($key);
+        foreach($model->getFieldKeys() as $key) {
+            $type = $model->getType($key);
             if ($type == 'file' && isset($_FILES[ $key ]) && $_FILES[ $key ]["tmp_name"] <> "") {
-                $size = self::getSize($key);
+                //$size = self::getSize($key);
                 //$file_id = CFileHelper::upload($_FILES[ $key ], '', $size);
                 if (!$file_id) return false;
                 $data[ $key ] = $file_id;
             }
             if ($type == 'image' && isset($_FILES[ $key ]) && $_FILES[ $key ]["tmp_name"] <> "") {
-                $size = self::getSize($key);
+                //$size = self::getSize($key);
                 //$file_id = CFileHelper::uploadImage($_FILES[ $key ], $size);
                 if (!$file_id) return false;
                 $data[ $key ] = $file_id;
@@ -186,16 +182,16 @@ class CAdminModel {
                 $data[ $key ] = $_POST[ $key ];
             }
         }
-        return self::update( $data, $id );
+        return $model->update( $data, $id );
     }
     /**
       * Добавляет запись из формы в админке, загружая файлы и картинки
       * @return int id втавленной записи
       */
-    public static function InsertForm() {
+    public static function InsertForm(CModel $model) {
         $data = array();
-        foreach(self::getFieldKeys() as $key) {
-            $type = self::getType($key);
+        foreach($model->getFieldKeys() as $key) {
+            $type = $model->getType($key);
             if ($type == 'file' && isset($_FILES[ $key ]) && $_FILES[ $key ]["tmp_name"] <> "") {
                 $size = self::getSize($key);
                 //$file_id = CFileHelper::upload($_FILES[ $key ], '', $size);
@@ -215,6 +211,6 @@ class CAdminModel {
                 $data[ $key ] = $_GET[ $key ];
             }
         }
-        return self::insert( $data );
+        return $model->insert( $data );
     }
 }
