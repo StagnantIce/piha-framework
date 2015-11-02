@@ -21,7 +21,7 @@ class CHtml {
 			return $this;
 		}
 		if ($name === 'text') {
-			$this->html .= $text;
+			$this->html .= $options;
 			return $this;
 		}
 
@@ -71,42 +71,61 @@ class CHtml {
 	}
 
 	public function __call($method, $ps) {
-		if ($this->eachItems[$this->eachIndex]) {
-			$this->eachMethods[$this->eachIndex] = array($method, $ps);
+		if ($this->eachIndex >= 0) {
+			$this->eachMethods[$this->eachIndex][] = array($method, $ps);
 			return $this;
 		}
 		array_unshift($ps, $method);
 		return call_user_func_array(array($this, 'start'), $ps);
 	}
 
-	public function each(Array $arr) {
+	public function each(Array $items) {
+		if ($this->eachIndex >= 0) {
+			$this->eachMethods[$this->eachIndex][] = null;
+		}
 		$this->eachIndex++;
-		$this->eachItems[$this->eachIndex] = $arr;
+		$this->eachItems[$this->eachIndex] = $items;
 		return $this;
 	}
 
-	public function endEach() {
-		foreach($this->eachItems[$this->eachIndex] as $eachItem) {
-			foreach($this->eachMethods[$this->eachIndex] as $eachMethod) {
-				list($method, $ps) = $eachMethod;
-				$attrs = array();
-				$close = false;
-				if (count($ps) > 0) {
-					if (count($ps) > 0 && is_callable($ps[0])) {
-						$attrs = $ps[0]($eachItem);
-					} else if (is_array($ps[0])) {
-						$attrs = array_replace($ps, $eachItem);
-					}
-					if (isset($ps[1])) {
-						$close = $ps[1];
-					}
-				}
-				$this->start($method, $attrs, $close);
+	public function endEach($index = null, Array $params = null) {
+		if ($index == null) {
+			$this->eachIndex--;
+			if ($this->eachIndex >= 0) {
+				return $this;
 			}
 		}
-		$this->eachMethods[$this->eachIndex] = array();
-		$this->eachItems[$this->eachIndex] = array();
-		$this->eachIndex--;
+		$index = $index ?: 0;
+		$params = $params ?: array();
+		foreach($this->eachItems[$index] as $eachItem) {
+			$prop = $params;
+			$prop[] = $eachItem;
+			foreach($this->eachMethods[$index] as $eachMethod) {
+				if ($eachMethod === null) {
+					$this->endEach($index + 1, $prop);
+				} else {
+					list($method, $ps) = $eachMethod;
+					$attrs = array();
+					$close = false;
+					if (count($ps) > 0) {
+						if (count($ps) > 0 && is_callable($ps[0])) {
+							$attrs = call_user_func_array($ps[0], $prop);
+						} else if (is_array($ps[0])) {
+							$attrs = array_replace($eachItem, $ps[0]);
+						}
+						if (isset($ps[1])) {
+							$close = $ps[1];
+						}
+					}
+					$this->start($method, $attrs, $close);
+				}
+			}
+		}
+
+		if ($index == null && $this->eachIndex == -1) {
+			$this->eachMethods = array();
+			$this->eachItems = array();
+		}
 		return $this;
 	}
 

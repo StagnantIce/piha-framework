@@ -21,14 +21,14 @@ class CHtml extends CBaseHtml {
 	const TABLE_STRIPED = 'table table-striped';
 	const TABLE_BORDERED_STRIPED = 'table table-bordered table-striped';
 
-	public function a($options) {
+	public function a($options = array()) {
 		$default = array(
 			'href' => 'javascript:void(0)'
 		);
 		return parent::a(array_replace($default, $options));
 	}
 
-	private function group($options) {
+	private function group($options = array()) {
 		$stack = $this->popStack();
 		$this
 			->div(array('class' => 'control-group'))
@@ -38,7 +38,7 @@ class CHtml extends CBaseHtml {
 		return $options;
 	}
 
-	public function selectGroup(Array $arr, $options) {
+	public function selectGroup(Array $arr, $options = array()) {
 		$stack = $this->popStack();
 		$options = $this->group($options);
 		parent::select($options);
@@ -49,14 +49,14 @@ class CHtml extends CBaseHtml {
 		return $this->endStack($stack);
 	}
 
-	public function inputGroup($options) {
+	public function inputGroup($options = array()) {
 		$stack = $this->popStack();
 		$options = $this->group($options);
 		$this->input($options, true);
 		return $this->endStack($stack);
 	}
 
-	public function form($options) {
+	public function form($options = array()) {
 		$default = array(
 			'action' => '',
 			'method' => 'POST',
@@ -65,14 +65,14 @@ class CHtml extends CBaseHtml {
 		return parent::form(array_replace($default, $options));
 	}
 
-	public function input($options) {
+	public function input($options = array()) {
 		$default = array(
 			'type' => 'text'
 		);
 		return parent::input(array_replace($default, $options));
 	}
 
-	public function table($options) {
+	public function table($options = array()) {
 		$default = array(
 			'class' => self::TABLE_BORDERED_STRIPED
 		);

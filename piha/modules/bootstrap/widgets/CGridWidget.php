@@ -46,11 +46,12 @@ class CGridWidget {
 						->end()
 					->endEach()
 					->end()
+				->end()
 					->tbody()
 					->each($this->listData->getData())
 						->tr()
 						->each($this->columns)
-							->td(function($column) {
+							->td(function($row, $column) {
 								if (is_array($column) && isset($column['id'])) {
 									return array('text' => CTool::fromArray($row, $column['id'], ''));
 								} else if(is_string($column)) {
