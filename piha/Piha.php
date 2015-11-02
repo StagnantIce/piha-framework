@@ -79,7 +79,7 @@ class Piha extends AModule implements IModule {
         }
     }
 
-    private function start() {
+    public function start() {
         defined('PIHA_CONSOLE') or define('PIHA_CONSOLE', false);
         defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
 

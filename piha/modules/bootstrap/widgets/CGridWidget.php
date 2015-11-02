@@ -28,39 +28,42 @@ class CGridWidget {
 	}
 
 	public function render() {
-		echo '<table class="table table-striped table-bordered">';
-		echo '<thead>';
-		echo '<tr>';
-		foreach($this->columns as $column) {
-			echo '<th>';
-			if (is_array($column) && isset($column['id'])) {
-				echo CTool::fromArray($column, 'label', $column['id']);
-			} else if(is_string($column)) {
-				echo $column;
-			} else {
-				throw new CException("Error GridView columns.");
-			}
-			echo '</th>';
-		}
-		echo '</tr>';
-		echo '<tbody>';
-		foreach($this->listData->getData() as $row) {
-			echo '<tr>';
-			foreach($this->columns as $column) {
-				echo '<td>';
-				if (is_array($column) && isset($column['id'])) {
-					echo CTool::fromArray($row, $column['id'], '');
-				} else if(is_string($column)) {
-					echo CTool::fromArray($row, $column, '');
-				} else {
-					throw new CException("Error GridView data.");
-				}
-				echo '</td>';
-			}
-			echo '</tr>';
-		}
-		echo '</tbody>';
-		echo '</table>';
+		$columns = $this->columns;
+		$h = CHtml::create()
+			->table()
+				->thead()
+					->tr()
+					->each($this->columns)
+						->th(function($column){
+							if (is_array($column) && isset($column['id'])) {
+								return array('text' => CTool::fromArray($column, 'label', $column['id']));
+							} else if(is_string($column)) {
+								return array('text' => $column);
+							} else {
+								throw new CException("Error GridView columns.");
+							}
+						})
+						->end()
+					->endEach()
+					->end()
+					->tbody()
+					->each($this->listData->getData())
+						->tr()
+						->each($this->columns)
+							->td(function($column) {
+								if (is_array($column) && isset($column['id'])) {
+									return array('text' => CTool::fromArray($row, $column['id'], ''));
+								} else if(is_string($column)) {
+									return array('text' => CTool::fromArray($row, $column, ''));
+								} else {
+									throw new CException("Error GridView data.");
+								}
+							})
+							->end()
+						->endEach()
+						->end()
+					->endEach()
+			->render();
 	}
 
 	public function renderPaginator() {

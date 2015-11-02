@@ -1,19 +1,30 @@
 <?php
 
 namespace piha\modules\core\classes;
-
+use piha\CException;
 
 class CHtml {
 
 	private $html = '';
 	private $stack = array();
-	private $each = array();
+	private $eachIndex = -1;
+	private $eachItems = array();
+	private $eachMethods = array();
 
 	public static function create() {
 		return new static();
 	}
 
 	protected function start($name, $options, $close=false) {
+		if ($name === 'end') {
+			$this->html .= '</'.array_pop($this->stack).'>';
+			return $this;
+		}
+		if ($name === 'text') {
+			$this->html .= $text;
+			return $this;
+		}
+
 		$text = '';
 		$attrs = array();
 		foreach($options as $attr => $value) {
@@ -23,12 +34,22 @@ class CHtml {
 			}
 			$attrs[] = $attr . '="'.$value.'"';
 		}
-		$this->html .= '<'.$name. ' '. implode(' ', $attrs) . ($close && $text ==='' ? '/':'') .'>' . $text;
+		$this->html .= '<'.$name. ($attrs ? ' '. implode(' ', $attrs) : '') . ($close && $text ==='' ? '/':'') .'>' . $text;
 		if (!$close) {
 			$this->stack[] = $name;
 		} else if ($text !== '') {
 			$this->html .= '</'.$name.'>';
 		}
+		return $this;
+	}
+
+	public function render() {
+		while($this->eachIndex >= 0) {
+			$this->endEach();
+		}
+		$this->endStack();
+		echo $this->html;
+		$this->html = '';
 		return $this;
 	}
 
@@ -39,6 +60,9 @@ class CHtml {
 	}
 
 	public function endStack($stack = array()) {
+		if ($this->eachIndex >= 0) {
+			throw new CException("Stack in each not allowed");
+		}
 		while($this->stack) {
 			$this->end();
 		}
@@ -46,29 +70,9 @@ class CHtml {
 		return $this;
 	}
 
-	public function end() {
-		$this->html .= '</'.array_pop($this->stack).'>';
-		return $this;
-	}
-
-	public function text($text) {
-		$this->html .= $text;
-		return $this;
-	}
-
-	public function render() {
-		$this->endStack();
-		echo $this->html;
-		$this->html = '';
-		return $this;
-	}
-
 	public function __call($method, $ps) {
-		if ($this->each) {
-			foreach($this->each as $forItem) {
-				call_user_func_array(array($this, 'start'), array($method, $forItem));
-			}
-			$this->each = array();
+		if ($this->eachItems[$this->eachIndex]) {
+			$this->eachMethods[$this->eachIndex] = array($method, $ps);
 			return $this;
 		}
 		array_unshift($ps, $method);
@@ -76,7 +80,33 @@ class CHtml {
 	}
 
 	public function each(Array $arr) {
-		$this->each = $arr;
+		$this->eachIndex++;
+		$this->eachItems[$this->eachIndex] = $arr;
+		return $this;
+	}
+
+	public function endEach() {
+		foreach($this->eachItems[$this->eachIndex] as $eachItem) {
+			foreach($this->eachMethods[$this->eachIndex] as $eachMethod) {
+				list($method, $ps) = $eachMethod;
+				$attrs = array();
+				$close = false;
+				if (count($ps) > 0) {
+					if (count($ps) > 0 && is_callable($ps[0])) {
+						$attrs = $ps[0]($eachItem);
+					} else if (is_array($ps[0])) {
+						$attrs = array_replace($ps, $eachItem);
+					}
+					if (isset($ps[1])) {
+						$close = $ps[1];
+					}
+				}
+				$this->start($method, $attrs, $close);
+			}
+		}
+		$this->eachMethods[$this->eachIndex] = array();
+		$this->eachItems[$this->eachIndex] = array();
+		$this->eachIndex--;
 		return $this;
 	}
 

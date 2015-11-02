@@ -17,6 +17,10 @@ class CHtml extends CBaseHtml {
 	const BUTTON_DANGER = 'btn btn-danger';
 	const BUTTON_INVERSE = 'btn btn-inverse';
 
+	const TABLE_BORDERED = 'table table-bordered';
+	const TABLE_STRIPED = 'table table-striped';
+	const TABLE_BORDERED_STRIPED = 'table table-bordered table-striped';
+
 	public function a($options) {
 		$default = array(
 			'href' => 'javascript:void(0)'
@@ -40,7 +44,8 @@ class CHtml extends CBaseHtml {
 		parent::select($options);
 		$this
 			->each($this->arrayToAttributes($arr, 'value', 'text'))
-				->option();
+				->option()
+			->endEach();
 		return $this->endStack($stack);
 	}
 
@@ -65,5 +70,12 @@ class CHtml extends CBaseHtml {
 			'type' => 'text'
 		);
 		return parent::input(array_replace($default, $options));
+	}
+
+	public function table($options) {
+		$default = array(
+			'class' => self::TABLE_BORDERED_STRIPED
+		);
+		return parent::table(array_replace($default, $options));
 	}
 }
