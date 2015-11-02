@@ -456,7 +456,9 @@ class CModel extends CDataObject {
       */
     public static function UpdateOrInsert(Array $fields, $where = "") {
         CCore::Validate($where, array('int', 'array'), true);
-        if (!$where || self::Update($fields, $where) == 0) {
+        if ($where && self::StaticGet($where)) {
+            self::Update($fields, $where);
+        } else {
             $where = self::Insert($fields);
         }
         return self::StaticGet($where);
