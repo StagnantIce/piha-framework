@@ -210,13 +210,21 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     /**
       * Загрузить в объект CDataObject массив
       */
-    public function fromArray(Array $arr) {
-        $this->_data = array_intersect_key(array_replace($this->_defaults, $arr), $this->_defaults);
+    public function fromArray(Array $arr, Array $props=null) {
+        foreach($this->_data as $key => $value) {
+            if (isset($arr[$key])) {
+                if (!$props || in_array($key, $props)) {
+                    $this->_data[$key] = $arr[$key];
+                }
+            }
+        }
         $vars = array_keys(get_class_vars(get_class($this)));
         foreach($vars as $v) {
             $vv = $this->toKey($v);
             if (isset($arr[$vv])) {
-                $this->$v = $arr[$vv];
+                if (!$props || in_array($vv, $props)) {
+                    $this->$v = $arr[$vv];
+                }
             }
         }
     }

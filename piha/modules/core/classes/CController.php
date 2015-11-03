@@ -132,11 +132,20 @@ class CController {
     }*/
 
     public function part($name, Array $params = null) {
-        $this->requireFile($name . '.php', $this->layoutRendering ? CCoreModule::Config('layoutPath') : CCoreModule::Config('viewPath'), $params);
+        if ($this->layoutRendering || mb_substr($name,0,1) === '/') {
+            $name = ltrim($name, '/');
+            $this->requireFile($name . '.php', CCoreModule::Config('layoutPath'), $params);
+        } else {
+            $this->requireFile( (mb_strpos($name, '/') === false ? CAlias::path(array($this->id, $name)) : $name) . '.php', CCoreModule::Config('viewPath'), $params);
+        }
     }
 
     public function content() {
+        $this->layoutRendering = false;
         $this->requireFile(CAlias::path(array($this->id, $this->view_id)) . '.php', CCoreModule::Config('viewPath'), $this->viewParams);
+        if ($this->layout) {
+            $this->layoutRendering = true;
+        }
     }
 
     /**
