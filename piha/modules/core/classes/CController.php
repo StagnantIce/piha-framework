@@ -23,18 +23,24 @@ class CController {
     public $layout = null;
     private $layoutRendering = false;
     private $viewParams = null;
+    private $params = null;
 
     /** @ignore */
-    public function __construct($action) {
+    public function __construct($action, Array $params = null) {
         $this->action_id = $action ?: 'index';
         $this->id = static::GetID();
+        $this->params = $params;
+    }
+
+    public static function getActionName($action) {
+        return self::METHOD_NAME . ucfirst($action);
     }
 
     public function run() {
-        $method = self::METHOD_NAME . ucfirst($this->action_id);
+        $method = $this->getActionName($this->action_id);
         if (method_exists($this, $method)) {
             $this->beforeAction($this->action_id);
-            $this->$method();
+            call_user_func_array(array($this, $method), $this->params ?: array());
         } else {
             throw new CException('Bad method call ' . get_called_class().'->'.$method);
         }

@@ -14,17 +14,27 @@ class CForm extends CHtml {
 		return new static($model);
 	}
 
+	private $lastLabel = '';
+
 	protected function start($name, $options, $close=false) {
 		$className = get_class($this->_model);
-		if (isset($options['name'])) {
-			if (strpos($options['name'], '[') !== false) {
-				$options['name'] = $className . '['.substr($options['name'],0, strpos($options['name'], '[')).']' . substr($options['name'], strpos($options['name'], '['));
+		if (is_array($options) && isset($options['name'])) {
+			if (mb_strpos($options['name'], '[') !== false) {
+				$options['name'] = $className . '['.mb_substr($options['name'],0, mb_strpos($options['name'], '[')).']' . mb_substr($options['name'], mb_strpos($options['name'], '['));
 			} else {
 				$options['name'] = $className . '['.$options['name'] .']';
 			}
 		}
-		if ($name === 'label' && !isset($options['text']) && isset($options['for'])) {
-			$options['text'] = $this->_model->getLabel($options['for']);
+		if ($name === 'label') {
+			if(isset($options['for'])) {
+				$this->_lastLabel = $this->_model->getLabel($options['for']);
+			} else {
+				$this->_lastLabel = '';
+			}
+		}
+		if ($name === 'text' && $this->_lastLabel) {
+			$options = $options ?: $this->_lastLabel;
+			$this->_lastLabel = '';
 		}
 		return parent::start($name, $options, $close);
 	}

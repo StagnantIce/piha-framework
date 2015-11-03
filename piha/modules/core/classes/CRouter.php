@@ -18,14 +18,10 @@ class CRouter {
         } else if ($route = \Piha::request()->get(self::PARAM_NAME)) {
             $route = trim($route);
         }
-        if (!$route) {
-            $route = CCoreModule::Config('homeController');
-        }
+        list($controller, $action, $params) = $this->getControllerParams($route);
 
-        list($controller, $action) = explode('/', $route, 2);
-        $controller = ucfirst($controller) . 'Controller';
         if (class_exists($controller)) {
-            $this->controller = new $controller($action);
+            $this->controller = new $controller($action, $params);
         } else {
             throw new CException("Error route '{$route}'. Controller '{$controller}' not found.");
         }
@@ -33,6 +29,10 @@ class CRouter {
 
     public function runController() {
         $this->controller->run();
+    }
+
+    public function getController() {
+        return $this->controller;
     }
 
     public function buildUrl($route = '', Array $params = null) {
@@ -49,6 +49,35 @@ class CRouter {
         } else {
             $params[self::PARAM_NAME] = $route;
         }
+        if (CCoreModule::Config('smartUrl', false)) {
+            list($controller, $action, $ps) = $this->getControllerParams($route);
+            $action = $controller::getActionName($action);
+            if (!method_exists($controller, $action)) {
+                throw new CException("Action method {$action}() for controller {$controller} not found.");
+            }
+            $f = new \ReflectionMethod($controller, $action);
+            $fParams = array_slice($f->getParameters(), count($ps));
+            foreach ($fParams as $param) {
+                if (isset($params[$param->name])) {
+                    $host .= $params[$param->name] . '/';
+                    unset($params[$param->name]);
+                }
+            }
+        }
         return $host . ($params ? '?' . http_build_query($params) : '');
+    }
+
+    private function getControllerParams($route = '') {
+        if (!$route) {
+            $route = CCoreModule::Config('homeController');
+        }
+        $arrRoute = explode('/', $route);
+        if (count($arrRoute) < 2) {
+            throw new CException("Error route url {$route}");
+        }
+        $controller = $arrRoute[0];
+        $action = $arrRoute[1];
+        $params = array_slice($arrRoute, 2);
+        return array(ucfirst($controller) . 'Controller', $action, $params);
     }
 }

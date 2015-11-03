@@ -34,15 +34,22 @@ class CGridWidget {
 				->thead()
 					->tr()
 					->each($this->columns)
-						->th(function($column){
-							if (is_array($column) && isset($column['id'])) {
-								return array('text' => CTool::fromArray($column, 'label', $column['id']));
-							} else if(is_string($column)) {
-								return array('text' => $column);
-							} else {
-								throw new CException("Error GridView columns.");
-							}
-						})
+						->th()
+							->text(function($column){
+								if (is_array($column)) {
+									if (isset($column['label'])) {
+										return $column['label'];
+									}
+									if (isset($column['id'])) {
+										return $column['id'];
+									}
+									throw new CException("GridView column expect label or id.");
+								} else if(is_string($column)) {
+									return $column;
+								} else {
+									throw new CException("GridView column must be string or array.");
+								}
+							})
 						->end()
 					->endEach()
 					->end()
@@ -51,15 +58,20 @@ class CGridWidget {
 					->each($this->listData->getData())
 						->tr()
 						->each($this->columns)
-							->td(function($row, $column) {
-								if (is_array($column) && isset($column['id'])) {
-									return array('text' => CTool::fromArray($row, $column['id'], ''));
-								} else if(is_string($column)) {
-									return array('text' => CTool::fromArray($row, $column, ''));
-								} else {
-									throw new CException("Error GridView data.");
-								}
-							})
+							->td()
+								->text(function($row, $column) {
+									if (is_array($column)) {
+										if (isset($column['id'])) {
+										    return CTool::fromArray($row, $column['id'], '');
+										} else if (isset($column['value']) && $value = $column['value']) {
+											return CHtml::extractValue($column['value'], array('row' => $row, 'column' => $column));
+										}
+									} else if(is_string($column)) {
+										return CTool::fromArray($row, $column, '');
+									} else {
+										throw new CException("Error GridView data.");
+									}
+								})
 							->end()
 						->endEach()
 						->end()

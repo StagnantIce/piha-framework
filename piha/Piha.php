@@ -50,6 +50,9 @@ class Piha extends AModule implements IModule {
         return self::app()->router;
     }
 
+    public static function controller() {
+        return self::app()->router->getController();
+    }
     public static function app(Array $modules=null) {
         if (!self::HasInstance()) {
             if (!$modules) {

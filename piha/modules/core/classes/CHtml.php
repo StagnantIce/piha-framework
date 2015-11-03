@@ -15,48 +15,56 @@ class CHtml {
 		return new static();
 	}
 
-	protected function start($name, $options, $close=false) {
-		if ($name === 'end') {
+	protected function start($name, $options=null, $close=false) {
+		if ($name === 'text' && is_string($options)) {
+			$this->html .= $options;
+			return $this;
+		}
+
+		if ($name === 'end'  && !$options) {
 			$this->html .= '</'.array_pop($this->stack).'>';
 			return $this;
 		}
-		if ($name === 'text') {
-			$this->html .= $options;
-			return $this;
+
+		$options = $options ?: array();
+
+		if (!is_array($options)) {
+			throw new CException("CHtml function expect Array.");
 		}
 
 		$text = '';
 		$attrs = array();
 		foreach($options as $attr => $value) {
-			if ($attr === 'text') {
-				$text = $value;
-				continue;
-			}
 			$attrs[] = $attr . '="'.$value.'"';
 		}
-		$this->html .= '<'.$name. ($attrs ? ' '. implode(' ', $attrs) : '') . ($close && $text ==='' ? '/':'') .'>' . $text;
+		$this->html .= '<'.$name. ($attrs ? ' '. implode(' ', $attrs) : '') . ($close ? '/':'') .'>';
 		if (!$close) {
 			$this->stack[] = $name;
-		} else if ($text !== '') {
-			$this->html .= '</'.$name.'>';
 		}
 		return $this;
 	}
 
-	public function render() {
+	public function render($return=false) {
 		while($this->eachIndex >= 0) {
 			$this->endEach();
 		}
 		$this->endStack();
-		echo $this->html;
+		$html = $this->html;
 		$this->html = '';
-		return $this;
+		if (!$return) {
+			echo $html;
+		}
+		return $return ? $html : $this;
 	}
 
 	public function popStack() {
 		$stack = $this->stack;
 		$this->stack = array();
 		return $stack;
+	}
+
+	public function getParent() {
+		return end($this->stack);
 	}
 
 	public function endStack($stack = array()) {
@@ -108,11 +116,7 @@ class CHtml {
 					$attrs = array();
 					$close = false;
 					if (count($ps) > 0) {
-						if (count($ps) > 0 && is_callable($ps[0])) {
-							$attrs = call_user_func_array($ps[0], $prop);
-						} else if (is_array($ps[0])) {
-							$attrs = array_replace($eachItem, $ps[0]);
-						}
+						$attrs = self::ExtractValue($ps[0], $prop);
 						if (isset($ps[1])) {
 							$close = $ps[1];
 						}
@@ -129,11 +133,36 @@ class CHtml {
 		return $this;
 	}
 
-	public function arrayToAttributes(Array $arr, $keyAttr, $valAttr) {
-		$result = array();
-		foreach($arr as $key => $val) {
-			$result[] = array($keyAttr => $key, $valAttr => $val);
+	public static function extractValue($mixed, Array $params = null) {
+		if (is_callable($mixed)) {
+			return call_user_func_array($mixed, $params);
+		} else if (is_string($mixed)) {
+			$data = new \stdclass();
+			$data->params = $params;
+			foreach($params as $eachParams) {
+				foreach($eachParams as $key => $value) {
+					if (!is_numeric($key) && $key !== 'params') {
+						$data->$key = $value;
+					}
+				}
+			}
+			return eval('return ' . rtrim($mixed, ';') . ';');
+		} else if (is_array($mixed)) {
+			return $mixed;
 		}
-		return $result;
+		throw new CException("Error extract value.");
+	}
+
+	public function plainArray(Array $arr, $keyName='id', $valName='value') {
+		foreach($arr as $key => &$val) {
+			if (is_string($val)) {
+				$val = array($valName => $val);
+			}
+			if (!is_array($val) || isset($val[$keyName])) {
+				throw new CException("Expect array or string array values or key values exists");
+			}
+			$val[$keyName] = $key;
+		}
+		return array_values($arr);
 	}
 }

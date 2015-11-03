@@ -13,7 +13,8 @@ return array(
         'viewPath' => array(__DIR__, 'views'),
         'layoutPath' => array(__DIR__, 'views', 'layouts'),
         'cleanView' => true,
-        'prettyUrl' => true
+        'prettyUrl' => true,
+        'smartUrl' => true
     ),
     'orm' =>  array(
         'className' => 'piha\modules\orm\classes\CMysqlConnection',

@@ -29,10 +29,11 @@ class CHtml extends CBaseHtml {
 	}
 
 	private function group($options = array()) {
-		$stack = $this->popStack();
 		$this
 			->div(array('class' => 'control-group'))
-				->label(array('class' =>'control-label', 'for' => $options['name'], 'text' => $options['label']), true)
+				->label(array('class' =>'control-label', 'for' => $options['name']))
+					->text($options['label'])
+				->end()
 				->div(array('class' => 'controls'));
 		unset($options['label']);
 		return $options;
@@ -43,8 +44,10 @@ class CHtml extends CBaseHtml {
 		$options = $this->group($options);
 		parent::select($options);
 		$this
-			->each($this->arrayToAttributes($arr, 'value', 'text'))
-				->option()
+			->each($this->plainArray($arr, 'value', 'text'))
+				->option('array("value" => $data->value)')
+					->text('$data->text')
+				->end()
 			->endEach();
 		return $this->endStack($stack);
 	}
