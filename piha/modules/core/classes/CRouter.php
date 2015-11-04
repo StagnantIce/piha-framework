@@ -8,31 +8,26 @@ use piha\CException;
 class CRouter {
 
     const PARAM_NAME = 'r';
-    private $params = array();
-    private $controller = null;
+    private $_route = '';
 
-    public function __construct() {
+    public function __construct(CRequest $request) {
         $route = false;
         if (CCoreModule::Config('prettyUrl', false)) {
-            $route = trim(\Piha::request()->path, '/');
-        } else if ($route = \Piha::request()->get(self::PARAM_NAME)) {
+            $route = trim($request->path, '/');
+        } else if ($route = $request->get(self::PARAM_NAME)) {
             $route = trim($route);
         }
-        list($controller, $action, $params) = $this->getControllerParams($route);
-
-        if (class_exists($controller)) {
-            $this->controller = new $controller($action, $params);
-        } else {
-            throw new CException("Error route '{$route}'. Controller '{$controller}' not found.");
-        }
-    }
-
-    public function runController() {
-        $this->controller->run();
+        $this->_route = $route;
     }
 
     public function getController() {
-        return $this->controller;
+        list($controller, $action, $params) = $this->getControllerParams($this->_route);
+
+        if (class_exists($controller)) {
+           return new $controller($action, $params);
+        } else {
+            throw new CException("Error route '{$this->_route}'. Controller '{$controller}' not found.");
+        }
     }
 
     public function buildUrl($route = '', Array $params = null) {

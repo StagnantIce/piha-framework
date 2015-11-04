@@ -17,13 +17,9 @@ class CController {
 
     public $id;
     public $action_id;
-    public $view_id;
-    public $viewPath;
-    public $layoutPath;
-    public $layout = null;
-    private $layoutRendering = false;
-    private $viewParams = null;
+    public $view = null;
     private $params = null;
+    public $layout = '';
 
     /** @ignore */
     public function __construct($action, Array $params = null) {
@@ -98,65 +94,57 @@ class CController {
       * @param array $params список параметров
       * @return null
       */
-    public function render($view_id = null, Array $params = null) {
-        if (CCoreModule::Config('cleanView', true)) {
-            unset($_POST, $_GET, $_REQUEST);
-        }
-        $this->view_id = $view_id ?: $this->action_id;
-
+    public function render($view_id = null, Array $context = null) {
+        $this->getView()->setViewFile($view_id, $this->id, $this->action_id);
+        $this->getView()->setViewContext($context);
         if ($this->layout) {
-            $this->viewParams = $params;
-            $this->layoutRendering = true;
-            $this->requireFile($this->layout .'.php', CCoreModule::Config('layoutPath'), $params);
-            $this->layoutRendering = false;
+            $this->getView()->setFile('/' . $this->layout);
+            $this->getView()->setContext($context);
+            $this->renderView();
         } else {
-            $this->content($params);
+            $this->content();
         }
     }
 
-    public function requireFile($file, $alias, $context) {
-        $file = CAlias::file($file, $alias);
-        if (!file_exists($file)) {
-            throw new CException("File {$file} not found.");
+    public function getView() {
+        if ($this->view === null) {
+            $this->view = new CView();
+        }
+        return $this->view;
+    }
+
+    public function renderView() {
+        $fileName = $this->getView()->getFile();
+        $context = $this->getView()->getContext();
+        if (!file_exists($fileName)) {
+            throw new CException("File {$fileName} not found.");
         }
         if ($context) {
-            extract($context, EXTR_SKIP);
-            unset($context);
+            extract($context, EXTR_OVERWRITE);
         }
-        require($file);
+        unset($context);
+        require($fileName);
     }
 
-    /*public function __get($name) {
-        if (isset($this->params[$name])) return $this->params[$name];
-        throw new CException("Param {$name} not found.");
-    }*/
-
-    public function part($name, Array $params = null) {
-        if ($this->layoutRendering || mb_substr($name,0,1) === '/') {
-            $name = ltrim($name, '/');
-            $this->requireFile($name . '.php', CCoreModule::Config('layoutPath'), $params);
-        } else {
-            $this->requireFile( (mb_strpos($name, '/') === false ? CAlias::path(array($this->id, $name)) : $name) . '.php', CCoreModule::Config('viewPath'), $params);
-        }
+    public function part($name, Array $context = null) {
+        $this->getView()->setFile($name);
+        $this->getView()->setContext($context);
+        $this->renderView();
     }
 
     public function content() {
-        $this->layoutRendering = false;
-        $this->requireFile(CAlias::path(array($this->id, $this->view_id)) . '.php', CCoreModule::Config('viewPath'), $this->viewParams);
-        if ($this->layout) {
-            $this->layoutRendering = true;
-        }
+        $this->getView()->setFile($this->getView()->getViewFile());
+        $this->getView()->setContext($this->getView()->getViewContext());
+        $this->renderView();
     }
 
     /**
       * Выполнить перенаправление по URL
-      * @param string $url url для перенаправления, по умолчанию место вызова
+      * @param string $url url для перенаправления
       * @return null
       */
     public function redirect($url = '') {
-        if (!$url) $url = $this->location;
         $url = $this->url($url);
-        //CAjaxHelper::clear();
         Header("Location: $url");
         exit();
     }

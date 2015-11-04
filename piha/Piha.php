@@ -5,6 +5,8 @@ use piha\AModule;
 use piha\IModule;
 use piha\modules\core\classes\CRouter;
 use piha\modules\core\classes\CRequest;
+use piha\modules\core\classes\CController;
+use piha\modules\core\classes\CView;
 
 require 'CException.php';
 require 'CAlias.php';
@@ -14,13 +16,16 @@ require 'IModule.php';
 class Piha extends AModule implements IModule {
 
     private $start_time = null;
+    private $request = null;
+    private $router = null;
+    private $controller = null;
+
 
     public static function getDir() {
         return __DIR__;
     }
 
     public static function autoloader($className) {
-        //if (strpos($className, 'piha\\') !== false) {
         $className = explode('\\', $className);
         if ($className[0] === 'piha') {
             array_shift($className);
@@ -39,9 +44,6 @@ class Piha extends AModule implements IModule {
         return (time() + microtime()) - self::app()->start_time;
     }
 
-    private $request = null;
-    private $router = null;
-
     public static function request() {
         return self::app()->request;
     }
@@ -51,35 +53,37 @@ class Piha extends AModule implements IModule {
     }
 
     public static function controller() {
-        return self::app()->router->getController();
+        return self::app()->controller;
     }
-    public static function app(Array $modules=null) {
+
+    public static function app($dir) {
         if (!self::HasInstance()) {
-            if (!$modules) {
-                throw new CException('Piha modules not defined');
-            }
-            self::SetInstance(new self($modules));
+            self::SetInstance(new self($dir));
         }
         return self::GetInstance();
     }
 
-    public function setConfig(Array $config = null) {
-        $config = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
-        AModule::ConfigureAll($config);
-        return self::GetInstance();
-    }
-
-    private function __construct(Array $modules) {
-        CAlias::path('@piha', __DIR__);
-        CAlias::path('@modules', array('@piha', 'modules'));
-
-        $this->start_time = time() + microtime();
-
-        spl_autoload_register('Piha::autoloader');
-
+    public function configure(Array $config = null) {
+        $configs = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
+        parent::configure($configs['piha']);
+        $modules = $this->config('modules');
         foreach($modules as $module) {
             AModule::Add($module);
         }
+        unset($configs['piha']);
+        foreach($configs as $key => $config) {
+            self::GetInstance($key)->configure($config);
+        }
+        return self::GetInstance();
+    }
+
+    private function __construct($dir) {
+        CAlias::path('@piha', __DIR__);
+        CAlias::path('@modules', array('@piha', 'modules'));
+        CAlias::path('@webroot', $dir);
+
+        $this->start_time = time() + microtime();
+        spl_autoload_register('Piha::autoloader');
     }
 
     public function start() {
@@ -88,11 +92,10 @@ class Piha extends AModule implements IModule {
 
         if (PIHA_CONSOLE == false && PIHA_INCLUDE == false) {
             $this->request = new CRequest();
-            $this->router = new CRouter();
-            $this->router->runController();
+            $this->router = new CRouter($this->request);
+            $this->view = new CView();
+            $this->controller = $this->router->getController();
+            $this->controller->run();
         }
     }
 }
-
-
-spl_autoload_register('Piha::autoloader');

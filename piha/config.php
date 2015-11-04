@@ -2,19 +2,17 @@
 
 return array(
     'piha' => array(
+        'modules' => array('core', 'orm', 'bootstrap', 'bootstrap3'),
         'autoload' => array(
-            array(__DIR__, 'controllers'),
-            array(__DIR__, 'models')
+            array('@webroot', 'controllers'),
+            array('@webroot', 'models')
         )
     ),
     'core' => array(
         'homeController' => 'home/index',
         'configFile' => __FILE__,
-        'viewPath' => array(__DIR__, 'views'),
-        'layoutPath' => array(__DIR__, 'views', 'layouts'),
-        'cleanView' => true,
-        'prettyUrl' => true,
-        'smartUrl' => true
+        'viewPath' => array('@webroot', 'views'),
+        'layoutPath' => array('@webroot', 'views', 'layouts'),
     ),
     'orm' =>  array(
         'className' => 'piha\modules\orm\classes\CMysqlConnection',

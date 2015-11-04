@@ -28,17 +28,8 @@ abstract class AModule {
         CAlias::includeFile('events.php', $alias);
     }
 
-    public function configure($config=null) {
+    public function configure(Array $config=null) {
         $this->getObjectModule()->config = is_array($config) ? $config : (is_string($config) ? CAlias::requireFile($config) : null);
-    }
-
-    public static function ConfigureAll($configs) {
-        $configs = is_array($configs) ? $configs : (is_string($configs) ? CAlias::requireFile($configs) : null);
-        if ($configs) {
-            foreach($configs as $key => $config) {
-                self::GetInstance($key)->configure($config);
-            }
-        }
     }
 
     public static function HasInstance() {
