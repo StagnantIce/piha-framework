@@ -21,10 +21,6 @@ class CForm {
 	}
 
 	public function __call($method, $ps) {
-		if (method_exists($this->_html, $method)) {
-			call_user_func_array(array($this->_html, $method), $ps);
-			return $this;
-		}
 		$options = $ps ? $ps[0]: array();
 
 		if ($method === 'label') {

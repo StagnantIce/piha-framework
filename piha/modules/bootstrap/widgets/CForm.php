@@ -45,7 +45,7 @@ class CForm extends CFormBase {
 		return $this
 			->group()
 				->createLabel($options)
-				->input($options, true)
+				->input($options)
 			->endGroup($stack);
 	}
 
