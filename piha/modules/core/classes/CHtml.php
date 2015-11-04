@@ -5,50 +5,91 @@ use piha\CException;
 
 class CHtml {
 
+	/* @var string $html - string for output */
 	private $html = '';
-	private $stack = array();
-	private $eachIndex = -1;
+
+	/* @var array $group - group for all open tags */
+	private $group = array();
+
+	/* @var array $groups - save group for group */
+	private $groups = array();
+
+	/* @var array $eachItems - each arrays */
 	private $eachItems = array();
+
+	/* @var array $eachMethods - each methods */
 	private $eachMethods = array();
 
+	/* @var array $eachIndex - current each iterate index */
+	private $eachIndex = -1;
+
+	/* @var array $noCloseTags - no pair tags */
+	protected static $noCloseTags = array(
+		'area',
+		'base',
+		'br',
+		'col',
+		'frame',
+		'hr',
+		'img',
+		'input',
+		'link',
+		'meta',
+		'param'
+	);
+
+	/**
+	  * Static constructor
+	  * @return CHtml
+	  */
 	public static function create() {
 		return new static();
 	}
 
-	protected function start($name, $options=null, $close=false) {
-		if ($name === 'text' && is_string($options)) {
+	/**
+	  * Add tag
+	  * @param string $name tag name
+	  * @param array|string $options tag attributes
+	  * @return CHtml
+	  */
+	protected function tag($name, $options=null) {
+		$name = strtolower($name);
+		$close = in_array($name, self::$noCloseTags);
+
+		if (in_array($name, array('text', 'html')) && is_string($options)) {
 			$this->html .= $options;
 			return $this;
 		}
 
 		if ($name === 'end'  && !$options) {
-			$this->html .= '</'.array_pop($this->stack).'>';
+			$this->html .= '</'.array_pop($this->group).'>';
 			return $this;
 		}
 
 		$options = $options ?: array();
-
-		if (!is_array($options)) {
-			throw new CException("CHtml function expect Array.");
-		}
-
-		$text = '';
 		$attrs = array();
 		foreach($options as $attr => $value) {
 			$attrs[] = $attr . '="'.$value.'"';
 		}
 		$this->html .= '<'.$name. ($attrs ? ' '. implode(' ', $attrs) : '') . ($close ? '/':'') .'>';
 		if (!$close) {
-			$this->stack[] = $name;
+			$this->group[] = $name;
 		}
 		return $this;
 	}
 
+	/**
+	  * Render current tags
+	  * @param boolean $return return or print
+	  * @return CHtml|string
+	  */
 	public function render($return=false) {
-		while($this->eachIndex >= 0) {
+		while($this->eachIndex != -1) {
 			$this->endEach();
 		}
-		$this->endStack();
+		while($this->group) {
+			$this->end();
+		}
 		$html = $this->html;
 		$this->html = '';
 		if (!$return) {
@@ -57,109 +98,133 @@ class CHtml {
 		return $return ? $html : $this;
 	}
 
-	public function popStack() {
-		$stack = $this->stack;
-		$this->stack = array();
-		return $stack;
-	}
-
-	public function getParent() {
-		return end($this->stack);
-	}
-
-	public function endStack($stack = array()) {
-		if ($this->eachIndex >= 0) {
-			throw new CException("Stack in each not allowed");
-		}
-		while($this->stack) {
-			$this->end();
-		}
-		$this->stack = $stack;
+	/**
+	  * Group html methods
+	  * @return array
+	  */
+	public function group() {
+		$this->groups[] = $this->group;
+		$this->group = array();
 		return $this;
 	}
 
+	/**
+	  * Close group and its tags
+	  * @return array
+	  */
+	public function endGroup() {
+		while($this->group) {
+			$this->end();
+		}
+		$this->group = array_pop($this->groups);
+		return $this;
+	}
+
+	/**
+	  * Create tag by not define method, or save method in iterate array
+	  * @return CHtml
+	  */
 	public function __call($method, $ps) {
-		if ($this->eachIndex >= 0) {
+		if ($this->eachItems) {
 			$this->eachMethods[$this->eachIndex][] = array($method, $ps);
 			return $this;
 		}
 		array_unshift($ps, $method);
-		return call_user_func_array(array($this, 'start'), $ps);
+		return call_user_func_array(array($this, 'tag'), $ps);
 	}
 
+	/**
+	  * Create iterate array
+	  * @param array $items for iterate
+	  * @return CHtml
+	  */
 	public function each(Array $items) {
-		if ($this->eachIndex >= 0) {
+		if ($this->eachIndex !== -1) {
 			$this->eachMethods[$this->eachIndex][] = null;
 		}
 		$this->eachIndex++;
-		$this->eachItems[$this->eachIndex] = $items;
+		$this->eachItems[] = $items;
 		return $this;
 	}
 
-	public function endEach($index = null, Array $params = null) {
-		if ($index == null) {
-			$this->eachIndex--;
-			if ($this->eachIndex >= 0) {
-				return $this;
-			}
-		}
-		$index = $index ?: 0;
-		$params = $params ?: array();
-		foreach($this->eachItems[$index] as $eachItem) {
-			$prop = $params;
-			$prop[] = $eachItem;
-			foreach($this->eachMethods[$index] as $eachMethod) {
-				if ($eachMethod === null) {
-					$this->endEach($index + 1, $prop);
-				} else {
-					list($method, $ps) = $eachMethod;
-					$attrs = array();
-					$close = false;
-					if (count($ps) > 0) {
-						$attrs = self::ExtractValue($ps[0], $prop);
-						if (isset($ps[1])) {
-							$close = $ps[1];
-						}
+	/**
+	  * Recursion for iterate each
+	  * @param array $params params for each iteration
+	  * @return CHtml
+	  */
+	private function eachIterate(Array $params = null) {
+		$items = array_shift($this->eachItems);
+		$methods = array_shift($this->eachMethods);
+
+		if ($items && $methods) {
+			$params = $params ?: array();
+			foreach($items as $eachItem) {
+				$prop = $params;
+				$prop[] = $eachItem;
+				foreach($methods as $method) {
+					if ($method === null) {
+						$this->eachIterate($prop);
+					} else {
+						list($tag, $ps) = $method;
+						$this->tag($tag, $ps ? self::ExtractValue($ps[0], $prop) : array());
 					}
-					$this->start($method, $attrs, $close);
 				}
 			}
 		}
+	}
 
-		if ($index == null && $this->eachIndex == -1) {
+	/**
+	  * Close each and run iterator when last each close
+	  * @return CHtml
+	  */
+	public function endEach() {
+		$this->eachIndex--;
+		if ($this->eachIndex == -1) {
+			$this->eachIterate();
 			$this->eachMethods = array();
 			$this->eachItems = array();
 		}
 		return $this;
 	}
 
-	public static function extractValue($mixed, Array $params = null) {
+	/**
+	  * Extract value from attributes
+	  * @return CHtml
+	  */
+	public static function extractValue($mixed = null, Array $params = null) {
 		if (is_callable($mixed)) {
 			return call_user_func_array($mixed, $params);
-		} else if (is_string($mixed)) {
+		} else if (is_string($mixed) && strpos($mixed, '$data') !== false) {
 			$data = new \stdclass();
-			$data->params = $params;
-			foreach($params as $eachParams) {
-				foreach($eachParams as $key => $value) {
-					if (!is_numeric($key) && $key !== 'params') {
-						$data->$key = $value;
+			if ($params) {
+				$data->params = $params;
+				foreach($params as $param) {
+					foreach($param as $key => $value) {
+						if (!is_numeric($key) && $key !== 'params') {
+							$data->$key = $value;
+						}
 					}
 				}
 			}
 			return eval('return ' . rtrim($mixed, ';') . ';');
-		} else if (is_array($mixed)) {
-			return $mixed;
 		}
-		throw new CException("Error extract value.");
+		return $mixed;
 	}
 
-	public function plainArray(Array $arr, $keyName='id', $valName='value') {
+	/**
+	  * Plain array
+	  * @param array $arr array for plain
+	  * @param string $keyName name for keys
+	  * @param string $valName name for values if need
+	  * @return Array
+	  */
+	public static function plainArray(Array $arr, $keyName='id', $valName='value') {
 		foreach($arr as $key => &$val) {
-			if (is_string($val)) {
+			if (!is_array($val)) {
 				$val = array($valName => $val);
 			}
-			if (!is_array($val) || isset($val[$keyName])) {
-				throw new CException("Expect array or string array values or key values exists");
+			if (isset($val[$keyName])) {
+				throw new CException("Array key for plain is exist.");
 			}
 			$val[$keyName] = $key;
 		}

@@ -2,59 +2,59 @@
 
 namespace piha\modules\bootstrap\widgets;
 use piha\modules\orm\classes\CModel;
+use piha\modules\core\classes\CForm as CFormBase;
+use piha\modules\core\classes\CHtml as CHtmlBase;
 
 
-class CForm extends CHtml {
+class CForm extends CFormBase {
 
-	public function __construct(CModel $model) {
+	public function __construct(CModel $model, CHtmlBase $html = null) {
 		$this->_model = $model;
+		$this->_html = $html ?: CHtml::create();
 	}
 
-	public static function create(CModel $model) {
-		return new static($model);
+	public static function create(CModel $model, CHtmlBase $html = null) {
+		return new static($model, $html);
 	}
 
-	private $lastLabel = '';
-	private $lastSelect = '';
+	private function createLabel(&$options) {
+		$this
+			->div(array('class' => 'control-group'))
+				->label(array('class' =>'control-label', 'for' => $options['name']))
+					->text($options['label'])
+				->end()
+				->div(array('class' => 'controls'));
+		unset($options['label']);
+		return $this;
+	}
 
-	protected function start($name, $options, $close=false) {
-		$className = get_class($this->_model);
-		if ($name === 'label') {
-			if(isset($options['for'])) {
-				$this->_lastLabel = $this->_model->getLabel($options['for']);
-			} else {
-				$this->_lastLabel = '';
-			}
-		}
-		if ($name === 'text' && $this->_lastLabel) {
-			$options = $options ?: $this->_lastLabel;
-			$this->_lastLabel = '';
-		}
+	public function selectGroup(Array $arr, $options = array()) {
+		return $this
+			->group()
+				->createLabel($options)
+				->select($options)
+					->each(CHtml::plainArray($arr, 'value', 'text'))
+						->option('array("value" => $data->value)')
+							->text('$data->text')
+						->end()
+					->endEach()
+			->endGroup();
+	}
 
-		if ($name === 'input' && !isset($options['value'])) {
-			$key = $this->_model->toVar($options['name']);
-			$options['value'] = $this->_model->$key;
-		}
+	public function inputGroup($options = array()) {
+		return $this
+			->group()
+				->createLabel($options)
+				->input($options, true)
+			->endGroup($stack);
+	}
 
-		if ($name === 'select') {
-			$this->lastSelect = trim($options['name'], '[]');
-		}
-
-		if ($name == 'option' && $this->lastSelect) {
-			$key = $this->_model->toVar($this->lastSelect);
-			if (in_array($options['value'], (array)$this->_model->$key)) {
-				$options['selected'] = 'selected';
-			}
-		}
-
-		if (is_array($options) && isset($options['name'])) {
-			if (mb_strpos($options['name'], '[') !== false) {
-				$options['name'] = $className . '['.mb_substr($options['name'],0, mb_strpos($options['name'], '[')).']' . mb_substr($options['name'], mb_strpos($options['name'], '['));
-			} else {
-				$options['name'] = $className . '['.$options['name'] .']';
-			}
-		}
-
-		return parent::start($name, $options, $close);
+	public function form($options = array()) {
+		$default = array(
+			'action' => '',
+			'method' => 'POST',
+			'class' => 'form-horizontal'
+		);
+		return parent::form(array_replace($default, $options));
 	}
 }
