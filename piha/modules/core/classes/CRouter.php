@@ -35,7 +35,7 @@ class CRouter {
             $route = 'index';
         }
         if (strpos($route, '/') === false) {
-            $route = $this->controller->id . '/' . $route;
+            $route = \Piha::controller()->id . '/' . $route;
         }
         $params = $params ?: array();
         $host = '/';

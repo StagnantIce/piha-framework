@@ -18,7 +18,7 @@ class COrmModule extends AModule implements IModule {
         );
     }
 
-    public function configure($config=null) {
+    public function configure(Array $config=null) {
     	parent::configure($config);
 		$db = $this->config('database');
 		$className = $this->config('className');
@@ -31,6 +31,7 @@ class COrmModule extends AModule implements IModule {
 
     public static function quoteTableName($name)
     {
+        $name = trim($name, '`');
         return  '`'. (trim($name, '{}') <> $name ? self::GetInstance()->config('database/prefix', '') . trim($name, '{}') : $name) .'`';
     }
 }

@@ -12,41 +12,68 @@ namespace piha;
 
 class CAlias {
 
-	/** @var static array Массив объектов модулей */
+	/** @var string $ds разделитель между папок */
 	private static $ds = '';
+
+	/** @var array $aliases сохраненные пути */
 	private static $aliases = array();
 
-	public static function path($mixed=null, $folders=null) {
-		if (!$mixed) {
-			return '';
-		}
-		if ($folders == null) {
-			if (is_array($mixed)) {
-				$folders = $mixed;
-				$mixed = '';
-			} else if (!isset(self::$aliases[$mixed])) {
-				throw new CException("Alias name {$mixed} not found");
-			} else {
-				return self::$aliases[$mixed];
-			}
-		}
-		self::$ds = '/';
+	/**
+	 * Получить разделитель для папок
+	 * @param integer $number количество повторений
+	 * @return string
+	 */
+	public static function ds($number=1) {
 		self::$ds = self::$ds ?: (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? '\\' : '/');
-		$folders = is_array($folders) ? $folders : explode(self::$ds, $folders);
+		return str_repeat(self::$ds, $number);
+	}
+
+	/**
+	 * Получить путь до папки
+	 * @param string|array $mixed путь до папки, который может содержать алиасы
+	 * @return string
+	 */
+	public static function GetPath($mixed) {
+		$folders = is_array($mixed) ? $mixed : explode(self::ds(), $mixed);
 		$paths = array();
 		foreach($folders as $name) {
 			$paths[] = isset(self::$aliases[$name]) ? self::$aliases[$name] : $name;
 		}
-		$path = self::trim(implode(self::$ds, $paths));
-		if ($mixed && strpos($mixed, '@') !== false) {
-			if (!file_exists($path)) {
-				throw new CException("Path {$path} not found.");
-			}
-			self::$aliases[$mixed] = $path;
-		}
-		return $path;
+		return self::trim(implode(self::ds(), $paths));
 	}
 
+	/**
+	 * Получить путь до папки по алиасу
+	 * @param string $name имя алиаса
+	 * @return string
+	 */
+	public static function GetAlias($name) {
+		if (!isset(self::$aliases[$mixed])) {
+			throw new CException("Alias name {$mixed} not found");
+		}
+		return self::$aliases[$mixed];
+	}
+
+	/**
+	 * Создать новый алиас
+	 * @param string $name имя алиаса
+	 * @param string|array $mixed путь до алиаса
+	 * @return null
+	 */
+	public static function SetAlias($name, $mixed) {
+		$path = self::GetPath($mixed);
+		if (!file_exists($path)) {
+			throw new CException("Path {$path} not found.");
+		}
+		self::$aliases['@'.ltrim($name, '@')] = $path;
+	}
+
+	/**
+	 * Подключить файл согласно алиасу
+	 * @param string $name имя файла
+	 * @param string|array $path путь до файла
+	 * @return mixed
+	 */
 	public static function requireFile($name, $path=null) {
 		$file = self::file($name, $path);
 		if (!file_exists($file)) {
@@ -55,6 +82,12 @@ class CAlias {
 		return require($file);
 	}
 
+	/**
+	 * Подключить файл согласно алиасу
+	 * @param string $name имя файла
+	 * @param string|array $path путь до файла
+	 * @return mixed
+	 */
 	public static function includeFile($name, $path=null) {
 		$file = self::file($name, $path);
 		if (file_exists($file)) {
@@ -62,11 +95,23 @@ class CAlias {
 		}
 	}
 
-	public static function file($name, $path=null) {
-		return self::trim(self::path($path) . self::$ds . $name);
+	/**
+	 * Получить путь до файла
+	 * @param string $name имя файла
+	 * @param string|array $mixed путь до файла
+	 * @return string
+	 */
+	public static function file($name, $mixed=null) {
+		$mixed  = $mixed ? self::GetPath($mixed) . self::ds() : '';
+		return self::trim($mixed . $name);
 	}
 
+	/**
+	 * Убрать лишние слеши в пути файла
+	 * @param string $path путь
+	 * @return string
+	 */
 	public static function trim($path) {
-		return str_replace(self::$ds.self::$ds, self::$ds, $path);
+		return str_replace(self::ds(2), self::ds(), $path);
 	}
 }

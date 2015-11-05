@@ -166,7 +166,7 @@ class CHtml {
 						$this->eachIterate($prop);
 					} else {
 						list($tag, $ps) = $method;
-						$this->tag($tag, $ps ? self::ExtractValue($ps[0], $prop) : array());
+						$this->tag($tag, $ps ? CView::ExtractValue($ps[0], $prop) : array());
 					}
 				}
 			}
@@ -187,29 +187,6 @@ class CHtml {
 		return $this;
 	}
 
-	/**
-	  * Extract value from attributes
-	  * @return CHtml
-	  */
-	public static function extractValue($mixed = null, Array $params = null) {
-		if (is_callable($mixed)) {
-			return call_user_func_array($mixed, $params);
-		} else if (is_string($mixed) && strpos($mixed, '$data') !== false) {
-			$data = new \stdclass();
-			if ($params) {
-				$data->params = $params;
-				foreach($params as $param) {
-					foreach($param as $key => $value) {
-						if (!is_numeric($key) && $key !== 'params') {
-							$data->$key = $value;
-						}
-					}
-				}
-			}
-			return eval('return ' . rtrim($mixed, ';') . ';');
-		}
-		return $mixed;
-	}
 
 	/**
 	  * Plain array

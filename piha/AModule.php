@@ -22,7 +22,7 @@ abstract class AModule {
 
     public static function Add($module, $path=null) {
         $alias = '@'.$module;
-        CAlias::path($alias, array('@modules', $module));
+        CAlias::SetAlias($alias, array('@modules', $module));
         $obj = CAlias::requireFile('module.php', $alias);
         self::SetInstance($obj);
         CAlias::includeFile('events.php', $alias);

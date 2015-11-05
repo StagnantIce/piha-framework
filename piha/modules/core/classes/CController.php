@@ -15,24 +15,47 @@ class CController {
 
     const METHOD_NAME = 'action';
 
-    public $id;
-    public $action_id;
-    public $view = null;
+    /** @var string $id - id контроллера */
+    public $id = '';
+
+    /** @var string $action_id - id экшена */
+    public $action_id = '';
+
+    /** @var array $params - параметры для передачи в контроллер*/
     private $params = null;
+
+    /** @var string $layout - имя лейаута для вьюшки */
     public $layout = '';
 
-    /** @ignore */
-    public function __construct($action, Array $params = null) {
-        $this->action_id = $action ?: 'index';
+    /** @var string $defaultAction - имя дефолтового экшена */
+    protected $defaultAction = 'index';
+
+    /**
+      * Создать контроллер
+      * @param string $action_id - id экшена
+      * @param array $params - параметры для передачи в метод контроллера
+      * @return CController
+      */
+    public function __construct($action_id, Array $params = null) {
+        $this->action_id = $action_id ?: $this->defaultAction;
         $this->id = static::GetID();
         $this->params = $params;
     }
 
-    public static function getActionName($action) {
-        return self::METHOD_NAME . ucfirst($action);
+    /**
+      * Получить название метода контроллера на основании id экшена
+      * @param string $action_id - id экшена
+      * @return string название метода
+      */
+    public static function getActionName($action_id) {
+        return self::METHOD_NAME . ucfirst($action_id);
     }
 
-    public function run() {
+    /**
+      * Запустить выполнение экшена
+      * @return null
+      */
+    public function runAction() {
         $method = $this->getActionName($this->action_id);
         if (method_exists($this, $method)) {
             $this->beforeAction($this->action_id);
@@ -42,7 +65,12 @@ class CController {
         }
     }
 
-    public function beforeAction($action) {
+    /**
+      * Выполнение функции перед экшеном
+      * @param string $action id экшена
+      * @return null
+      */
+    public function beforeAction($action_id) {
     }
 
     /**
@@ -94,48 +122,37 @@ class CController {
       * @param array $params список параметров
       * @return null
       */
-    public function render($view_id = null, Array $context = null) {
-        $this->getView()->setViewFile($view_id, $this->id, $this->action_id);
-        $this->getView()->setViewContext($context);
+    public function render($renderName = '', Array $context = null) {
+        $view = new CView($this->getViewId($renderName), $context);
         if ($this->layout) {
-            $this->getView()->setFile('/' . $this->layout);
-            $this->getView()->setContext($context);
-            $this->renderView();
+            $context['content'] = $view->render();
+            $layoutView = new CView('/' . $this->layout, $context);
+            echo $layoutView->render();
         } else {
-            $this->content();
+            echo $view->render();
         }
     }
 
-    public function getView() {
-        if ($this->view === null) {
-            $this->view = new CView();
-        }
-        return $this->view;
+    /**
+      * Отрисовать вьюшку относительно текущей позиции рендеринга
+      * @param string $renderName имя вьюшки
+      * @param array $context контекст для рендеринга
+      * @return string
+      */
+    public function part($renderName = null, Array $context = null) {
+        $view = new CView($this->getViewId($renderName), $context);
+        $view->setPartAlias();
+        echo $view->render();
     }
 
-    public function renderView() {
-        $fileName = $this->getView()->getFile();
-        $context = $this->getView()->getContext();
-        if (!file_exists($fileName)) {
-            throw new CException("File {$fileName} not found.");
-        }
-        if ($context) {
-            extract($context, EXTR_OVERWRITE);
-        }
-        unset($context);
-        require($fileName);
-    }
-
-    public function part($name, Array $context = null) {
-        $this->getView()->setFile($name);
-        $this->getView()->setContext($context);
-        $this->renderView();
-    }
-
-    public function content() {
-        $this->getView()->setFile($this->getView()->getViewFile());
-        $this->getView()->setContext($this->getView()->getViewContext());
-        $this->renderView();
+    /**
+      * Вернуть путь до вьюшки на основании контроллера, экшена и имени
+      * @param string $renderName имя вьюшки
+      * @return string
+      */
+    public function getViewId($renderName) {
+        $view_id = $renderName ?: $this->action_id;
+        return strpos($view_id, '/') === false ? CAlias::GetPath(array($this->id, $view_id)) : $view_id;
     }
 
     /**

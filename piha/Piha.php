@@ -78,9 +78,9 @@ class Piha extends AModule implements IModule {
     }
 
     private function __construct($dir) {
-        CAlias::path('@piha', __DIR__);
-        CAlias::path('@modules', array('@piha', 'modules'));
-        CAlias::path('@webroot', $dir);
+        CAlias::SetAlias('@piha', __DIR__);
+        CAlias::SetAlias('@modules', array('@piha', 'modules'));
+        CAlias::SetAlias('@webroot', $dir);
 
         $this->start_time = time() + microtime();
         spl_autoload_register('Piha::autoloader');
@@ -95,7 +95,7 @@ class Piha extends AModule implements IModule {
             $this->router = new CRouter($this->request);
             $this->view = new CView();
             $this->controller = $this->router->getController();
-            $this->controller->run();
+            $this->controller->runAction();
         }
     }
 }

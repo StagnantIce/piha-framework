@@ -240,7 +240,7 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     //  IteratorAggregate interface
     /** @ignore */
     public function getIterator() {
-        return new ArrayIterator($this->_data);
+        return new \ArrayIterator($this->_data);
     }
 
     //  ArrayAccess interface
