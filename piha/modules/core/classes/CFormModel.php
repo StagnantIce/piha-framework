@@ -2,6 +2,9 @@
 
 namespace piha\modules\core\classes;
 
+/**
+  * @deprecated
+  */
 class CFormModel {
 
 

@@ -8,53 +8,35 @@ use piha\modules\core\classes\CHtml as CHtmlBase;
 
 class CForm extends CFormBase {
 
-	public function __construct(CModel $model, CHtmlBase $html = null) {
-		$this->_model = $model;
-		$this->_html = $html ?: CHtml::create();
-	}
-
-	public static function create(CModel $model, CHtmlBase $html = null) {
-		return new static($model, $html);
-	}
-
-	private function createLabel(&$options) {
-		$this
-			->div(array('class' => 'control-group'))
-				->label(array('class' =>'control-label', 'for' => $options['name']))
-					->text($options['label'])
-				->end()
-				->div(array('class' => 'controls'));
-		unset($options['label']);
-		return $this;
-	}
-
-	public function selectGroup(Array $arr, $options = array()) {
-		return $this
-			->group()
-				->createLabel($options)
-				->select($options)
-					->each(CHtml::plainArray($arr, 'value', 'text'))
-						->option('array("value" => $data->value)')
-							->text('$data->text')
-						->end()
-					->endEach()
-			->endGroup();
-	}
-
-	public function inputGroup($options = array()) {
-		return $this
-			->group()
-				->createLabel($options)
-				->input($options)
-			->endGroup($stack);
-	}
-
-	public function form($options = array()) {
+	public function __construct($options) {
 		$default = array(
 			'action' => '',
 			'method' => 'POST',
 			'class' => 'form-horizontal'
 		);
-		return parent::form(array_replace($default, $options));
+		return parent::__construct(array_replace($default, $options));
+	}
+
+	private function createLabel(&$options) {
+		$this->_html->group()->div(array('class' => 'control-group'));
+		$this->label(array('class' =>'control-label', 'for' => $options['name'], 'label' => isset($options['label']) ? $options['label'] : ''));
+		$this->_html->div(array('class' => 'controls'));
+		return $this;
+	}
+
+	public function selectGroup(Array $arr, $options = array()) {
+		$this
+				->createLabel($options)
+				->select(array_replace($options, array('options' => $arr)));
+		$this->_html->endGroup();
+		return $this;
+	}
+
+	public function inputGroup($options = array()) {
+		$this
+				->createLabel($options)
+				->text($options);
+		$this->_html->endGroup();
+		return $this;
 	}
 }

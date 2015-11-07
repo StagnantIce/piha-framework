@@ -23,16 +23,9 @@ class CHtml extends CBaseHtml {
 
 	public function a($options = array()) {
 		$default = array(
-			'href' => 'javascript:void(0)'
+			'class' => self::BUTTON_NONE
 		);
 		return parent::a(array_replace($default, $options));
-	}
-
-	public function input($options = array()) {
-		$default = array(
-			'type' => 'text'
-		);
-		return parent::input(array_replace($default, $options));
 	}
 
 	public function table($options = array()) {

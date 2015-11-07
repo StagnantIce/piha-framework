@@ -56,12 +56,12 @@ class CHtml {
 		$name = strtolower($name);
 		$close = in_array($name, self::$noCloseTags);
 
-		if (in_array($name, array('text', 'html')) && is_string($options)) {
+		if ($name === 'html' && is_string($options)) {
 			$this->html .= $options;
 			return $this;
 		}
 
-		if ($name === 'end'  && !$options) {
+		if (strncmp($name,'end',3) === 0 && !$options) {
 			$this->html .= '</'.array_pop($this->group).'>';
 			return $this;
 		}
@@ -69,7 +69,7 @@ class CHtml {
 		$options = $options ?: array();
 		$attrs = array();
 		foreach($options as $attr => $value) {
-			$attrs[] = $attr . '="'.$value.'"';
+			$attrs[] = $attr . '="'.$this->safe($value).'"';
 		}
 		$this->html .= '<'.$name. ($attrs ? ' '. implode(' ', $attrs) : '') . ($close ? '/':'') .'>';
 		if (!$close) {
@@ -166,7 +166,7 @@ class CHtml {
 						$this->eachIterate($prop);
 					} else {
 						list($tag, $ps) = $method;
-						$this->tag($tag, $ps ? CView::ExtractValue($ps[0], $prop) : array());
+						$this->tag($tag, $ps ? CView::Value($ps[0], $prop) : array());
 					}
 				}
 			}
@@ -206,5 +206,48 @@ class CHtml {
 			$val[$keyName] = $key;
 		}
 		return array_values($arr);
+	}
+
+	/**
+	  * Извлечь параметр из опций и вернуть его
+      * @param array $options параметры
+      * @param string $name параметр для извлечения
+	  */
+	public function popOption(&$options, $name) {
+		if (isset($options[$name])) {
+			$option = $options[$name];
+			unset($options[$name]);
+			return $option;
+		}
+		return '';
+	}
+
+	public function safe($value) {
+		return htmlspecialchars($value, ENT_QUOTES);
+	}
+
+	public function table($options) {
+		$columns = $this->popOption($options, 'columns');
+		$rows = $this->popOption($options, 'rows');
+		$this->table($options);
+		if ($columns) {
+			$this->thead();
+			foreach($columns as $name) {
+				$this->th()->html($name)->end();
+			}
+			$this->end();
+		}
+		if ($rows) {
+			$this->tbody();
+			foreach($rows as $row) {
+				$this->tr();
+				foreach($columns as $key => $name) {
+					$this->td()->html($row[$key])->end();
+				}
+				$this->end();
+			}
+			$this->end();
+		}
+		return $this->end();
 	}
 }
