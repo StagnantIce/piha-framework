@@ -187,11 +187,7 @@ class CQuery extends AExtendClass {
         if (!$object = $this->_object) {
             throw new CException("Execute object() method without object.");
         }
-        if (!$this->_execute) {
-            $this->execute();
-            $this->_execute = false;
-        }
-        return $object::Fetch($this, false, true);
+        return new $object($this->one());
     }
 
     /**
@@ -208,11 +204,11 @@ class CQuery extends AExtendClass {
         if (!$object = $this->_object) {
             throw new CException("Execute objects() method without object.");
         }
-        if (!$this->_execute) {
-            $this->execute();
-            $this->_execute = false;
+        $data = $this->all();
+        foreach($data as $d) {
+            $result[] = new $object($d);
         }
-        return $object::FetchAll($this, false, true);
+        return $result;
     }
 
     /**

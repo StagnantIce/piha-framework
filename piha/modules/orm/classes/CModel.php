@@ -61,20 +61,9 @@ class CModel extends CDataObject {
         return array();
     }
 
-    const MODEL_TYPE_OBJECT = 'object';
-    const MODEL_TYPE_ARRAY = 'array';
-
     const RELATION_TYPE_ONE = 'one';
     const RELATION_TYPE_MANY = 'many';
 
-    /** @var string Тип вытаскиваемых объектов из модели, массив или объект */
-    public $_modelType = self::MODEL_TYPE_ARRAY;
-
-    /**
-      * Возвращает тип модели, object|array
-      * @return string
-      */
-    public static function modelType() {return self::m()->_modelType;}
     /**
       * Возвращает имя таблицы БД для модели к которой обратились через данный метод
       * @return string
@@ -151,7 +140,6 @@ class CModel extends CDataObject {
       * @return CModel
       */
     public function __construct(Array $data = null, Array $defaults = null) {
-        $this->_modelType = self::MODEL_TYPE_OBJECT;
         $columnDefaults = array();
         foreach($this->_columns as $key => $column) {
             $columnDefaults[$key] = is_array($column) && isset($column['default']) ? $column['default'] : null;
@@ -173,7 +161,7 @@ class CModel extends CDataObject {
       */
     public function __call($name, $ps) {
         $result = false;
-        if($this->_modelType === self::MODEL_TYPE_ARRAY && method_exists(self::m(), 'Static' . $name)) {
+        if(method_exists(self::m(), 'Static' . $name)) {
             return call_user_func_array(array(self::m(), 'Static' . $name), $ps);
         }
         return parent::__call($name, $ps);
@@ -182,38 +170,36 @@ class CModel extends CDataObject {
       * @ignore
       */
     public function __get($name) {
-        if ($this->_modelType === self::MODEL_TYPE_OBJECT) {
-            if (isset($this->_relations[$name])) {
-                return $this->_relations[$name];
-            }
-            /** advanced define */
-            $relations = static::m()->getRelations();
-            if (isset($relations[$name])) {
-                list($field, $class, $class_field, $type) = array_pad($relations[$name], 4, null);
-                $type = $type ?: self::RELATION_TYPE_MANY;
-                if (is_array($class_field)) {
-                    $where = array();
-                    foreach($this->toArray() as $k => $v) {
-                        if (isset($class_field['*.'.$k])) {
-                            $where[str_replace('#', '*', $class_field['*.'.$k])] = $v;
-                        }
+        if (isset($this->_relations[$name])) {
+            return $this->_relations[$name];
+        }
+        /** advanced define */
+        $relations = static::m()->getRelations();
+        if (isset($relations[$name])) {
+            list($field, $class, $class_field, $type) = array_pad($relations[$name], 4, null);
+            $type = $type ?: self::RELATION_TYPE_MANY;
+            if (is_array($class_field)) {
+                $where = array();
+                foreach($this->toArray() as $k => $v) {
+                    if (isset($class_field['*.'.$k])) {
+                        $where[str_replace('#', '*', $class_field['*.'.$k])] = $v;
                     }
-                } elseif (is_string($class_field)) {
-                    $where = array('*.'.$class_field => $this->$field);
-                } else {
-                    throw new CException("Error relation $name");
                 }
-                $this->_relations[$name] = $type == self::RELATION_TYPE_MANY ? $class::GetAll($where) : $class::Get($where);
-                return $this->_relations[$name];
+            } elseif (is_string($class_field)) {
+                $where = array('*.'.$class_field => $this->$field);
+            } else {
+                throw new CException("Error relation $name");
             }
-            /** simple define */
-            $key = strtoupper($name . '_ID');
-            if (isset($this->_columns[$key]) && isset($this->_columns[$key]['object'])) {
-                $object = $this->_columns[$key]['object'];
-                $data = $this->toArray();
-                $this->_relations[$name] = $data[$key] ? $object::Get($data[$key]) : null;
-                return $this->_relations[$name];
-            }
+            $this->_relations[$name] = $type == self::RELATION_TYPE_MANY ? $class::GetAll($where) : $class::Get($where);
+            return $this->_relations[$name];
+        }
+        /** simple define */
+        $key = strtoupper($name . '_ID');
+        if (isset($this->_columns[$key]) && isset($this->_columns[$key]['object'])) {
+            $object = $this->_columns[$key]['object'];
+            $data = $this->toArray();
+            $this->_relations[$name] = $data[$key] ? $object::Get($data[$key]) : null;
+            return $this->_relations[$name];
         }
         return parent::__get($name);
     }
@@ -249,66 +235,6 @@ class CModel extends CDataObject {
 
     public static function q() {
         return CQuery::fromModel(static::className());
-    }
-
-    /**
-      * Формирует запись согласно объекту CQuery
-      * @static
-      * @param CQuery $q объект запроса
-      * @param array $fields список полей
-      * @param boolean $object вернуть объект
-      * @return array|CModel
-      */
-    public static function Fetch(CQuery $q, $fields = false, $object = false) {
-        $row = $q->Fetch(); // return false if end
-        if (!$row || (!$fields && self::modelType() === self::MODEL_TYPE_ARRAY && !$object)) {
-            return $row;
-        }
-
-        if (!$fields && self::modelType() === self::MODEL_TYPE_OBJECT || $object) {
-            return new static($row);
-        }
-
-        return CQuery::parseRow($row, $fields);
-    }
-    /**
-      * Формирует массив из записей согласно объекту CQuery
-      * @static
-      * @param CQuery $q объект запроса
-      * @param array $fields список полей
-      * @param boolean $object вернуть объекты
-      * @return array
-      */
-    public static function FetchAll(CQuery $q, $fields = false, $object = false) {
-        $ret = array();
-        while ( ($row = self::fetch($q, $fields, $object)) || ($row !== false)) {
-            if (!is_null($row)) {
-                $ret[] = $row;
-            }
-        }
-        return $ret;
-    }
-    /**
-      * Создает запись согласно sql запросу
-      * @static
-      * @param string $query sql запрос
-      * @param array $fields список полей
-      * @return array
-      * @todo переписать на CQuery
-      */
-    public static function Parse($query, $fields = false) {
-        return self::fetch(self::q()->setQuery($query)->execute(), $fields);
-    }
-    /**
-      * Создает записи согласно sql запросу
-      * @static
-      * @param string $query sql запрос
-      * @param array $fields список полей
-      * @return array
-      * @todo переписать на CQuery
-      */
-    public static function ParseAll($query, $fields = false) {
-        return self::fetchAll(self::q()->setQuery($query)->execute(), $fields);
     }
 
     /**
@@ -362,7 +288,7 @@ class CModel extends CDataObject {
     public static function StaticGet($where = array(), $fields = false) {
         CCore::Validate($where, array('int', 'array'), true);
         CCore::Validate($fields, array('string', 'array', 'boolean'), true);
-        return self::parse(self::q()->where($where)->getQuery($fields), $fields);
+        return self::q()->where($where)->one($fields);
     }
     /**
       * @ignore
@@ -433,7 +359,7 @@ class CModel extends CDataObject {
     public static function StaticGetAll($where = array(), $fields = false) {
         CCore::Validate($where, array('int', 'array'), true);
         CCore::Validate($fields, array('string', 'array', 'boolean'), true);
-        return self::parseAll(self::q()->where($where)->getQuery($fields), $fields);
+        return self::q()->where($where)->all($fields);
     }
 
     /**

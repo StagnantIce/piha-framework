@@ -87,7 +87,7 @@ class CMigration {
                     $name = $model::tableName();
                     $delete = isset($column['delete']) ? $column['delete']: null;
                     $update = isset($column['update']) ? $column['update']: null;
-                    $keyName = 'fk_' . strtolower($key) . '__' . str_replace($prefix, '', trim($this->_name, '{}')) . '__' . str_replace($prefix, '', trim($name, '{}'));
+                    $keyName = 'fk_' . strtolower($key) . '__' . str_replace($prefix, '', trim($this->_table, '{}')) . '__' . str_replace($prefix, '', trim($name, '{}'));
                     if (mb_strlen($keyName) > 30) {
                         $keyName = 'fk_' . strtolower($key) . '_'. md5($keyName);
                     }
