@@ -55,7 +55,7 @@ class CHtml {
 			$attrs[] = $attr . '="'.$this->safe($value).'"';
 		}
 		$this->html .= '<'.$name. ($attrs ? ' '. implode(' ', $attrs) : '') . ($close ? '/':'') .'>';
-		if (!$close && !$autoClose) {
+		if (!$close && $autoClose) {
 			$this->stack[] = $name;
 		}
 		return $this;
@@ -67,7 +67,13 @@ class CHtml {
 	  * @return CHtml
 	  */
 	public function end($name = '') {
-		$this->html .= '</'.$name ?: array_pop($this->stack).'>';
+		if ($this->stack) {
+			$name2 = array_pop($this->stack);
+		}
+		if (!$name) {
+			$name = $name2;
+		}
+		$this->html .= '</'.$name.'>';
 		return $this;
 	}
 
@@ -77,15 +83,15 @@ class CHtml {
 	  * @return CHtml|string
 	  */
 	public function render($return=false) {
-		$html = $this->html;
-		$this->html = '';
 		while($this->stack) {
 			$this->end();
 		}
-		if (!$return) {
-			echo $html;
+		$html = $this->html;
+		$this->html = '';
+		if ($return) {
+			return $html;
 		}
-		return $return ? $html : $this;
+		echo $html;
 	}
 
 	/**
