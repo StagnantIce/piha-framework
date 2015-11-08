@@ -6,155 +6,108 @@ use piha\CException;
 
 class CForm {
 
-	protected $_model = null;
 	protected $_html = null;
 
 
 	public function __construct($options) {
-		$this->_html = CHtml::create();
-		$this->_model = $this->_html->popOption($options, 'model') ?: null;
-		$this->_html->form($options);
+		$this->_html = CHtml::popOption('html') ?: CHtml::create();
+		return $this->_html->form($options, false)->render(true);
 	}
 
 	public static function create($options) {
 		return new static($options);
 	}
 
-	public function before(&$options) {
-		$model = $this->_html->popOption($options, 'model') ?: $this->_model;
-
-		if (isset($options['name']) && $model) {
-			$className = get_class($model);
-
-			if (!isset($options['value'])) {
-				$key = $model->toVar($options['name']);
-				$options['value'] = $model->$key;
-			}
-
-			if (mb_strpos($options['name'], '[') !== false) {
-				$options['name'] = $className . '['.mb_substr($options['name'],0, mb_strpos($options['name'], '[')).']' . mb_substr($options['name'], mb_strpos($options['name'], '['));
-			} else {
-				$options['name'] = $className . '['.$options['name'] .']';
-			}
-		}
-		return $this->_html;
-	}
-
 	public function label($options) {
-		$label = $this->_html->popOption($options, 'label');
-		$model = $this->_html->popOption($options, 'model');
-		$className = get_class($model ?: $this->_model);
-		if ($className && isset($options['for']) && !$label) {
-			$label = $className::getLabel($options['for']);
-		}
-		$this->_html->label($options)->html($label)->end();
-		return $this;
+		$label = CHtml::popOption($options, 'label');
+		return $this->_html->label($options)->html($label)->render(true);
 	}
+
 
 	public function text($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'text')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'text')))->render(true);
 	}
 
 	public function password($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'password')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'password')))->render(true);
 	}
 
 	public function submit($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'submit')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'submit')))->render(true);
 	}
 
 	public function radio($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'radio')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'radio')))->render(true);
 	}
 
 	public function checkbox($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'checkbox')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'checkbox')))->render(true);
 	}
 
 	public function button($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'button')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'button')))->render(true);
 	}
 
 	public function color($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'color')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'color')))->render(true);
 	}
 
 	public function date($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'date')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'date')))->render(true);
 	}
 
 	public function datetime($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'datetime')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'datetime')))->render(true);
 	}
 
 	public function datetimeLocal($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'datetime-local')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'datetime-local')))->render(true);
 	}
 
 	public function email($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'email')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'email')))->render(true);
 	}
 
 	public function month($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'month')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'month')))->render(true);
 	}
 
 	public function number($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'number')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'number')))->render(true);
 	}
 
 	public function range($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'range')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'range')))->render(true);
 	}
 
 	public function search($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'search')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'search')))->render(true);
 	}
 
 	public function tel($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'tel')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'tel')))->render(true);
 	}
 
 	public function time($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'time')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'time')))->render(true);
 	}
 
 	public function url($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'url')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'url')))->render(true);
 	}
 
 	public function week($options) {
-		$this->before($options)->input(array_replace($options, array('type' => 'week')))->end();
-		return $this;
+		return $this->_html->input(array_replace($options, array('type' => 'week')))->render(true);
 	}
 
 	public function textarea($options) {
-		$value = $this->before($options)->safe($this->_html->popOption($options,'value'));
-		$this->_html->textarea()->html($value)->end();
-		return $this;
+		$value = CHtml::safe(CHtml::popOption($options,'value'));
+		return $this->_html->textarea()->html($value)->render(true);
 	}
 
 	public function select($options) {
-		$optionTags = $this->_html->before($options)->popOption($options, 'options');
-		$selected = (array)$this->_html->popOption($options, 'value');
+		$optionTags = CHtml::popOption($options, 'options');
+		$selected = (array)CHtml::popOption($options, 'value');
 		$this->_html->select($options);
 		foreach($optionTags as $value => $text) {
 			$attr = array();
@@ -162,13 +115,12 @@ class CForm {
 				$attr['selected'] = 'selected';
 			}
 			$attr['value'] = $value;
-			$this->_html->option($attr)->html($this->_html->safe($text))->end();
+			$this->_html->option($attr)->html(CHtml::safe($text))->end();
 		}
-		$this->_html->end();
-		return $this;
+		return $this->_html->render(true);
 	}
 
-	public function end() {
-		$this->_html->render();
+	public function endForm() {
+		$this->_html->end('form');
 	}
 }
