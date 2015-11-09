@@ -288,6 +288,7 @@ class CQuery extends AExtendClass {
                         }
                     break;
                     case 'real':
+                    case 'float':
                     case 'decimal(10,0)':
                     case 'decimal(19,4)':
                         if (is_numeric($value)){
