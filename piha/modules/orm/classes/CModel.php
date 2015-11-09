@@ -252,7 +252,7 @@ class CModel extends CDataObject {
       * @return int id сохраненной записи
       */
     public function Save() {
-        $data = self::UpdateOrInsert($this->toArray(), $this->GetID() ?: array());
+        $data = self::UpdateOrInsert($this->toArray(), $this->id ?: array());
         return $data['ID'];
     }
 
@@ -262,7 +262,7 @@ class CModel extends CDataObject {
       * @return boolean удалось ли загрузить объект по ID или другим полям
       */
     public function Load(Array $by = null) {
-        $where = $by ? $this->toArray($by) : $this->GetID();
+        $where = $by ? $this->toArray($by) : $this->id;
         if ($where && $data = self::StaticGet($where)) {
             $this->fromArray(is_object($data) ? $data->toArray() : $data);
             return true;
@@ -276,7 +276,7 @@ class CModel extends CDataObject {
       * @return boolean удалось ли удалить объект по ID
       */
     public function Remove(Array $by = null) {
-        $where = $by ? $this->toArray($by) : $this->GetID();
+        $where = $by ? $this->toArray($by) : $this->id;
         if ($where) {
             return self::Delete( $where );
         }
@@ -288,7 +288,7 @@ class CModel extends CDataObject {
     public static function StaticGet($where = array(), $fields = false) {
         CCore::Validate($where, array('int', 'array'), true);
         CCore::Validate($fields, array('string', 'array', 'boolean'), true);
-        return self::q()->where($where)->one($fields);
+        return $fields ? self::q()->where($where)->one($fields) : self::q()->object($where);
     }
     /**
       * @ignore
@@ -359,7 +359,7 @@ class CModel extends CDataObject {
     public static function StaticGetAll($where = array(), $fields = false) {
         CCore::Validate($where, array('int', 'array'), true);
         CCore::Validate($fields, array('string', 'array', 'boolean'), true);
-        return self::q()->where($where)->all($fields);
+        return $fields ? self::q()->where($where)->all($fields) : self::q()->objects($where);
     }
 
     /**

@@ -187,7 +187,7 @@ class CQuery extends AExtendClass {
         if (!$object = $this->_object) {
             throw new CException("Execute object() method without object.");
         }
-        return new $object($this->one());
+        return new $object($this->one() ?: null);
     }
 
     /**
@@ -206,7 +206,7 @@ class CQuery extends AExtendClass {
         }
         $data = $this->all();
         foreach($data as $d) {
-            $result[] = new $object($d);
+            $result[] = new $object($d ?: null);
         }
         return $result;
     }

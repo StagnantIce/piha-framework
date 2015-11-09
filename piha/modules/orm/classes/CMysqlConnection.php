@@ -97,7 +97,6 @@ class CMysqlConnection {
 
     public static function tableInsert($table, $prepareFields) {
         $q = 'INSERT INTO '.$table.' ('. implode(', ', array_keys($prepareFields)). ') VALUES ('. implode(', ', array_values($prepareFields)) .')';
-        self::$last = $q;
         $res = self::q($q);
         return self::$conn->insert_id;
     }
@@ -111,7 +110,6 @@ class CMysqlConnection {
         foreach($prepareFields as $k => &$v) $v = $k.' = '.$v;
         $q .= implode(',', $prepareFields);
         $q .= $where;
-        self::$last = $q;
         $res = self::q($q);
         return self::affectedRows();
     }
