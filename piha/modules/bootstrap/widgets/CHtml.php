@@ -9,21 +9,21 @@ use piha\modules\core\classes\CTool;
 
 class CHtml extends CBaseHtml {
 
-	const BUTTON_NONE = 'btn';
-	const BUTTON_INFO = 'btn btn-info';
-	const BUTTON_PRIMARY = 'btn btn-primary';
-	const BUTTON_SUCCESS = 'btn btn-success';
-	const BUTTON_WARNING = 'btn btn-warning';
-	const BUTTON_DANGER = 'btn btn-danger';
-	const BUTTON_INVERSE = 'btn btn-inverse';
+	const BUTTON = 'btn';
+	const BUTTON_INFO = 'btn-info';
+	const BUTTON_PRIMARY = 'btn-primary';
+	const BUTTON_SUCCESS = 'btn-success';
+	const BUTTON_WARNING = 'btn-warning';
+	const BUTTON_DANGER = 'btn-danger';
+	const BUTTON_INVERSE = 'btn-inverse';
 
-	const TABLE_BORDERED = 'table table-bordered';
-	const TABLE_STRIPED = 'table table-striped';
-	const TABLE_BORDERED_STRIPED = 'table table-bordered table-striped';
+	const TABLE = 'table';
+	const TABLE_BORDERED = 'table-bordered';
+	const TABLE_STRIPED = 'table-striped';
 
 	public function a($options = array()) {
 		$default = array(
-			'class' => self::BUTTON_NONE
+			'class' => self::BUTTON
 		);
 		return parent::a(array_replace($default, $options));
 	}

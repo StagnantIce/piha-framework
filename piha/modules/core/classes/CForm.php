@@ -7,18 +7,73 @@ use piha\CException;
 class CForm {
 
 	protected $_html = null;
+	protected $_values = array();
+	protected $_name = 'Form';
+	private $_method = '';
+	private $_submit = false;
 
 
 	public function __construct($options) {
 		$this->_html = CHtml::popOption($options, 'html') ?: CHtml::create();
+		$this->_values = CHtml::popOption($options, 'values') ?: array();
+		$this->_name = CHtml::popOption($options, 'name') ?: $this->_name;
+		$this->_method = CHtml::popOption($options, 'method') ?: 'POST';
+		if (!in_array($this->_method, array('GET', 'POST'))) {
+			throw new CException("Unknown form method");
+		}
 	}
 
-	public static function create($options) {
-		return new static($options);
+	public static function post($options) {
+		$obj = new static(array_replace($options, array('method' => 'POST')));
+		if ($postData = \Piha::request()->post($obj->_name)) {
+			$obj->_values = $postData;
+			$obj->_submit = true;
+		}
+		return $obj;
+	}
+
+	public static function get($options) {
+		$obj = new static(array_replace($options, array('method' => 'GET')));
+		if ($getData = \Piha::request()->get($obj->_name)) {
+			$obj->_values = $getData;
+			$obj->_submit = true;
+		}
+		return $obj;
+	}
+
+	public function getValue($name) {
+		return isset($this->_values[$name]) ? $this->_values[$name] : null;
+	}
+
+	public function isValid() {
+		return $this->_submit && $this->_values;
+	}
+
+	public function isSubmit() {
+		return $this->_submit;
+	}
+
+	public static function getFieldName($options) {
+		if (isset($options['name'])) {
+			$name = $options['name'];
+			$pos = strpos($name, '[');
+			return $pos !== false ? substr($name,0,$pos) : $name;
+		}
+		return '';
 	}
 
 	public function before(&$options) {
+		if (isset($options['name'])) {
+			if (isset($this->_values[$options['name']])) {
+				$options['value'] = $this->_values[$options['name']];
+			}
 
+			if (strpos($options['name'], '[') !== false) {
+				$options['name'] = $this->_name . '[' . self::getFieldName($options) . ']' . substr($options['name'], strpos($options['name'], '['));
+			} else {
+				$options['name'] = $this->_name . '['.$options['name'] .']';
+			}
+		}
 	}
 
 	public function beforeLabel(&$options) {
@@ -26,7 +81,12 @@ class CForm {
 	}
 
 	public function start($options) {
-		return $this->_html->form($options, false)->render(true);
+		$default = array(
+			'action' => '',
+			'name' => $this->_name,
+			'method' => $this->_method
+		);
+		return $this->_html->form(array_replace($default, $options), false)->render(true);
 	}
 
 	public function label($options) {

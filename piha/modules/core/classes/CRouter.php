@@ -31,12 +31,6 @@ class CRouter {
     }
 
     public function buildUrl($route = '', Array $params = null) {
-        if (!$route) {
-            $route = 'index';
-        }
-        if (strpos($route, '/') === false) {
-            $route = \Piha::controller()->id . '/' . $route;
-        }
         $params = $params ?: array();
         $host = '/';
         if (CCoreModule::Config('prettyUrl', false)) {
@@ -46,6 +40,9 @@ class CRouter {
         }
         if (CCoreModule::Config('smartUrl', false)) {
             list($controller, $action, $ps) = $this->getControllerParams($route);
+            if (!class_exists($controller)) {
+                throw new CException("Controller class {$controller} not found.");
+            }
             $action = $controller::getActionName($action);
             if (!method_exists($controller, $action)) {
                 throw new CException("Action method {$action}() for controller {$controller} not found.");

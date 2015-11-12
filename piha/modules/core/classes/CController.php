@@ -87,6 +87,13 @@ class CController {
       * @return string Путь для вызова экшена
       */
     public function url($route = '', Array $params=null) {
+        if (!$route) {
+            $route = $this->action_id ?: $this->defaultAction;
+        }
+        $route = trim($route, '/');
+        if (strpos($route, '/') === false) {
+            $route = $this->id . '/' . $route;
+        }
         return \Piha::router()->buildUrl($route, $params);
     }
 

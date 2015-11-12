@@ -52,7 +52,7 @@ class CHtml {
 		$options = $options ?: array();
 		$attrs = array();
 		foreach($options as $attr => $value) {
-			$attrs[] = $attr . '="'.$this->safe($value).'"';
+			$attrs[] = $attr . '="'.$this->safe(is_array($value) ? implode(' ', $value) : $value ).'"';
 		}
 		$this->html .= '<'.$name. ($attrs ? ' '. implode(' ', $attrs) : '') . ($close ? '/':'') .'>';
 		if (!$close && $autoClose) {
@@ -119,10 +119,18 @@ class CHtml {
 
 	/**
 	  * Return safe html string
-	  * @param string $value
+	  * @param string|array $value
 	  * @return string
 	  */
 	public static function safe($value) {
-		return htmlspecialchars($value, ENT_QUOTES);
+		if (is_array($value)) {
+			foreach($value as &$item) {
+				$item = self::safe($item);
+			}
+			return $value;
+		} else if (is_scalar($value)) {
+			return htmlspecialchars('' .$value, ENT_QUOTES);
+		}
+		throw new CException("Error safe value with type " . gettype($value));
 	}
 }

@@ -11,6 +11,7 @@ class CFormModel extends CForm {
 
 	public function __construct($options = array()) {
 		$this->_model = CHtml::popOption($options, 'model') ?: null;
+		$this->_values = $this->_model ? $this->_model->toArray() : array();
 		parent::__construct($options);
 	}
 
@@ -21,26 +22,23 @@ class CFormModel extends CForm {
 	public function before(&$options) {
 		$model = CHtml::popOption($options, 'model') ?: $this->_model;
 		if (isset($options['name']) && $model) {
-			$className = get_class($model);
+			$this->_name = get_class($model);
 
 			if (!isset($options['value'])) {
-				$key = $model->toVar(trim($options['name'], '[]'));
-				$options['value'] = $model->$key;
-			}
-
-			if (mb_strpos($options['name'], '[') !== false) {
-				$options['name'] = $className . '['.mb_substr($options['name'],0, mb_strpos($options['name'], '[')).']' . mb_substr($options['name'], mb_strpos($options['name'], '['));
-			} else {
-				$options['name'] = $className . '['.$options['name'] .']';
+				$key = $model->toVar(self::getFieldName($options));
+				$this->_values[$options['name']] = $model->$key;
 			}
 		}
+		parent::before($options);
 	}
 
 	public function beforeLabel(&$options) {
 		$model = CHtml::popOption($options, 'model') ?: $this->_model;
-		$className = get_class($model);
-		if ($className && isset($options['for']) && !$options['label']) {
-			$options['label'] = $className::getLabel($options['for']);
+		if ($model) {
+			$className = get_class($model);
+			if ($className && isset($options['for']) && !$options['label']) {
+				$options['label'] = $className::getLabel($options['for']);
+			}
 		}
 	}
 }
