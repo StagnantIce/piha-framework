@@ -105,7 +105,13 @@ class CModel extends CDataObject {
       * @todo Нужно сделать согласно типу столбцов
       * @return array
       */
-    public static function getEmpty() {return self::m()->emptyArray();}
+    public function getEmpty() {
+        $columnDefaults = array();
+        foreach($this->_columns as $key => $column) {
+            $columnDefaults[$key] = is_array($column) && isset($column['default']) ? $column['default'] : null;
+        }
+        return $columnDefaults;
+    }
     /**
       * Обновляет строку в БД таблицу модели
       *
@@ -134,18 +140,31 @@ class CModel extends CDataObject {
     }
 
     /**
+      * Преобразует имя колонки таблицы в имя переменной PHP
+      * @param string $key Имя столбца
+      * @return string
+      */
+    private function toVar($key) {
+        return lcfirst(implode('', array_map('ucfirst', explode('_', strtolower($key)))));
+    }
+
+    /**
       * Создание модели
       *
       * @param array $data Данные для инициализации
       * @return CModel
       */
-    public function __construct(Array $data = null, Array $defaults = null) {
-        $columnDefaults = array();
-        foreach($this->_columns as $key => $column) {
-            $columnDefaults[$key] = is_array($column) && isset($column['default']) ? $column['default'] : null;
+    public function __construct(Array $data = null) {
+        $data = array_replace($data ?: array(), $this->getEmpty());
+        $keys = array_keys($this->_columns);
+        if($keys !== array_map('strtoupper', $keys)) {
+            throw new CException("Column names not in upper case.");
         }
-        $defaults = $defaults ? array_intersect_key(array_replace($columnDefaults, $defaults), $columnDefaults) : $columnDefaults;
-        parent::__construct($data, $defaults);
+        $dataObj = array();
+        foreach($data as $key => $value) {
+            $dataObj[$this->toVar($key)] = $value;
+        }
+        parent::__construct($dataObj);
     }
 
     private $_schema = '';

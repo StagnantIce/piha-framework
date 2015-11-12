@@ -11,15 +11,13 @@ namespace piha\modules\orm\classes;
 
 use piha\CException;
 
-abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
+class CDataObject implements \IteratorAggregate, \ArrayAccess {
     /** @ignore */
 
     /* функции имеющие перед собой это слово могут быть вызваны как статические, без этого слова */
     const STATIC_PREFIX = 'Static';
     /** @var данные объекта в виде массива */
     private $_data = array();
-    /** @var дефолтовые значения переменных */
-    public $_defaults = array();
     /** @var события объекта, повешенные при помощи функции on */
     private static $_events = array();
 
@@ -30,8 +28,14 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
      * @param $sort - порядок вызова
      * @return null
      */
-    public static function on($type, Array $callback, $sort = 100) {
-        self::$_events[static::className()][$type][intval($sort)][] = implode('::', $callback);
+    public static function on($type, $callback, $sort = 100) {
+        if (is_array($callback) && count($callback) === 2) {
+            $callback = implode('::', $callback);
+        }
+        if (!is_string($callback)) {
+            throw new CException("Error callback parameter");
+        }
+        self::$_events[static::className()][$type][intval($sort)][] = $callback;
     }
 
     /**
@@ -76,33 +80,13 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
         throw new CException('Not callable method');
     }
 
-    // ONE_TIME to oneTime, _ONE_TIME to _oneTime
-    public function toVar($v) {
-        $s = '';
-        $first = true;
-        foreach(explode('_', strtolower($v)) as $vv) {
-            if ($vv) {
-                $s .= $first ? lcfirst($vv) : ucfirst($vv);
-                $first = false;
-            } else {
-                $s .= '_';
-            }
-        }
-        return $s;
-    }
-
-    // oneTime to ONE_TIME, myNAME to MY_NAME
-    public function toKey($v) {
-        return strtoupper(preg_replace('/([A-Z])([a-z]+)/', '_$1$2', lcfirst($v)));
-    }
-
     /** @ignore */
     public function __call($method, $ps) {
         $type = strtolower(substr($method, 0, 3));
 
         // prepare class vars
         if ($type === 'set' || $type === 'get') {
-            $p = $this->toVar($this->toKey(substr($method, 3)));
+            $p = lcfirst(substr($method, 3));
         }
 
         if ($type == 'set' && count($ps) == 1) {
@@ -116,62 +100,36 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
         throw new CException(get_class($this).' do not have a method named '.$method);
     }
 
-    /** @ignore */
-    public function __construct(Array $data = null, Array $defaults = null) {
-        if ($defaults) {
-            $this->_defaults = $defaults;
-            if ($data) {
-                $data = array_replace($defaults, $data);
-            } else {
-                $data = $defaults;
+    /**
+      * @param array $data - данные для инициализации
+      */
+    public function __construct(Array $data = null) {
+        foreach($data as $key => $value) {
+            if (!preg_match('/^[_a-z]+[A-Za-z_]*\d*$/', $key)) {
+                throw new CException("Error name parameter {$key}.");
             }
-        } else {
-            $this->_defaults = array_fill_keys(array_keys($data), null);
         }
 
-        //var_dump($this->_defaults); die();
         $vars = array_keys(get_class_vars(get_class($this)));
         foreach($vars as $v) {
-            $vv = $this->toKey($v);
-            if (isset($this->_defaults[$vv])) {
-                $this->$v = $this->_defaults[$vv];
+            if (array_key_exists($v, $data)) {
+                $this->$v = $data[$v];
             }
+            unset($data[$v]);
         }
-        //print_r($this->_defaults); die();
-        foreach($data as $k => $v) {
-            if ($var = $this->toVar($k) and in_array($var, $vars)) {
-                $this->$var = $v;
-            } else if (!is_numeric($k)) {
-                $this->_data[strtoupper($k)] = $v;
-            } else if (!is_numeric($v)) {
-                $this->_data[strtoupper($v)] = null;
-            } else {
-                throw new CException(__CLASS__.' error in __construct');
-            }
-        }
+        $this->_data = $data;
     }
     /** @ignore */
     public static function __callStatic($method, $ps) {
-        /*
-        if ($ps[0] instanceof self) {
-            return call_user_func_array(array($ps[0], $method), array_slice($ps, 1));
-        }*/
         if (substr($method, 0, strlen(self::STATIC_PREFIX)) != self::STATIC_PREFIX) {
             $callable = self::className(self::STATIC_PREFIX . $method);
             return call_user_func_array($callable, $ps);
         }
         throw new CException(__CLASS__.' do not have a static method named '.$method);
     }
-    /**
-      * Проверить, является ли объект массивом или наследником CDataObject
-      * @return boolean ди или нет
-      */
-    public static function is_array($mixed) {
-        return (is_array($mixed) || ($mixed instanceof self));
-    }
+
     /** @ignore */
     public function __get($k) {
-        $k = $this->toKey($k);
         if ($this->property_exists($k)) {
             return $this->_data[$k];
         }
@@ -179,7 +137,6 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
     }
     /** @ignore */
     public function __set($k, $v) {
-        $k = $this->toKey($k);
         if ($this->property_exists($k)) {
             $this->_data[$k] = $v;
             return $this;
@@ -201,30 +158,26 @@ abstract class CDataObject implements \IteratorAggregate, \ArrayAccess {
       * @return array
       */
     public function toArray(Array $props=null) {
-        if ($props) {
-            foreach($props as &$v) $v = $this->toKey($v);
-            return array_intersect_key($this->_data, array_flip($props));
+        $props = $props ?: array_keys($this->_data);
+        $result = array_intersect_key($this->_data, array_flip($props));
+        $vars = array_keys(get_class_vars(get_class($this)));
+
+        foreach($vars as $v) {
+            if (!$props || in_array($v, $props)) {
+                $result[$v] = $this->$v;
+            }
         }
-        return $this->_data;
+        return $result;
     }
     /**
       * Загрузить в объект CDataObject массив
       */
-    public function fromArray(Array $arr, Array $props=null) {
-        foreach($this->_data as $key => $value) {
-            if (isset($arr[$key])) {
-                if (!$props || in_array($key, $props)) {
-                    $this->_data[$key] = $arr[$key];
-                }
-            }
-        }
+    public function fromArray(Array $data, Array $props=null) {
+        $this->_data = array_replace($data, array_intersect_key($data, $props ? array_flip($props) : $data));
         $vars = array_keys(get_class_vars(get_class($this)));
         foreach($vars as $v) {
-            $vv = $this->toKey($v);
-            if (isset($arr[$vv])) {
-                if (!$props || in_array($vv, $props)) {
-                    $this->$v = $arr[$vv];
-                }
+            if (array_key_exists($v, $data) && (!$props || (in_array($v, $props)))) {
+                $this->$v = $data[$v];
             }
         }
     }

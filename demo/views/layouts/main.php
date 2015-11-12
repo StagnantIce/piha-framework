@@ -23,8 +23,8 @@
   	use piha\modules\bootstrap3\widgets\CNavbarWidget;
   	$nav = new CNavbarWidget();
   	$nav->render();
-
-    $this->content(); ?>
+   ?>
+   <?=$content;?>
 
 	<footer class="footer">
 		<div class="container">
