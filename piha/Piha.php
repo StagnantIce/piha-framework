@@ -56,7 +56,7 @@ class Piha extends AModule implements IModule {
         return self::app()->controller;
     }
 
-    public static function app($dir) {
+    public static function app($dir=__DIR__) {
         if (!self::HasInstance()) {
             self::SetInstance(new self($dir));
         }

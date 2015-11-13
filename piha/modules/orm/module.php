@@ -11,13 +11,6 @@ class COrmModule extends AModule implements IModule {
         return __DIR__;
     }
 
-    public function getDirPaths() {
-        return array(
-            array(self::GetID(), 'classes'),
-            array(self::GetID(), 'models')
-        );
-    }
-
     public function configure(Array $config=null) {
     	parent::configure($config);
 		$db = $this->config('database');

@@ -118,7 +118,7 @@ class CModel extends CDataObject {
       * @param int|array ;where - массив с условиями или id
       * @return int сколько строк затронуто
       */
-    public static function Update(Array $fields, $where = "") {
+    public static function StaticUpdate(Array $fields, $where = "") {
         return self::q()->update($fields, $where);
     }
     /**
@@ -127,7 +127,7 @@ class CModel extends CDataObject {
       * @return int id новой записи
       * @todo Добавить обработку default в fields из self::tableColumns();
       */
-    public static function Insert(Array $fields = null) {
+    public static function StaticInsert(Array $fields = null) {
         return self::q()->insert($fields);
     }
     /**
@@ -135,7 +135,7 @@ class CModel extends CDataObject {
       * @param int|array $where - массив с условиями или id
       * @return int сколько строк затронуто
       */
-    public static function Delete($where = false) {
+    public static function StaticDelete($where = false) {
         return self::q()->remove($where);
     }
 
@@ -149,13 +149,35 @@ class CModel extends CDataObject {
     }
 
     /**
+      * Преобразует имя переменной PHP в колонку таблицы
+      * @param string $var Имя переменной
+      * @return string
+      */
+    public function toKey($var) {
+        return strtoupper(preg_replace('/([A-Z])([a-z]+)/', '_$1$2', lcfirst($var)));
+    }
+
+    /**
+      * Вернуть данные из модели в виде массива
+      * @return array
+      */
+    public function toArray() {
+        $result = array();
+        $data = parent::toArray();
+        foreach($data as $key => $value) {
+            $result[$this->toKey($key)] = $value;
+        }
+        return $result;
+    }
+
+    /**
       * Создание модели
       *
       * @param array $data Данные для инициализации
       * @return CModel
       */
     public function __construct(Array $data = null) {
-        $data = array_replace($data ?: array(), $this->getEmpty());
+        $data = array_replace($this->getEmpty(), $data ?: array());
         $keys = array_keys($this->_columns);
         if($keys !== array_map('strtoupper', $keys)) {
             throw new CException("Column names not in upper case.");
@@ -174,16 +196,6 @@ class CModel extends CDataObject {
         }
         self::m()->_schema = new CMigration(self::tableName(), self::tableColumns());
         return self::m()->_schema;
-    }
-    /**
-      * @ignore
-      */
-    public function __call($name, $ps) {
-        $result = false;
-        if(method_exists(self::m(), 'Static' . $name)) {
-            return call_user_func_array(array(self::m(), 'Static' . $name), $ps);
-        }
-        return parent::__call($name, $ps);
     }
     /**
       * @ignore
@@ -262,8 +274,8 @@ class CModel extends CDataObject {
       * @param int|array $where условия или ID
       * @return boolean
       */
-    public static function Exists($where) {
-        return self::StaticGet($where) ? true: false;
+    public static function StaticExists($where) {
+        return self::q()->where($where)->count();
     }
 
     /**
@@ -271,8 +283,8 @@ class CModel extends CDataObject {
       * @return int id сохраненной записи
       */
     public function Save() {
-        $data = self::UpdateOrInsert($this->toArray(), $this->id ?: array());
-        return $data['ID'];
+        $data = self::StaticUpdateOrInsert($this->toArray(), $this->getId());
+        return $data->id;
     }
 
     /**
@@ -283,7 +295,7 @@ class CModel extends CDataObject {
     public function Load(Array $by = null) {
         $where = $by ? $this->toArray($by) : $this->id;
         if ($where && $data = self::StaticGet($where)) {
-            $this->fromArray(is_object($data) ? $data->toArray() : $data);
+            $this->fromObject($data);
             return true;
         }
         return false;
@@ -297,7 +309,7 @@ class CModel extends CDataObject {
     public function Remove(Array $by = null) {
         $where = $by ? $this->toArray($by) : $this->id;
         if ($where) {
-            return self::Delete( $where );
+            return self::StaticDelete( $where );
         }
         return false;
     }
@@ -388,7 +400,7 @@ class CModel extends CDataObject {
         if ($get = self::StaticGet($where)) {
             return $get;
         }
-        self::Insert($where);
+        self::StaticInsert($where);
         return self::StaticGet($where);
     }
 
@@ -399,12 +411,13 @@ class CModel extends CDataObject {
       * @static
       * @return array|CModel запись
       */
-    public static function UpdateOrInsert(Array $fields, $where = "") {
+    public static function StaticUpdateOrInsert(Array $fields, $where = "") {
         CCore::Validate($where, array('int', 'array'), true);
-        if ($where && self::StaticGet($where)) {
-            self::Update($fields, $where);
+        if ($where && self::StaticExists($where)) {
+            echo "Update";
+            self::StaticUpdate($fields, $where);
         } else {
-            $where = self::Insert($fields);
+            $where = self::StaticInsert($fields);
         }
         return self::StaticGet($where);
     }
@@ -414,6 +427,6 @@ class CModel extends CDataObject {
       */
     public static function StaticSet($where = "", Array $fields) {
         CCore::Validate($where, array('int', 'array'), true);
-        return self::Update($fields, $where);
+        return self::StaticUpdate($fields, $where);
     }
 }

@@ -1,73 +1,69 @@
 <?php
 
-require (__DIR__ . '/BaseTest.php');
+require_once (__DIR__ . '/BaseTest.php');
 
 use piha\modules\orm\classes\CDataObject;
+use piha\modules\orm\classes\CQuery;
 
 class ModelTest extends BaseTest {
 
     public function testModel() {
 
         $id = 999999999;
-        $class = 'CGroupModel';
+        $class = 'piha\modules\user\models\CGroupModel';
         //echo "START\n";
         $class::Delete($id);
         $name = 'unique name';
         $code = 'unique code';
+        $class::Insert(array('ID' => $id.'1', 'NAME' => $name.'1', 'CODE' => $code.'1'));
         $data = array('ID' => $id, 'NAME' => $name, 'CODE' => $code);
 
         //echo 'static and not static methods';
-        foreach(array('Code', 'ID', 'Name') as $key) {
-            $currency = new $class($data);
+        foreach(array('Code', 'Id', 'Name') as $key) {
+            $group = new $class($data);
             $method = 'Get'.$key;
-            print_r($currency);
-            print_r($data);
-            $this->assertNotEquals($class::$method(), $currency->$method());
+            $this->assertNotEquals($class::$method(), $group->$method());
         }
 
         //echo 'save as object';
-        $currency = new $class($data);
-        $currency->Save();
-
-        //echo 'is array';
-        $this->assertTrue(CDataObject::is_array($currency));
+        $group = new $class($data);
+        $group->Save();
 
         //echo 'load as array';
-        $currency = $class::Get($id);
-        $this->assertTrue(is_array($currency));
-        $this->assertEquals($name, $currency['NAME']);
-        $this->assertEquals($code, $currency['CODE']);
-        $this->assertEquals($id, $currency['ID']);
+        $group = $class::Get($id);
+        $this->assertEquals($name, $group->name);
+        $this->assertEquals($code, $group->code);
+        $this->assertEquals($id, $group->id);
 
         //echo 'remove as object';
-        $currency = new $class(array('ID' => $id));
-        $currency->Erase();
+        $group = new $class(array('ID' => $id));
+        $group->Remove();
 
         //echo 'check as array';
-        $this->assertFalse($class::Get($id));
+        $this->assertNull($class::Get($id));
 
         //echo 'save as array';
         $class::Insert($data);
 
         //echo 'load as object';
-        $currency = new $class(array('ID' => $id));
-        $currency->Load();
-        foreach(array('Code', 'ID', 'Name') as $key) {
+        $group = new $class(array('ID' => $id));
+        $group->Load();
+        foreach(array('Code', 'Id', 'Name') as $key) {
             $get = 'Get'.$key;
             $set = 'Set'.$key;
-            $this->assertEquals($currency->$get(), $data[strtoupper($key)]);
-            $currency->$set(null);
-            $this->assertEquals($currency->$get(), null);
-            $currency->$set('123');
-            $this->assertEquals($currency->$get(), '123');
+            $this->assertEquals($group->$get(), $data[strtoupper($key)]);
+            $group->$set(null);
+            $this->assertEquals($group->$get(), null);
+            $group->$set('123');
+            $this->assertEquals($group->$get(), '123');
         }
 
         //echo 'remove as array';
         $class::Delete($id);
 
         //echo 'check as object';
-        $currency = new $class(array('ID' => $id));
-        $this->assertFalse($currency->Load());
+        $group = new $class(array('ID' => $id));
+        $this->assertFalse($group->Load());
     }
     /*
     public function testObject() {

@@ -83,7 +83,6 @@ class CDataObject implements \IteratorAggregate, \ArrayAccess {
     /** @ignore */
     public function __call($method, $ps) {
         $type = strtolower(substr($method, 0, 3));
-
         // prepare class vars
         if ($type === 'set' || $type === 'get') {
             $p = lcfirst(substr($method, 3));
@@ -181,6 +180,15 @@ class CDataObject implements \IteratorAggregate, \ArrayAccess {
             }
         }
     }
+
+    public function fromObject(CDataObject $obj) {
+        if(get_class($this)===get_class($obj)) {
+            $this->_data = $obj->_data;
+        } else {
+            throw new CException("Error copy object");
+        }
+    }
+
     /** @ignore */
     public function BadPropertyCallException($name) {
         throw new CException(get_class($this) . ' do not have a property named "'. $name . '".');

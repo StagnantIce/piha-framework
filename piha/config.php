@@ -2,7 +2,7 @@
 
 return array(
     'piha' => array(
-        'modules' => array('core', 'orm', 'bootstrap', 'bootstrap3'),
+        'modules' => array('core', 'orm', 'bootstrap', 'bootstrap3', 'user'),
         'autoload' => array(
             array('@webroot', 'controllers'),
             array('@webroot', 'models')

@@ -1,11 +1,12 @@
 <?php
 
 require (__DIR__ . '/../index.php');
-require (__DIR__ . '/models/CUserModel.php');
-require (__DIR__ . '/models/CGroupModel.php');
-require (__DIR__ . '/models/CUserGroupModel.php');
 
-class BaseTest extends PHPUnit_Framework_TestCase {
+use piha\modules\user\models\CUserModel;
+use piha\modules\user\models\CGroupModel;
+use piha\modules\user\models\CUserGroupModel;
+
+abstract class BaseTest extends PHPUnit_Framework_TestCase {
 
 	public function setUp() {
 		CUserModel::schema()->createTable();

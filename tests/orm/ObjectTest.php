@@ -1,8 +1,10 @@
 <?php
 
-require (__DIR__ . '/BaseTest.php');
+require_once (__DIR__ . '/BaseTest.php');
 
 use piha\modules\orm\classes\CDataObject;
+use piha\modules\user\models\CGroupModel;
+use piha\modules\user\models\CUserModel;
 
 class ObjectTest extends BaseTest {
 

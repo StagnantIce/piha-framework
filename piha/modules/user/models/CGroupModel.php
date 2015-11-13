@@ -1,5 +1,7 @@
 <?php
 
+namespace piha\modules\user\models;
+
 use piha\modules\orm\classes\CModel;
 
 class CGroupModel extends CModel {

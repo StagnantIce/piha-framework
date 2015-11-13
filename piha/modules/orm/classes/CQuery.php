@@ -73,6 +73,16 @@ class CQuery extends AExtendClass {
         return $q;
     }
 
+    /**
+      * Считает количество записей согласно условию
+      * @param mixed $where - условие
+      * @param mixed $cond - условие для объединения
+      * @return int Количество записей
+      */
+    public function count($fields = '*') {
+        return (int)$this->select(array('COUNT('.$fields.')' => 'CNT'))->one('CNT') ?: 0;
+    }
+
     public function getModel() {
         return $this->_object;
     }
@@ -187,7 +197,10 @@ class CQuery extends AExtendClass {
         if (!$object = $this->_object) {
             throw new CException("Execute object() method without object.");
         }
-        return new $object($this->one() ?: null);
+
+        if ($data = $this->one()) {
+            return new $object($data);
+        }
     }
 
     /**
@@ -206,7 +219,7 @@ class CQuery extends AExtendClass {
         }
         $data = $this->all();
         foreach($data as $d) {
-            $result[] = new $object($d ?: null);
+            $result[] = new $object($d);
         }
         return $result;
     }
