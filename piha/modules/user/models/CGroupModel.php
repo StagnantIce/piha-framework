@@ -7,6 +7,7 @@ use piha\modules\orm\classes\CModel;
 class CGroupModel extends CModel {
 
 	public $_name = '{{group}}';
+	public $_label = 'Группы';
 
 	public $_columns = array(
 		'ID' => array('type' => 'pk'),

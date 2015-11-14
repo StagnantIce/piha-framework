@@ -33,6 +33,7 @@ namespace piha\modules\orm\classes;
 
 use piha\modules\orm\COrmModule;
 use piha\modules\core\classes\CCore;
+use piha\CException;
 
 class CModel extends CDataObject {
 
@@ -294,11 +295,14 @@ class CModel extends CDataObject {
       */
     public function Load(Array $by = null) {
         $where = $by ? $this->toArray($by) : $this->id;
-        if ($where && $data = self::StaticGet($where)) {
-            $this->fromObject($data);
-            return true;
+        if ($where) {
+            if ($data = self::StaticGet($where)) {
+                $this->fromObject($data);
+                return true;
+            }
+            throw new CException("Model not loaded");
         }
-        return false;
+        throw new CException("Model load condition not found");
     }
 
     /**
@@ -311,7 +315,7 @@ class CModel extends CDataObject {
         if ($where) {
             return self::StaticDelete( $where );
         }
-        return false;
+        throw new CException("Model remove condition not found");
     }
     /**
       * @ignore
@@ -366,9 +370,18 @@ class CModel extends CDataObject {
     /**
       * @ignore
       */
+    public static function StaticGetCodeName($code) {
+        if ($obj = self::StaticGetByCode($code)) {
+            return $obj->name;
+        }
+        return false;
+    }
+    /**
+      * @ignore
+      */
     public static function StaticGetCodeID($code) {
         if ($obj = self::StaticGetByCode($code)) {
-            return $obj['ID'];
+            return $obj->id;
         }
         return false;
     }
@@ -414,7 +427,6 @@ class CModel extends CDataObject {
     public static function StaticUpdateOrInsert(Array $fields, $where = "") {
         CCore::Validate($where, array('int', 'array'), true);
         if ($where && self::StaticExists($where)) {
-            echo "Update";
             self::StaticUpdate($fields, $where);
         } else {
             $where = self::StaticInsert($fields);
