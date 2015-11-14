@@ -400,53 +400,63 @@ class QueryTest extends BaseTest {
         $this->assertEquals( $data, $newdata);
     }
 
-/*
+
     public function testRelations() {
-        $group = CGroupModel::Insert(array('NAME' => 'testRelations', 'CODE' => 'test11'));
-        $type = CUserModel::Insert(array('LOGIN' => 'test5'));
+        $group = CGroupModel::GetOrCreate(array('NAME' => 'testRelations', 'CODE' => 'test11'));
+        $group2 = CGroupModel::GetOrCreate(array('NAME' => 'testRelations2', 'CODE' => 'test13'));
+        $user = CUserModel::GetOrCreate(array('LOGIN' => 'test5'));
+        $user2 = CUserModel::GetOrCreate(array('LOGIN' => 'test6'));
 
-        $data = array('GROUP_ID' => $group->id, 'USER_ID' => $type->id, 'VALUE' => 1);
+        $data = array('GROUP_ID' => $group->id, 'USER_ID' => $user->id);
+        $data2 = array('GROUP_ID' => $group2->id, 'USER_ID' => $user2->id);
 
-        $award = CFactory::create(CUserGroupModel::className(), $data);
-        $curr = CGroupModel::q()
-            ->select(array('awards.GROUP_ID', 'awards.USER_ID', 'awards.VALUE'))
-            ->where(array('GROUP_ID' => $group->id))
-            ->left('awards')
+        CUserGroupModel::GetOrCreate($data);
+        CUserGroupModel::GetOrCreate($data2);
+        $groupName = CUserModel::q()
+            ->select(array('groups.NAME'))
+            ->left('groups')
+            ->one('NAME');
+
+        $this->assertEquals( $groupName, 'testRelations');
+
+        $userGroup = CUserGroupModel::q()
+            ->select(array('user.LOGIN', 'group.CODE'))
+            ->left(array('user', 'group'))
             ->one();
 
-        $this->assertEquals( $data, $curr);
-        $this->assertEquals( $group->awards, CUserGroupModel::GetAll(array('GROUP_ID' => $group->id)));
-        $this->assertEquals($award->awardgroup, $group->ToArray());
+        $this->assertEquals( $userGroup, array('LOGIN' => 'test5', 'CODE' => 'test11'));
     }
-    */
-/*
+
+
     public function testSubquery() {
-        $group = CFactory::create(CGroupModel::className(), array('NAME' => 'testSubquery', 'CODE' => 'test11'));
-        $type = CFactory::create(CUserModel::className(), array('NAME' => 'test5', 'CODE' => 'test14'));
+        $group1 = CGroupModel::GetOrCreate(array('NAME' => 'testSubquery', 'CODE' => 'test11'));
+        $group2 = CGroupModel::GetOrCreate(array('NAME' => 'testSubquery2', 'CODE' => 'test12'));
+        $group3 = CGroupModel::GetOrCreate(array('NAME' => 'testSubquery3', 'CODE' => 'test13'));
+        $user = CUserModel::GetOrCreate(array('LOGIN' => 'test5'));
 
-        $data = array('GROUP_ID' => $group->id, 'USER_ID' => $type->id, 'VALUE' => 50);
-        $award2 = CFactory::create(CUserGroupModel::className(), $data);
+        $data = array('GROUP_ID' => $group3->id, 'USER_ID' => $user->id);
+        CUserGroupModel::Insert($data);
 
-        $data = array('GROUP_ID' => $group->id, 'USER_ID' => $type->id, 'VALUE' => 1);
-        $award1 = CFactory::create(CUserGroupModel::className(), $data);
+        $data = array('GROUP_ID' => $group1->id, 'USER_ID' => $user->id);
+        CUserGroupModel::Insert($data);
 
-        $data = array('GROUP_ID' => $group->id, 'USER_ID' => $type->id, 'VALUE' => 50);
-        $award3 = CFactory::create(CUserGroupModel::className(), $data);
+        $data = array('GROUP_ID' => $group3->id, 'USER_ID' => $user->id);
+        CUserGroupModel::Insert($data);
 
         $subquery1 = CUserGroupModel::q()
-                ->where( array('GROUP_ID' => $group->id))
+                ->where( array('USER_ID' => $user->id))
                 ->order(array('ID' => 'ASC'));
 
         $subquery2 = CUserGroupModel::q()
-                ->where( array('GROUP_ID' => $group->id))
+                ->where( array('USER_ID' => $user->id))
                 ->order(array('ID' => 'DESC'));
 
         $this->assertNotEquals(
-            CUserGroupModel::q()->select('s.*')->from(array('s' => $subquery1))->group('VALUE')->all(),
-            CUserGroupModel::q()->select('s.*')->from(array('s' => $subquery2))->group('VALUE')->all()
+            CUserGroupModel::q()->select('s.*')->from(array('s' => $subquery1))->group('GROUP_ID')->all(),
+            CUserGroupModel::q()->select('s.*')->from(array('s' => $subquery2))->group('GROUP_ID')->all()
         );
     }
-*/
+
     public function testObject() {
         $group = CGroupModel::GetOrCreate(array('NAME' => 'test221', 'CODE' => 'test1441'));
         $obj = CGroupModel::q()->object($group->id);

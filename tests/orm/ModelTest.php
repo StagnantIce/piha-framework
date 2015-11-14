@@ -134,12 +134,16 @@ class ModelTest extends BaseTest {
 
     public function testRelations() {
         CUserModel::Insert(array("ID" => 1, 'LOGIN' => 'test1'));
+        CUserModel::Insert(array("ID" => 2, 'LOGIN' => 'test2'));
         CGroupModel::Insert(array('ID' => 1, 'NAME' => 'group1'));
+        CGroupModel::Insert(array('ID' => 2, 'NAME' => 'group2'));
         CUserGroupModel::Insert(array('ID' => 1, 'USER_ID' => 1, 'GROUP_ID' => 1));
+        CUserGroupModel::Insert(array('ID' => 2, 'USER_ID' => 1, 'GROUP_ID' => 2));
+        CUserGroupModel::Insert(array('ID' => 3, 'USER_ID' => 2, 'GROUP_ID' => 1));
         $user = CUserModel::Get(1);
         $this->assertEquals($user->groups, CGroupModel::GetAll());
-        $userGroup = CUserGroupModel::Get(1);
-        $this->assertEquals($userGroup->group, CGroupModel::Get());
-        $this->assertEquals($userGroup->group->name, 'group1');
+        $userGroup = CUserGroupModel::Get(2);
+        $this->assertEquals($userGroup->group, CGroupModel::Get(2));
+        $this->assertEquals($userGroup->group->name, 'group2');
     }
 }

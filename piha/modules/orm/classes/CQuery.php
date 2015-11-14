@@ -491,7 +491,7 @@ class CQuery extends AExtendClass {
         if (!$fields) {
             $this->_select = $this->getColumns();
         } else if (is_string($fields)) {
-            $this->_select = '`'. self::escape($fields). "` ";
+            $this->_select = self::escape($fields);
         } else if (is_array($fields)) {
             $f = array();
             foreach($fields as $key => $value) {
@@ -556,17 +556,47 @@ class CQuery extends AExtendClass {
         return $this->condition($result, $type, true);
     }
 
-    private function getFieldRelation($fieldName) {
-        return false;
-        /*if (isset($this->_relations[$fieldName])) {
-            return $this->_relations[$fieldName];
+    private function joinRelation($fieldName, $joinType) {
+        if (!$this->_object || !$this->_relations) {
+            return false;
         }
-        foreach($this->_relations as $key => $values) {
-            if ($values[0] === $fieldName) {
-                return $this->_relations[$key];
+        foreach($this->_relations as $type => $relations) {
+            foreach($relations as $relationName => $relation) {
+                if ($relationName === $fieldName) {
+                    $field = array_shift($relation);
+                    $prevClass = null;
+                    if (!$relation || count($relation) > 2) {
+                        throw new CException("Inocorrect arguments number in relation {$fieldName} for model {$this->_object}");
+                    }
+                    $className = array_shift($relation);
+
+                    $cond = array();
+                    if (!$relation) {
+                        $cond['__table'] = $fieldName;
+                        $class = $this->_object;
+                        $joinField = $class::m()->_pk;
+                    } else {
+                        $joinField = $className::GetObjectField($this->_object);
+                    }
+                    if (!$joinField) {
+                        throw new CException("Error join {$className} to {$this->_object}");
+                    }
+                    $cond['#.'.$joinField] = '*.'.$field;
+
+                    $this->join(array($className => $cond), '', $joinType);
+                    if ($relation) {
+                        $nextClass = array_shift($relation);
+                        $joinField = $className::GetObjectField($nextClass);
+                        if (!$joinField) {
+                            throw new CException("Error join {$nextClass} to {$className}");
+                        }
+                        $this->join(array($nextClass => array('#.'.$nextClass::m()->_pk => $className::tableName() .'.'.$joinField, '__table' => $fieldName)), '', $joinType);
+                    }
+                    return true;
+                }
             }
         }
-        return false;*/
+        return false;
     }
 
     /**
@@ -599,15 +629,12 @@ class CQuery extends AExtendClass {
             $alias = is_numeric($alias) ? $field : $alias;
 
             if (is_string($field) && is_string($alias)) {
-                if (isset($this->_columns[$alias]) || $this->getFieldRelation($alias)) {
+                if (isset($this->_columns[$alias])) {
                     list($alias, $field) = array($field, $alias);
                 }
 
-                if ($rel = $this->getFieldRelation($field)) {
-                    list($own_field, $class, $class_field, $type_f) = array_pad($rel, 4, null);
-                    $class_field = is_string($class_field) ? array('*.'.$own_field => '#.'.$class_field) : $class_field;
-                    $cond = $this->getJoinCondition($alias, $class_field);
-                    $tableName = self::GetTableName($class);
+                if ($this->joinRelation($field, $type)) {
+                    continue;
                 } else if (isset($this->_columns[$field]) && $rel = $this->_columns[$field]) {
                     if (isset($rel['object'])) {
                         $tableName = self::GetTableName($rel['object']);
@@ -631,6 +658,7 @@ class CQuery extends AExtendClass {
             }
 
             $cond = $rewrite_cond ? $this->getJoinCondition($alias, $rewrite_cond) : $cond;
+            $alias = '`' . trim($alias, '`') . '`';
             $q .= " $type JOIN {$tableName} AS {$alias} " . ($cond ?  ' ON '. $cond : '');
         }
         $this->_join .= $q;
