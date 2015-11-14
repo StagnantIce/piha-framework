@@ -9,9 +9,11 @@ class CGroupModel extends CModel {
 	public $_name = '{{group}}';
 	public $_label = 'Группы';
 
-	public $_columns = array(
-		'ID' => array('type' => 'pk'),
-		'NAME' => array('type' => 'string'),
-		'CODE' => array('type' => 'string')
-	);
+	public function getColumns() {
+	    return array(
+			'ID' => array('type' => 'pk'),
+			'NAME' => array('type' => 'string'),
+			'CODE' => array('type' => 'string')
+		);
+	}
 }

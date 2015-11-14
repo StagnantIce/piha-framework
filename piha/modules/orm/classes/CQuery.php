@@ -67,7 +67,7 @@ class CQuery extends AExtendClass {
 
     public static function fromModel($className) {
         $object = $className::m();
-        $q = new CQuery($object->_name, $object->_columns, $object->getRelations());
+        $q = new CQuery($object->_name, $className::getColumns(), $object->getRelations());
         unset($object);
         $q->_object = $className;
         return $q;
@@ -406,6 +406,9 @@ class CQuery extends AExtendClass {
                     if (!isset($d[$r[$group]])) $d[$r[$group]] = array();
                     $d = &$d[$r[$group]];
                 }
+                if (is_string($d)) {
+                    $d = array($d);
+                }
                 if (count($d) === 0) {
                     $d = self::parseRow($r, $fields);
                     if ($flat===false) {
@@ -532,7 +535,7 @@ class CQuery extends AExtendClass {
                 if ($value instanceof self) {
                     $f[] = '('. str_replace('SQL_CALC_FOUND_ROWS ', '', $value->getQuery()) . ') as '.$key;
                 } else {
-                    $f[] = "`$value` AS $key";
+                    $f[] = COrmModule::quoteTableName($value) . " AS $key";
                 }
             }
             $this->_from = " FROM ". implode(', ', $f);
@@ -554,7 +557,8 @@ class CQuery extends AExtendClass {
     }
 
     private function getFieldRelation($fieldName) {
-        if (isset($this->_relations[$fieldName])) {
+        return false;
+        /*if (isset($this->_relations[$fieldName])) {
             return $this->_relations[$fieldName];
         }
         foreach($this->_relations as $key => $values) {
@@ -562,7 +566,7 @@ class CQuery extends AExtendClass {
                 return $this->_relations[$key];
             }
         }
-        return false;
+        return false;*/
     }
 
     /**

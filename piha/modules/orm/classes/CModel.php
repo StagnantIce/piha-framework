@@ -40,17 +40,28 @@ class CModel extends CDataObject {
     /** @var static array Кеширование объектов моделей */
     private static $_models = array();
 
-    /** @var array Преобразования перед вытаскиванием из базы */
-    public $_getters = array();
-
     /** @var string Имя таблицы в Базе Данных */
-    public $_name = '';
+    protected $_name = '';
 
     /** @var string Имя модели, для вывода */
-    public $_label = '';
+    protected $_label = '';
+
+    private $_schema = '';
+
+    /** @var array Псевдо поля */
+    //public $_fields = array();
 
     /** @var array Список сохраненных связей */
-    public $_relations = array();
+    public $_relations = null;
+
+    /** @var array Использовать заглавные буквы в именах полей */
+    protected $_isUpperCase = true;
+
+    const TYPE_ONE = 1;
+    const TYPE_MANY = 2;
+
+    /** primary key */
+    public $_pk = 'ID';
 
     /** @var array Список связей моделей
       * <pre>
@@ -62,45 +73,71 @@ class CModel extends CDataObject {
         return array();
     }
 
-    const RELATION_TYPE_ONE = 'one';
-    const RELATION_TYPE_MANY = 'many';
+    public function getColumns() {
+        return array();
+    }
 
     /**
       * Возвращает имя таблицы БД для модели к которой обратились через данный метод
       * @return string
       */
     public static function tableName() {
-        $name = self::m()->_name;
-        $prefix = COrmModule::GetInstance()->config('prefix', '');
-        return str_replace('{{' . $name . '}}', $prefix . $name, $name);
+        return COrmModule::quoteTableName(self::m()->_name);
     }
     /**
       * Возвращает имя модели к которой обратились через данный метод
       * @return string
       */
-    public static function label() { return self::m()->_label;}
-    /**
-      * Возвращает список столбцов модели к которой обратились через данный метод
-      * @return array
-      */
-    public static function tableColumns() { return self::m()->_columns;}
+    public static function label() {
+        return self::m()->_label;
+    }
 
     /** @ignore */
-    public static function getColumn($k) { $cols = self::tableColumns(); return isset($cols[$k]) ? $cols[$k] : false;}
+    public static function StaticGetColumn($k) {
+        $cols = static::getColumns();
+        return isset($cols[$k]) ? $cols[$k] : false;
+    }
     /** @ignore */
-    public static function getType($k) { $col = self::getColumn($k); return $col ? $col['type'] : false;}
+    public static function StaticGetType($k) {
+        $col = self::getColumn($k);
+        return $col ? $col['type'] : false;
+    }
     /** @ignore */
-    public static function getFieldKeys() { return array_keys(self::tableColumns());}
+    public static function StaticGetFieldKeys() {
+        return array_keys(static::getColumns());
+    }
     /** @ignore */
-    public static function getSize($k) { $col = self::getColumn($k); return ($col && isset($col['size'])) ? $col['size'] : 0;}
+    public static function StaticGetLabel($k) {
+        $col = self::getColumn($k);
+        return ($col && isset($col['label'])) ? $col['label'] : $k;
+    }
     /** @ignore */
-    public static function getLabel($k) { $col = self::getColumn($k); return ($col && isset($col['label'])) ? $col['label'] : $k;}
+    public static function StaticGetObject($k) {
+        $col = self::getColumn($k);
+        return ($col && isset($col['object'])) ? $col['object'] : false;
+    }
     /** @ignore */
-    public static function getObject($k) { $col = self::getColumn($k); return ($col && isset($col['object'])) ? $col['object'] : false;}
+    public static function StaticGetFieldNames() {
+        $arr = array();
+        foreach(self::getFieldKeys() as $k) {
+            $arr[$k] = self::getLabel($k);
+        }
+        return $arr;
+    }
     /** @ignore */
-    public static function getFieldNames() { $arr = array(); foreach(self::getFieldKeys() as $k) $arr[$k] = self::getLabel($k); return $arr;}
+    public static function StaticGetObjectField($className) {
+        return array_search($className, self::StaticGetTableRelations());
+    }
     /** @ignore */
-    public static function getTableRelations() {$arr = array(); foreach(self::getFieldKeys() as $k) if ($ob = self::getObject($k)) $arr[$k] = $ob; return $arr;}
+    public static function StaticGetTableRelations() {
+        $arr = array();
+        foreach(self::StaticGetFieldKeys() as $k){
+            if ($ob = self::StaticGetObject($k)) {
+                $arr[$k] = $ob;
+            }
+        }
+        return $arr;
+    }
     /**
       * Возвращает пустой массив записи модели к которой обратились через данный метод
       * @todo Нужно сделать согласно типу столбцов
@@ -108,7 +145,7 @@ class CModel extends CDataObject {
       */
     public function getEmpty() {
         $columnDefaults = array();
-        foreach($this->_columns as $key => $column) {
+        foreach(static::getColumns() as $key => $column) {
             $columnDefaults[$key] = is_array($column) && isset($column['default']) ? $column['default'] : null;
         }
         return $columnDefaults;
@@ -116,7 +153,7 @@ class CModel extends CDataObject {
     /**
       * Обновляет строку в БД таблицу модели
       *
-      * @param int|array ;where - массив с условиями или id
+      * @param int|array $where - массив с условиями или id
       * @return int сколько строк затронуто
       */
     public static function StaticUpdate(Array $fields, $where = "") {
@@ -146,6 +183,9 @@ class CModel extends CDataObject {
       * @return string
       */
     private function toVar($key) {
+        if (!$this->_isUpperCase) {
+            return $key;
+        }
         return lcfirst(implode('', array_map('ucfirst', explode('_', strtolower($key)))));
     }
 
@@ -155,6 +195,9 @@ class CModel extends CDataObject {
       * @return string
       */
     public function toKey($var) {
+        if (!$this->_isUpperCase) {
+            return $var;
+        }
         return strtoupper(preg_replace('/([A-Z])([a-z]+)/', '_$1$2', lcfirst($var)));
     }
 
@@ -179,8 +222,9 @@ class CModel extends CDataObject {
       */
     public function __construct(Array $data = null) {
         $data = array_replace($this->getEmpty(), $data ?: array());
-        $keys = array_keys($this->_columns);
-        if($keys !== array_map('strtoupper', $keys)) {
+        $keys = static::StaticGetFieldKeys();
+        $this->_isUpperCase = COrmModule::Config('uppercase', $this->_isUpperCase);
+        if($this->_isUpperCase && $keys !== array_map('strtoupper', $keys)) {
             throw new CException("Column names not in upper case.");
         }
         $dataObj = array();
@@ -190,12 +234,11 @@ class CModel extends CDataObject {
         parent::__construct($dataObj);
     }
 
-    private $_schema = '';
     public static function schema() {
         if (self::m()->_schema) {
             return self::m()->_schema;
         }
-        self::m()->_schema = new CMigration(self::tableName(), self::tableColumns());
+        self::m()->_schema = new CMigration(self::tableName(), static::getColumns());
         return self::m()->_schema;
     }
     /**
@@ -206,31 +249,49 @@ class CModel extends CDataObject {
             return $this->_relations[$name];
         }
         /** advanced define */
-        $relations = static::m()->getRelations();
-        if (isset($relations[$name])) {
-            list($field, $class, $class_field, $type) = array_pad($relations[$name], 4, null);
-            $type = $type ?: self::RELATION_TYPE_MANY;
-            if (is_array($class_field)) {
-                $where = array();
-                foreach($this->toArray() as $k => $v) {
-                    if (isset($class_field['*.'.$k])) {
-                        $where[str_replace('#', '*', $class_field['*.'.$k])] = $v;
-                    }
-                }
-            } elseif (is_string($class_field)) {
-                $where = array('*.'.$class_field => $this->$field);
+        $relation = $type = null;
+        $relations = $this->getRelations();
+        if (isset($relations[self::TYPE_MANY][$name])) {
+            $relation = $relations[self::TYPE_MANY][$name];
+            $type = self::TYPE_MANY;
+        }
+
+        if (isset($relations[self::TYPE_ONE][$name])) {
+            $relation = $relations[self::TYPE_ONE][$name];
+            $type = self::TYPE_ONE;
+        }
+        if ($relation) {
+            $fieldName = array_shift($relation);
+            if ($this->_isUpperCase) {
+                $field = $this->toVar($fieldName);
             } else {
-                throw new CException("Error relation $name");
+                $field = $fieldName;
             }
-            $this->_relations[$name] = $type == self::RELATION_TYPE_MANY ? $class::GetAll($where) : $class::Get($where);
+            if (!$this->$field) {
+                throw new CException("Relation field {$field} not defined");
+            }
+            $q = null;
+            $prevClassName = null;
+            $relation = array_reverse($relation);
+            foreach($relation as $className) {
+                if ($q) {
+                    $q->left(array($className => array('#.' . $className::StaticGetObjectField($prevClassName) => '*.' . $className::m()->_pk)));
+                } else {
+                    $q = $className::q();
+                }
+                $prevClassName = $className;
+            }
+            $whereField = $prevClassName::StaticGetObjectField(static::className());
+            $whereField = $whereField ?: $prevClassName::m()->_pk;
+            $where = array($prevClassName::tableName() . '.'.$whereField => $this->$field);
+            $this->_relations[$name] = $type === self::TYPE_MANY ? $q->objects($where) : $q->object($where);
             return $this->_relations[$name];
         }
         /** simple define */
-        $key = strtoupper($name . '_ID');
-        if (isset($this->_columns[$key]) && isset($this->_columns[$key]['object'])) {
-            $object = $this->_columns[$key]['object'];
+        $key = strtoupper($name . '_' . $this->_pk);
+        if ($object = static::StaticGetObject($key)) {
             $data = $this->toArray();
-            $this->_relations[$name] = $data[$key] ? $object::Get($data[$key]) : null;
+            $this->_relations[$name] = $data[$key] ? $object::GetAll($data[$key]) : null;
             return $this->_relations[$name];
         }
         return parent::__get($name);
