@@ -91,7 +91,7 @@ class CView {
         }
 		ob_start();
 		ob_implicit_flush(false);
-		extract($this->_context, EXTR_OVERWRITE);
+		extract($this->_context ?: array(), EXTR_OVERWRITE);
 		require($file);
 		return ob_get_clean();
 	}

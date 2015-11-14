@@ -93,7 +93,6 @@ class Piha extends AModule implements IModule {
         if (PIHA_CONSOLE === false && PIHA_INCLUDE === false) {
             $this->request = new CRequest();
             $this->router = new CRouter($this->request);
-            $this->view = new CView();
             $this->controller = $this->router->getController();
             $this->controller->runAction();
         }
