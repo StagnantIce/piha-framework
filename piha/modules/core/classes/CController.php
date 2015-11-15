@@ -51,15 +51,27 @@ class CController {
         return self::METHOD_NAME . ucfirst($action_id);
     }
 
+    public function setReturn($return) {
+        $this->_return = (boolean)$return;
+    }
+
     /**
       * Запустить выполнение экшена
+      * @param boolean $return вернуть или вывести
       * @return null
       */
-    public function runAction() {
+    public function runAction($return = false) {
         $method = $this->getActionName($this->action_id);
         if (method_exists($this, $method)) {
+            if ($return) {
+                ob_start();
+                ob_implicit_flush(false);
+            }
             $this->beforeAction($this->action_id);
             call_user_func_array(array($this, $method), $this->params ?: array());
+            if ($return) {
+                return ob_get_clean();
+            }
         } else {
             throw new CException('Bad method call ' . get_called_class().'->'.$method);
         }
@@ -78,7 +90,8 @@ class CController {
       * @return string ID контроллера
       */
     public static function GetID() {
-        return str_replace('Controller', '', lcfirst(get_called_class()));
+        $className = explode('\\', get_called_class());
+        return str_replace('Controller', '', lcfirst($className[count($className)-1]));
     }
 
     /**
@@ -129,27 +142,40 @@ class CController {
       * @param array $params список параметров
       * @return null
       */
-    public function render($renderName = '', Array $context = null) {
+    public function render($renderName = '', Array $context = null, $return = false) {
         $view = new CView($this->getViewId($renderName), $context);
+        $view->setMiddleWare($this);
+        $result = '';
         if ($this->layout) {
             $context['content'] = $view->render();
             $layoutView = new CView('/' . $this->layout, $context);
-            echo $layoutView->render();
+            $layoutView->setMiddleWare($this);
+            $result = $layoutView->render();
         } else {
-            echo $view->render();
+            $result = $view->render();
         }
+        if ($return) {
+            return $result;
+        }
+        echo $result;
     }
 
     /**
       * Отрисовать вьюшку относительно текущей позиции рендеринга
       * @param string $renderName имя вьюшки
       * @param array $context контекст для рендеринга
+      * @param boolean $return вернуть или вывести
       * @return string
       */
-    public function part($renderName = null, Array $context = null) {
+    public function part($renderName = null, Array $context = null, $return = false) {
         $view = new CView($this->getViewId($renderName), $context);
+        $view->setMiddleWare($this);
         $view->setPartAlias();
-        echo $view->render();
+        $result = $view->render();
+        if ($return) {
+            return $result;
+        }
+        echo $result;
     }
 
     /**

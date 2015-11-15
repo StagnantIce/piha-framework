@@ -92,7 +92,9 @@ class CException extends \Exception {
      * Вывод исключения на странице и прекращение работы
      */
     public function __toString() {
-        ob_end_clean();
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
         ob_start();
 
         echo '<h2>' . $this->getMessage() . '</h2><br/>';

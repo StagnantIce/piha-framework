@@ -4,9 +4,6 @@ require_once (__DIR__ . '/BaseTest.php');
 
 use piha\modules\orm\classes\CDataObject;
 use piha\modules\orm\classes\CQuery;
-use piha\modules\user\models\CGroupModel;
-use piha\modules\user\models\CUserModel;
-use piha\modules\user\models\CUserGroupModel;
 
 
 class ModelTest extends BaseTest {

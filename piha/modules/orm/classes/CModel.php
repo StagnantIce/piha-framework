@@ -51,9 +51,6 @@ class CModel extends CDataObject {
     /** @var array Псевдо поля */
     //public $_fields = array();
 
-    /** @var array Список сохраненных связей */
-    public $_relations = null;
-
     /** @var array Использовать заглавные буквы в именах полей */
     protected $_isUpperCase = true;
 
@@ -245,9 +242,6 @@ class CModel extends CDataObject {
       * @ignore
       */
     public function __get($name) {
-        if (isset($this->_relations[$name])) {
-            return $this->_relations[$name];
-        }
         /** advanced define */
         $relation = $type = null;
         $relations = $this->getRelations();
@@ -284,27 +278,15 @@ class CModel extends CDataObject {
             $whereField = $prevClassName::StaticGetObjectField(static::className());
             $whereField = $whereField ?: $prevClassName::m()->_pk;
             $where = array($prevClassName::tableName() . '.'.$whereField => $this->$field);
-            $this->_relations[$name] = $type === self::TYPE_MANY ? $q->objects($where) : $q->object($where);
-            return $this->_relations[$name];
+            return $type === self::TYPE_MANY ? $q->objects($where) : $q->object($where);
         }
         /** simple define */
         $key = strtoupper($name . '_' . $this->_pk);
         if ($object = static::StaticGetObject($key)) {
             $data = $this->toArray();
-            $this->_relations[$name] = $data[$key] ? $object::GetAll($data[$key]) : null;
-            return $this->_relations[$name];
+            return isset($data[$key]) ? $object::GetAll($data[$key]) : null;
         }
         return parent::__get($name);
-    }
-
-    /**
-      * @ignore
-      */
-    public function __set($name, $value) {
-        if (isset($this->_relations[$name])) {
-            unset($this->_relations[$name]);
-        }
-        return parent::__set($name, $value);
     }
 
     /**

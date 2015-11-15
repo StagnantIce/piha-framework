@@ -9,9 +9,10 @@
 */
 namespace piha\modules\orm\classes;
 
+use piha\AClass;
 use piha\CException;
 
-class CDataObject implements \IteratorAggregate, \ArrayAccess {
+class CDataObject extends AClass implements \IteratorAggregate, \ArrayAccess {
     /** @ignore */
 
     /* функции имеющие перед собой это слово могут быть вызваны как статические, без этого слова */
@@ -132,7 +133,7 @@ class CDataObject implements \IteratorAggregate, \ArrayAccess {
         if ($this->property_exists($k)) {
             return $this->_data[$k];
         }
-        $this->BadPropertyCallException($k);
+        return parent::__get($k, $v);
     }
     /** @ignore */
     public function __set($k, $v) {
@@ -140,7 +141,7 @@ class CDataObject implements \IteratorAggregate, \ArrayAccess {
             $this->_data[$k] = $v;
             return $this;
         }
-        $this->BadPropertyCallException($k);
+        return parent::__set($k, $v);
     }
 
     /**
@@ -190,10 +191,6 @@ class CDataObject implements \IteratorAggregate, \ArrayAccess {
     }
 
     /** @ignore */
-    public function BadPropertyCallException($name) {
-        throw new CException(get_class($this) . ' do not have a property named "'. $name . '".');
-    }
-    /** @ignore */
     public function property_exists($name) {
         return (array_key_exists($name, $this->_data) ? true : $this->BadPropertyCallException($name));
     }
@@ -214,7 +211,7 @@ class CDataObject implements \IteratorAggregate, \ArrayAccess {
         if ($this->property_exists($offset)) {
             return $this->_data[$offset];
         }
-        $this->BadPropertyCallException($offset);
+        $this->badPropertyCallException($offset);
     }
     /** @ignore */
     public function offsetSet ( $offset ,  $value ) {
@@ -222,7 +219,7 @@ class CDataObject implements \IteratorAggregate, \ArrayAccess {
             $this->_data[$offset] = $value;
             return $this;
         }
-        $this->BadPropertyCallException($offset);
+        $this->badPropertyCallException($offset);
     }
     /** @ignore */
     public function offsetUnset ( $offset ) {

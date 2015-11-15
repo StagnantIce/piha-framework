@@ -10,7 +10,7 @@
 
 namespace piha;
 
-class CAlias {
+class CAlias extends AClass {
 
 	/** @var string $ds разделитель между папок */
 	private static $ds = '';

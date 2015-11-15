@@ -11,10 +11,11 @@
 namespace piha;
 
 
-abstract class AModule {
+abstract class AModule extends AClass {
 
     /** @var static array Массив объектов модулей */
     private static $modules = array();
+    private $config = array();
 
     public static function GetID() {
         return basename(static::getDir());
@@ -53,7 +54,11 @@ abstract class AModule {
         return $className::GetInstance();
     }
 
-    public static function config($param, $default=null) {
+    public static function SetConfig($param, $value) {
+        static::GetInstance()->config[$param] = $value;
+    }
+
+    public static function Config($param, $default=null) {
         if (is_string($param)) {
             $res = static::GetInstance()->config;
             foreach(explode('/', $param) as $p) {

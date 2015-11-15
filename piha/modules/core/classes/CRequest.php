@@ -30,12 +30,14 @@ class CRequest {
     }
 
 	public function __construct() {
-        $this->location = $_SERVER['REQUEST_URI'];
-        $url = parse_url($this->location);
-        $this->path = $url['path'];
-        $shema = isset($_SERVER['HTTPS']) && 'on' === $_SERVER['HTTPS'] ? 'https': 'http';
-        $this->host = $shema . '://' . $_SERVER['SERVER_NAME'];
-        $this->method = $_SERVER['REQUEST_METHOD'];
+        if (isset($_SERVER['REQUEST_URI'])) {
+            $this->location = $_SERVER['REQUEST_URI'];
+            $url = parse_url($this->location);
+            $this->path = $url['path'];
+            $shema = isset($_SERVER['HTTPS']) && 'on' === $_SERVER['HTTPS'] ? 'https': 'http';
+            $this->host = $shema . '://' . $_SERVER['SERVER_NAME'];
+            $this->method = $_SERVER['REQUEST_METHOD'];
+        }
 	}
 
 	public function url(Array $addParams = null, Array $removeParams = null) {

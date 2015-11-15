@@ -2,7 +2,7 @@
 
 return array(
     'piha' => array(
-        'modules' => array('core', 'orm', 'bootstrap', 'bootstrap3', 'user'),
+        'modules' => array('core', 'orm', 'bootstrap', 'bootstrap3'),
         'autoload' => array(
             array('@webroot', 'controllers'),
             array('@webroot', 'models')
@@ -13,6 +13,8 @@ return array(
         'configFile' => __FILE__,
         'viewPath' => array('@webroot', 'views'),
         'layoutPath' => array('@webroot', 'views', 'layouts'),
+        'prettyUrl' => false,
+        'smartUrl' => false,
     ),
     'orm' =>  array(
         'className' => 'piha\modules\orm\classes\CMysqlConnection',

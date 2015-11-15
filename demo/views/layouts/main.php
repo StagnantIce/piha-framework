@@ -19,11 +19,7 @@
     <![endif]-->
   </head>
   <body>
-  <?
-  	use piha\modules\bootstrap3\widgets\CNavbarWidget;
-  	$nav = new CNavbarWidget();
-  	$nav->render();
-   ?>
+  <? $this->part('part/menu');?>
    <?=$content;?>
 
 	<footer class="footer">

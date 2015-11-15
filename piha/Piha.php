@@ -8,6 +8,7 @@ use piha\modules\core\classes\CRequest;
 use piha\modules\core\classes\CController;
 use piha\modules\core\classes\CView;
 
+require 'AClass.php';
 require 'CException.php';
 require 'CAlias.php';
 require 'AModule.php';
@@ -81,6 +82,7 @@ class Piha extends AModule implements IModule {
         CAlias::SetAlias('@piha', __DIR__);
         CAlias::SetAlias('@modules', array('@piha', 'modules'));
         CAlias::SetAlias('@webroot', $dir);
+        CAlias::SetAlias('@demo', array('@piha', '..', 'demo'));
 
         $this->start_time = time() + microtime();
         spl_autoload_register('Piha::autoloader');
@@ -90,9 +92,9 @@ class Piha extends AModule implements IModule {
         defined('PIHA_CONSOLE') or define('PIHA_CONSOLE', false);
         defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
 
+        $this->request = new CRequest();
+        $this->router = new CRouter($this->request);
         if (PIHA_CONSOLE === false && PIHA_INCLUDE === false) {
-            $this->request = new CRequest();
-            $this->router = new CRouter($this->request);
             $this->controller = $this->router->getController();
             $this->controller->runAction();
         }

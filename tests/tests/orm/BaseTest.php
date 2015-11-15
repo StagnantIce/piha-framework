@@ -1,10 +1,6 @@
 <?php
 
-require (__DIR__ . '/../index.php');
-
-use piha\modules\user\models\CUserModel;
-use piha\modules\user\models\CGroupModel;
-use piha\modules\user\models\CUserGroupModel;
+require_once (__DIR__ . '/../../index.php');
 
 abstract class BaseTest extends PHPUnit_Framework_TestCase {
 

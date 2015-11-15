@@ -11,8 +11,12 @@ namespace piha\modules\core\classes;
 use piha\modules\core\CCoreModule;
 use piha\CAlias;
 use piha\CException;
+use piha\AClass;
 
-class CView {
+class CView extends AClass {
+
+    /** @var object $_middleWare - объект для расши */
+    private $_middleWare = null;
 
 	/** @var string $_file - имя файла представления */
 	private $_file = '';
@@ -83,18 +87,22 @@ class CView {
       * Вернуть представление в рамках контекста
       * @return string
       */
-	public function render() {
-		self::$partAlias = $this->getAlias();
+    public function render() {
+        self::$partAlias = $this->getAlias();
         $file = CAlias::file($this->getFile(), self::$partAlias);
-		if (!file_exists($file)) {
+        if (!file_exists($file)) {
             throw new CException("File {$file} not found.");
         }
-		ob_start();
-		ob_implicit_flush(false);
-		extract($this->_context ?: array(), EXTR_OVERWRITE);
-		require($file);
-		return ob_get_clean();
-	}
+        ob_start();
+        ob_implicit_flush(false);
+        extract($this->_context ?: array(), EXTR_OVERWRITE);
+        require($file);
+        return ob_get_clean();
+    }
+
+    public function setMiddleWare($middleware) {
+        $this->_middleWare = $middleware;
+    }
 
     /**
       * Доступ к свойствам контроллера из вьюшки
@@ -102,7 +110,10 @@ class CView {
       * @return mixed
       */
     public function __get($name) {
-    	return \Piha::controller()->$name;
+        if ($this->_middleWare) {
+    	   return $this->_middleWare->$name;
+        }
+        return parent::__get($name);
     }
 
     /**
@@ -112,7 +123,10 @@ class CView {
       * @return mixed
       */
     public function __call($method, $ps) {
-    	return call_user_func_array(array(\Piha::controller(), $method), $ps);
+        if ($this->_middleWare) {
+    	   return call_user_func_array(array($this->_middleWare, $method), $ps);
+        }
+        return parent::__call($method, $ps);
     }
 
     /**

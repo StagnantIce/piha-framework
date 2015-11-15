@@ -183,7 +183,7 @@ class CMigration {
         }
     }
 
-    public function addColumn($column)
+    public function addColumn($column, $type=null)
     {
         $col = $this->_columns[$column];
         $type = $type ?: $col['type'] . (isset($col['default']) ? " DEFAULT '".$col['default']."'": '');
