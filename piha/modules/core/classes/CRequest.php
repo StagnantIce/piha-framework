@@ -40,15 +40,15 @@ class CRequest {
         }
 	}
 
-	public function url(Array $addParams = null, Array $removeParams = null) {
+    public function url(Array $addParams = null, Array $removeParams = null) {
         $url = parse_url($this->location);
         $params = $_GET;
         if ($addParams) {
-        	$params = array_replace_recursive($params, $addParams);
+            $params = array_replace_recursive($params, $addParams);
         }
         if ($removeParams) {
-        	$params = array_diff_key($params,array_flip($removeParams));
+            $params = array_diff_key($params,array_flip($removeParams));
         }
-		return '/' . $this->path . $_GET ? '?' . http_build_query($params): '';
-	}
+        return '/' . trim($this->path, '/') .'/' . ($params ? '?' . http_build_query($params): '');
+    }
 }

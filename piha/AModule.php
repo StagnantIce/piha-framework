@@ -22,6 +22,9 @@ abstract class AModule extends AClass {
     }
 
     public static function Add($module, $path=null) {
+        if (isset(self::$modules[$module])) {
+            throw new CException("Module '{$module}' already added.");
+        }
         $alias = '@'.$module;
         CAlias::SetAlias($alias, array('@modules', $module));
         $obj = CAlias::requireFile('module.php', $alias);

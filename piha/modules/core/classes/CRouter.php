@@ -33,6 +33,7 @@ class CRouter {
     public function buildUrl($route = '', Array $params = null) {
         $params = $params ?: array();
         $host = '/';
+        $route = trim($route, '/');
         if (CCoreModule::Config('prettyUrl', false)) {
             $host .= $route . '/';
         } else {

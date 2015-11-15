@@ -1,1 +1,1 @@
-./vendor/bin/phpunit --coverage-html tests/coverage --verbose tests/tests/core/
+./vendor/bin/phpunit --coverage-html tests/coverage --verbose tests/tests/

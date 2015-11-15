@@ -51,10 +51,6 @@ class CController {
         return self::METHOD_NAME . ucfirst($action_id);
     }
 
-    public function setReturn($return) {
-        $this->_return = (boolean)$return;
-    }
-
     /**
       * Запустить выполнение экшена
       * @param boolean $return вернуть или вывести
@@ -116,7 +112,11 @@ class CController {
       * @return null
       */
     public function renderJSON($arr = array()) {
-        CAjaxHelper::send($arr);
+        ob_end_clean();
+        $out = ob_get_clean();
+        header('Content-Type: application/json');
+        echo json_encode($arr);
+        exit();
     }
     /**
       * Установить, проверить существование или вытащить flash сообщение

@@ -65,11 +65,14 @@ class Piha extends AModule implements IModule {
     }
 
     public function configure(Array $config = null) {
+        $config = $config ?: array();
         $configs = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
         parent::configure($configs['piha']);
         $modules = $this->config('modules');
-        foreach($modules as $module) {
-            AModule::Add($module);
+        if ($modules) {
+            foreach($modules as $module) {
+                AModule::Add($module);
+            }
         }
         unset($configs['piha']);
         foreach($configs as $key => $config) {
