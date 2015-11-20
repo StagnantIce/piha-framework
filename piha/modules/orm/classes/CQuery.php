@@ -570,11 +570,11 @@ class CQuery extends AExtendClass {
                     }
                     $className = array_shift($relation);
 
-                    $cond = array();
-                    if (!$relation) {
-                        $cond['__table'] = $fieldName;
-                        $class = $this->_object;
-                        $joinField = $class::m()->_pk;
+                    $cond = array('__table' => $fieldName);
+                    $class = $this->_object;
+                    $pk = $class::m()->_pk;
+                    if (!$relation && $field !== $pk) {
+                        $joinField = $pk;
                     } else {
                         $joinField = $className::GetObjectField($this->_object);
                     }

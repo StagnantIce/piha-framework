@@ -81,6 +81,7 @@ class CForm {
 	}
 
 	public function start($options = array()) {
+		$options = $options ?: array();
 		$default = array(
 			'action' => '',
 			'name' => $this->_name,
@@ -90,6 +91,7 @@ class CForm {
 	}
 
 	public function label($options = array()) {
+		$options = $options ?: array();
 		$this->beforeLabel($options);
 		$label = CHtml::popOption($options, 'label');
 		return $this->_html->label($options)->html($label)->render(true);

@@ -179,7 +179,7 @@ class CModel extends CDataObject {
       * @param string $key Имя столбца
       * @return string
       */
-    private function toVar($key) {
+    public function toVar($key) {
         if (!$this->_isUpperCase) {
             return $key;
         }
@@ -198,6 +198,23 @@ class CModel extends CDataObject {
         return strtoupper(preg_replace('/([A-Z])([a-z]+)/', '_$1$2', lcfirst($var)));
     }
 
+    /**
+      * Переопределение метода
+      * @return array
+      */
+    public function fromArray(Array $data = null) {
+        $data = array_replace($this->getEmpty(), $data ?: array());
+        $keys = static::StaticGetFieldKeys();
+        $this->_isUpperCase = COrmModule::Config('uppercase', $this->_isUpperCase);
+        if($this->_isUpperCase && $keys !== array_map('strtoupper', $keys)) {
+            throw new CException("Column names not in upper case.");
+        }
+        $dataObj = array();
+        foreach($data as $key => $value) {
+            $dataObj[$this->toVar($key)] = $value;
+        }
+        parent::fromArray($dataObj);
+    }
     /**
       * Вернуть данные из модели в виде массива
       * @return array
@@ -218,17 +235,7 @@ class CModel extends CDataObject {
       * @return CModel
       */
     public function __construct(Array $data = null) {
-        $data = array_replace($this->getEmpty(), $data ?: array());
-        $keys = static::StaticGetFieldKeys();
-        $this->_isUpperCase = COrmModule::Config('uppercase', $this->_isUpperCase);
-        if($this->_isUpperCase && $keys !== array_map('strtoupper', $keys)) {
-            throw new CException("Column names not in upper case.");
-        }
-        $dataObj = array();
-        foreach($data as $key => $value) {
-            $dataObj[$this->toVar($key)] = $value;
-        }
-        parent::__construct($dataObj);
+        $this->fromArray($data);
     }
 
     public static function schema() {
@@ -468,7 +475,9 @@ class CModel extends CDataObject {
       * @return array|CModel запись
       */
     public static function StaticUpdateOrInsert(Array $fields, $where = "") {
-        CCore::Validate($where, array('int', 'array'), true);
+        if ($where) {
+            CCore::Validate($where, array('int', 'array'), true);
+        }
         if ($where && self::StaticExists($where)) {
             self::StaticUpdate($fields, $where);
         } else {

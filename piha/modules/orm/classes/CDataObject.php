@@ -114,8 +114,8 @@ class CDataObject extends AClass implements \IteratorAggregate, \ArrayAccess {
         foreach($vars as $v) {
             if (array_key_exists($v, $data)) {
                 $this->$v = $data[$v];
+                unset($data[$v]);
             }
-            unset($data[$v]);
         }
         $this->_data = $data;
     }
