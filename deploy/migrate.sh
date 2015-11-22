@@ -7,6 +7,11 @@ define("PIHA_CONSOLE", true);
 
 require_once(__DIR__ . '/../../index.php');
 
+use piha\modules\orm\models\CMigrationModel;
+use piha\modules\orm\classes\CQuery;
+use piha\modules\orm\COrmModule;
+use piha\CAlias;
+
 CMigrationModel::schema()->createTable();
 
 if (!isset($argv[1])) {
@@ -14,8 +19,13 @@ if (!isset($argv[1])) {
     exit();
 }
 
-$defaultPath = PIHA_CORE_PATH . DS . 'deploy' . DS . 'migrations';
-$migrationPaths = COrmModule::GetInstance()->config('migrationPaths', array($defaultPath));
+$ds = CAlias::ds();
+
+$migrationPaths = COrmModule::GetInstance()->config('migrationPaths');
+
+if (!$migrationPaths) {
+    throw new CException("Orm config migrationPaths not found");
+}
 
 if (count($migrationPaths) > 1) {
     $alias = '';
@@ -33,6 +43,8 @@ if (count($migrationPaths) > 1) {
 } else {
     $migrationPath = reset($migrationPaths);
 }
+
+$migrationPath = CAlias::GetPath($migrationPath);
 
 echo "MIGRATION PATH: {$migrationPath}\n\n";
 
@@ -67,7 +79,7 @@ switch ($argv[1]) {
         }
     }
     ';
-            $f = fopen($migrationPath . DS . $class_file_name .'.php', 'w+');
+            $f = fopen($migrationPath . $ds . $class_file_name .'.php', 'w+');
             fputs($f, $new_migration);
             fclose($f);
             echo "MIGRATION CREATE SUCCESS migrations/$class_file_name.php\n\n";
@@ -154,7 +166,7 @@ switch ($argv[1]) {
             foreach($migrations as $t => $file) {
                 CQuery::transaction();
                 echo "$file...";
-                require($migrationPath . DS . $file);
+                require($migrationPath . $ds . $file);
                 $className = str_replace('.php', '', $file);
                 try {
                     $className::up();

@@ -12,6 +12,11 @@ class CFormModel extends CForm {
 	public function __construct($options = array()) {
 		$this->_model = CHtml::popOption($options, 'model') ?: null;
 		$this->_values = $this->_model ? $this->_model->toArray() : array();
+		if ($this->_model && $class = get_class($this->_model)) {
+			$class = explode('\\', $class);
+			$class = end($class);
+			$this->_name = $class;
+		}
 		parent::__construct($options);
 	}
 
@@ -22,7 +27,6 @@ class CFormModel extends CForm {
 	public function before(&$options) {
 		$model = CHtml::popOption($options, 'model') ?: $this->_model;
 		if (isset($options['name']) && $model) {
-			$this->_name = get_class($model);
 
 			if (!isset($options['value'])) {
 				$key = $model->toVar(self::getFieldName($options));
@@ -40,5 +44,11 @@ class CFormModel extends CForm {
 				$options['label'] = $className::getLabel($options['for']);
 			}
 		}
+		parent::beforeLabel($options);
+	}
+
+	public function getModel() {
+		$this->_model->fromArray($this->_values);
+		return $this->_model;
 	}
 }

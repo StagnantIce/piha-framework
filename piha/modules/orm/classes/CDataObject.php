@@ -81,25 +81,6 @@ class CDataObject extends AClass implements \IteratorAggregate, \ArrayAccess {
         throw new CException('Not callable method');
     }
 
-    /** @ignore */
-    public function __call($method, $ps) {
-        $type = strtolower(substr($method, 0, 3));
-        // prepare class vars
-        if ($type === 'set' || $type === 'get') {
-            $p = lcfirst(substr($method, 3));
-        }
-
-        if ($type == 'set' && count($ps) == 1) {
-            $this->$p = $ps[0];
-            return $this;
-        } elseif ($type == 'get' && count($ps) == 0) {
-            return $this->$p;
-        } else if (is_callable($method) && substr($method, 0, 6) === 'array_') {
-            return call_user_func_array($method, array_merge(array($this->_data), $ps));
-        }
-        throw new CException(get_class($this).' do not have a method named '.$method);
-    }
-
     /**
       * @param array $data - данные для инициализации
       */

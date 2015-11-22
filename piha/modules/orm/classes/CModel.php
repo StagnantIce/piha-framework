@@ -91,7 +91,7 @@ class CModel extends CDataObject {
 
     /** @ignore */
     public static function StaticGetColumn($k) {
-        $cols = static::getColumns();
+        $cols = self::m()->getColumns();
         return isset($cols[$k]) ? $cols[$k] : false;
     }
     /** @ignore */
@@ -101,7 +101,7 @@ class CModel extends CDataObject {
     }
     /** @ignore */
     public static function StaticGetFieldKeys() {
-        return array_keys(static::getColumns());
+        return array_keys(self::m()->getColumns());
     }
     /** @ignore */
     public static function StaticGetLabel($k) {
@@ -142,7 +142,7 @@ class CModel extends CDataObject {
       */
     public function getEmpty() {
         $columnDefaults = array();
-        foreach(static::getColumns() as $key => $column) {
+        foreach($this->getColumns() as $key => $column) {
             $columnDefaults[$key] = is_array($column) && isset($column['default']) ? $column['default'] : null;
         }
         return $columnDefaults;
@@ -204,7 +204,7 @@ class CModel extends CDataObject {
       */
     public function fromArray(Array $data = null) {
         $data = array_replace($this->getEmpty(), $data ?: array());
-        $keys = static::StaticGetFieldKeys();
+        $keys = array_keys($this->getColumns());
         $this->_isUpperCase = COrmModule::Config('uppercase', $this->_isUpperCase);
         if($this->_isUpperCase && $keys !== array_map('strtoupper', $keys)) {
             throw new CException("Column names not in upper case.");
@@ -242,7 +242,7 @@ class CModel extends CDataObject {
         if (self::m()->_schema) {
             return self::m()->_schema;
         }
-        self::m()->_schema = new CMigration(self::tableName(), static::getColumns());
+        self::m()->_schema = new CMigration(self::tableName(), self::m()->getColumns());
         return self::m()->_schema;
     }
     /**
@@ -334,7 +334,7 @@ class CModel extends CDataObject {
       * @return int id сохраненной записи
       */
     public function Save() {
-        $data = self::StaticUpdateOrInsert($this->toArray(), $this->getId());
+        $data = self::StaticUpdateOrInsert($this->toArray(), $this->id);
         return $data->id;
     }
 
@@ -493,4 +493,5 @@ class CModel extends CDataObject {
         CCore::Validate($where, array('int', 'array'), true);
         return self::StaticUpdate($fields, $where);
     }
+
 }

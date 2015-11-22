@@ -13,8 +13,13 @@ namespace piha;
 
 class CException extends \Exception {
     private $backtrace='';
-    public function __construct($message, $code = 0, \Exception $previous = null) {
-        $this->backtrace = self::GetBacktrace(1);
+    public function __construct($message='', $code = 0, \Exception $previous = null) {
+        if (!$message && $error = error_get_last()) {
+            $message = $error['message'];
+            $this->backtrace = array(array('args' => array(), 'file' => $error['file'], 'line' => $error['line']));
+        } else {
+            $this->backtrace = self::GetBacktrace(1);
+        }
         parent::__construct($message, $code, $previous);
     }
 
@@ -60,28 +65,36 @@ class CException extends \Exception {
                     $item = print_r($item, true);
                 }
             });
-            $handle = fopen($v['file'], "r");
+            if (!isset($v['file'])) {
+                $v['file'] = '';
+            }
+            if (!isset($v['line'])) {
+                $v['line'] = '';
+            }
+            $fileName = $v['file'];
             if (isset($_SERVER['DOCUMENT_ROOT']) && strpos($v['file'], $_SERVER['DOCUMENT_ROOT']) !== false) {
                 $v['file'] = substr($v['file'], strlen($_SERVER['DOCUMENT_ROOT']), strlen($v['file']));
             }
             $line = 1;
             $trace .= '#' .($k) . ' '. (isset($v['class']) ? $v['class'] . '->' : '') . $v['function'] . '(' . implode(', ', $v['args']) . ')' . ($html ? "<br/>\n<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\t" : "\nfile:\t") . $v['file'] . ':' . $v['line'] . ($html ? "</b><br/>\n" : "\n");
             $trace .= $html ? '<table style="border:1px #EEEEEE solid;padding:0;margin:0;width:100%" cellspacing=0>' : '';
-            while ($line < $v['line'] + 3 && !feof($handle)) {
-                $buffer = fgets($handle);
-                if ($line > $v['line'] - 3) {
-                    $trace .= $html ? '<tr><td style="background:#FFFFEE; color: #999999; padding: 0 5px; width:20px; border-right:1px solid #CCCCCC">'.$line.'</td>' : '';
-                    if ($line == $v['line']) {
-                        $trace .= $html ? '<td style="background:#FCE3E3">' :  '*';
-                    } else {
-                        $trace .= $html ? '<td style="background:#FFFFEE">' : '';
+            if ($fileName && $handle = fopen($fileName, "r")) {
+                while ($line < $v['line'] + 3 && !feof($handle)) {
+                    $buffer = fgets($handle);
+                    if ($line > $v['line'] - 3) {
+                        $trace .= $html ? '<tr><td style="background:#FFFFEE; color: #999999; padding: 0 5px; width:20px; border-right:1px solid #CCCCCC">'.$line.'</td>' : '';
+                        if ($line == $v['line']) {
+                            $trace .= $html ? '<td style="background:#FCE3E3">' :  '*';
+                        } else {
+                            $trace .= $html ? '<td style="background:#FFFFEE">' : '';
+                        }
+                        $trace .= $html ? htmlspecialchars($buffer, ENT_QUOTES).'<br/>' : $buffer."\n";
+                        $trace .= $html ? '</td></tr>': '';
                     }
-                    $trace .= $html ? htmlspecialchars($buffer, ENT_QUOTES).'<br/>' : $buffer."\n";
-                    $trace .= $html ? '</td></tr>': '';
+                    $line++;
                 }
-                $line++;
+                fclose($handle);
             }
-            fclose($handle);
             $trace .= $html ? '</table>' : '';
         }
 

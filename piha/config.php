@@ -2,11 +2,13 @@
 
 return array(
     'piha' => array(
-        'modules' => array('core', 'orm', 'bootstrap', 'bootstrap3'),
         'autoload' => array(
             array('@webroot', 'controllers'),
             array('@webroot', 'models')
         )
+    ),
+    'store' => array(
+        'prefix' => 'piha_'
     ),
     'core' => array(
         'homeController' => 'home/index',
@@ -19,8 +21,8 @@ return array(
     'orm' =>  array(
         'className' => 'piha\modules\orm\classes\CMysqlConnection',
         'migrationPaths' => array(
-            'piha' => array('root', 'piha', 'deploy', 'migrations'),
-            'app'  => array('root', 'migrations')
+            'piha' => array('@webroot', 'piha', 'deploy', 'migrations'),
+            'app'  => array('@webroot', 'migrations')
         ),
         'database' => array(
             'host' => '127.0.0.1',

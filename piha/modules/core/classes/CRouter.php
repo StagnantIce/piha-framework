@@ -39,15 +39,15 @@ class CRouter {
         } else {
             $params[self::PARAM_NAME] = $route;
         }
+        list($controller, $action, $ps) = $this->getControllerParams($route);
+        if (!class_exists($controller)) {
+            throw new CException("Controller class {$controller} not found.");
+        }
+        $action = $controller::getActionName($action);
+        if (!method_exists($controller, $action)) {
+            throw new CException("Action method {$action}() for controller {$controller} not found.");
+        }
         if (CCoreModule::Config('smartUrl', false)) {
-            list($controller, $action, $ps) = $this->getControllerParams($route);
-            if (!class_exists($controller)) {
-                throw new CException("Controller class {$controller} not found.");
-            }
-            $action = $controller::getActionName($action);
-            if (!method_exists($controller, $action)) {
-                throw new CException("Action method {$action}() for controller {$controller} not found.");
-            }
             $f = new \ReflectionMethod($controller, $action);
             $fParams = array_slice($f->getParameters(), count($ps));
             foreach ($fParams as $param) {

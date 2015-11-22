@@ -136,3 +136,8 @@ body {
   display: inline-block;
   border-radius: 50%;
 }
+
+.form-wrapper {
+    margin: 100px auto;
+    width: 500px;
+}

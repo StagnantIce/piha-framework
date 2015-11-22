@@ -17,7 +17,7 @@ class ControllerTest extends PHPUnit_Framework_TestCase {
 		$out = $controller->runAction(true);
 		$this->assertEquals($controller->url(), '/auth/login/');
 
-		$this->assertContains('Login!!!', $out);
+		$this->assertContains('Авторизация', $out);
 		$this->assertContains('<html', $out);
 
 		$out = $controller->part('part/menu', null, true);

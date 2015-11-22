@@ -8,9 +8,11 @@ class CForm {
 
 	protected $_html = null;
 	protected $_values = array();
+	protected $_errors = array();
 	protected $_name = 'Form';
 	private $_method = '';
-	private $_submit = false;
+	private $_isSubmit = false;
+	private $_isError = false;
 
 
 	public function __construct($options) {
@@ -23,11 +25,24 @@ class CForm {
 		}
 	}
 
+	public function addError($error, $name = '') {
+		$this->_isError = true;
+		$this->_errors[$name][] = $error;
+	}
+
+	public function getError($name = '') {
+		return isset($this->_errors[$name]) ? $this->_errors[$name] : '';
+	}
+
+	public function isError() {
+		return $this->_isError;
+	}
+
 	public static function post($options) {
 		$obj = new static(array_replace($options, array('method' => 'POST')));
 		if ($postData = \Piha::request()->post($obj->_name)) {
 			$obj->_values = $postData;
-			$obj->_submit = true;
+			$obj->_isSubmit = true;
 		}
 		return $obj;
 	}
@@ -36,7 +51,7 @@ class CForm {
 		$obj = new static(array_replace($options, array('method' => 'GET')));
 		if ($getData = \Piha::request()->get($obj->_name)) {
 			$obj->_values = $getData;
-			$obj->_submit = true;
+			$obj->_isSubmit = true;
 		}
 		return $obj;
 	}
@@ -46,11 +61,11 @@ class CForm {
 	}
 
 	public function isValid() {
-		return $this->_submit && $this->_values;
+		return $this->_isSubmit && $this->_values;
 	}
 
 	public function isSubmit() {
-		return $this->_submit;
+		return $this->_isSubmit;
 	}
 
 	public static function getFieldName($options) {
@@ -77,7 +92,7 @@ class CForm {
 	}
 
 	public function beforeLabel(&$options) {
-
+		$options['for'] = $this->_name . '['.$options['for'] .']';
 	}
 
 	public function start($options = array()) {

@@ -3,6 +3,7 @@
 use piha\CAlias;
 use piha\AModule;
 use piha\IModule;
+use piha\CException;
 use piha\modules\core\classes\CRouter;
 use piha\modules\core\classes\CRequest;
 use piha\modules\core\classes\CController;
@@ -68,17 +69,16 @@ class Piha extends AModule implements IModule {
         $config = $config ?: array();
         $configs = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
         parent::configure($configs['piha']);
-        $modules = $this->config('modules');
-        if ($modules) {
-            foreach($modules as $module) {
-                AModule::Add($module);
-            }
-        }
         unset($configs['piha']);
         foreach($configs as $key => $config) {
+            AModule::Add($key);
             self::GetInstance($key)->configure($config);
         }
         return self::GetInstance();
+    }
+
+    public static function shutdown() {
+        echo new CException();
     }
 
     private function __construct($dir) {
@@ -89,6 +89,8 @@ class Piha extends AModule implements IModule {
 
         $this->start_time = time() + microtime();
         spl_autoload_register('Piha::autoloader');
+        //register_shutdown_function(self::className('shutdown'));
+        date_default_timezone_set('Europe/Moscow');
     }
 
     public function start() {

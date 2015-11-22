@@ -10,5 +10,9 @@ return array(
             'prefix' => 'piha_',
             'encode' => 'utf8'
         )
-    )
+    ),
+    'core' => array(
+        'prettyUrl' => true,
+        'smartUrl' => true,
+    ),
 );
