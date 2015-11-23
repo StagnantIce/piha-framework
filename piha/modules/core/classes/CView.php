@@ -149,7 +149,7 @@ class CView extends AClass {
 					}
 				}
             }
-			return eval('return ' . rtrim($mixed, ';') . ';');
+            return eval('return ' . rtrim($mixed, ';') . ';');
 		}
 		return $mixed;
 	}

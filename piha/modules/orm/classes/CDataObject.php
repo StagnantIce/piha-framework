@@ -13,10 +13,6 @@ use piha\AClass;
 use piha\CException;
 
 class CDataObject extends AClass implements \IteratorAggregate, \ArrayAccess {
-    /** @ignore */
-
-    /* функции имеющие перед собой это слово могут быть вызваны как статические, без этого слова */
-    const STATIC_PREFIX = 'Static';
     /** @var данные объекта в виде массива */
     private $_data = array();
     /** @var события объекта, повешенные при помощи функции on */
@@ -64,23 +60,6 @@ class CDataObject extends AClass implements \IteratorAggregate, \ArrayAccess {
         return $result;
     }
 
-    public static function className($method=null) {
-        if (!$method) {
-            return get_called_class();
-        } else if (is_string($method)) {
-            $class = get_called_class();
-            $classes = class_parents($class);
-            $classes[] = $class;
-            foreach($classes as $parent) {
-                if (method_exists($parent, $method) || method_exists($parent, self::STATIC_PREFIX.$method)) {
-                    return array($class, $method);
-                }
-            }
-            throw new CException('Not callable ' . $class . '::' . $method);
-        }
-        throw new CException('Not callable method');
-    }
-
     /**
       * @param array $data - данные для инициализации
       */
@@ -99,14 +78,6 @@ class CDataObject extends AClass implements \IteratorAggregate, \ArrayAccess {
             }
         }
         $this->_data = $data;
-    }
-    /** @ignore */
-    public static function __callStatic($method, $ps) {
-        if (substr($method, 0, strlen(self::STATIC_PREFIX)) != self::STATIC_PREFIX) {
-            $callable = self::className(self::STATIC_PREFIX . $method);
-            return call_user_func_array($callable, $ps);
-        }
-        throw new CException(__CLASS__.' do not have a static method named '.$method);
     }
 
     /** @ignore */

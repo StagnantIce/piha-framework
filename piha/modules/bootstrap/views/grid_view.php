@@ -18,12 +18,13 @@
 				<?foreach($columns as $column): ?>
 					<td>
 						<?
-						if (isset($row[$column['id']])) {
+						if (isset($row[$column['id']]) && !isset($column['value'])) {
 							echo $row[$column['id']];
-						} else if ($model && $column['model']) {
-							echo $this->value($column['value'], new $model($row));
+						} else if ($model || isset($column['model'])) {
+							$modelClass = isset($column['model']) ? $column['model'] : $model;
+							echo $this->value($column['value'], new $modelClass($row));
 						} else {
-							echo $this->value($column['value'], array($row, $column));
+							echo $this->value($column['value'], $row);
 						}
 						?>
 					</td>

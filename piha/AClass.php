@@ -9,7 +9,6 @@ abstract class AClass {
     const STATIC_PREFIX = 'Static';
 
     public static function className($method=null) {
-        echo 'className';
         if (!$method) {
             return get_called_class();
         } else if (is_string($method)) {
@@ -57,7 +56,6 @@ abstract class AClass {
     }
     /** @ignore */
     public static function __callStatic($method, $ps) {
-        echo 'static';
         if (substr($method, 0, strlen(self::STATIC_PREFIX)) != self::STATIC_PREFIX) {
             try {
                 $callable = self::className(self::STATIC_PREFIX . $method);

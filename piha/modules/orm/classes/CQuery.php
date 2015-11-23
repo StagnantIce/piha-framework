@@ -563,7 +563,9 @@ class CQuery extends AExtendClass {
         foreach($this->_relations as $type => $relations) {
             foreach($relations as $relationName => $relation) {
                 if ($relationName === $fieldName) {
+
                     $field = array_shift($relation);
+
                     $prevClass = null;
                     if (!$relation || count($relation) > 2) {
                         throw new CException("Inocorrect arguments number in relation {$fieldName} for model {$this->_object}");
@@ -572,17 +574,26 @@ class CQuery extends AExtendClass {
 
                     $cond = array();
                     $class = $this->_object;
+
                     $pk = $class::m()->_pk;
                     if (!$relation) {
                         $cond['__table'] = $fieldName;
-                    }
-                    if (!$relation && $field !== $pk) {
-                        $joinField = $pk;
                     } else {
-                        $joinField = $className::GetObjectField($this->_object);
+                        $cond['__table'] = $fieldName . '__between';
+                    }
+                    if ($field === $pk) {
+                        $joinField = $className::GetObjectField($this->_object); // ID => MODEL_ID
+                    } else if (!$relation) {
+                        $joinField = $pk; // MODEL_ID -> ID
+                    } else if ($object = $class::GetObject($field)) {
+                        if ($object === $className) { // MODEL_ID -> ID => MODEL_OTHER_ID
+                            $joinField = $pk;
+                        } else {
+                            $joinField = $className::GetObjectField($object); // MODEL_ID -> MODEL_ID
+                        }
                     }
                     if (!$joinField) {
-                        throw new CException("Error join {$className} to {$this->_object}");
+                        throw new CException("Error join {$className} to {$this->_object}. No object for {$this->_object} class in {$className} class.");
                     }
                     $cond['#.'.$joinField] = '*.'.$field;
 
@@ -591,9 +602,9 @@ class CQuery extends AExtendClass {
                         $nextClass = array_shift($relation);
                         $joinField = $className::GetObjectField($nextClass);
                         if (!$joinField) {
-                            throw new CException("Error join {$nextClass} to {$className}");
+                            throw new CException("Error join {$nextClass} to {$className}. No object for {$nextClass} class in {$className} class.");
                         }
-                        $this->join(array($nextClass => array('#.'.$nextClass::m()->_pk => $className::tableName() .'.'.$joinField, '__table' => $fieldName)), '', $joinType);
+                        $this->join(array($nextClass => array('#.'.$nextClass::m()->_pk => $fieldName . '__between' .'.'.$joinField, '__table' => $fieldName)), '', $joinType);
                     }
                     return true;
                 }
@@ -866,10 +877,11 @@ class CQuery extends AExtendClass {
       */
     public function group($groups = null) {
         if ($groups) {
-            if(is_array($groups)) {
-                $groups = implode(', ', $groups);
+            $res = array();
+            foreach((array)$groups as $group) {
+                $res[] = $this->findAndReplaceTableName($group);
             }
-            $this->_group = ' GROUP BY '.$groups .' ';
+            $this->_group = ' GROUP BY '.implode(', ', $res) .' ';
         }
         return $this;
     }

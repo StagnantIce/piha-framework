@@ -21,6 +21,9 @@ class CController {
     /** @var string $action_id - id экшена */
     public $action_id = '';
 
+    /** @var array $context - контекст для рендеринга */
+    private $context = array();
+
     /** @var array $params - параметры для передачи в контроллер*/
     private $params = null;
 
@@ -143,12 +146,12 @@ class CController {
       * @return null
       */
     public function render($renderName = '', Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), $context);
+        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context));
         $view->setMiddleWare($this);
         $result = '';
         if ($this->layout) {
             $context['content'] = $view->render();
-            $layoutView = new CView('/' . $this->layout, $context);
+            $layoutView = new CView('/' . $this->layout, array_replace($this->context, $context));
             $layoutView->setMiddleWare($this);
             $result = $layoutView->render();
         } else {
@@ -168,7 +171,7 @@ class CController {
       * @return string
       */
     public function part($renderName = null, Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), $context);
+        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context));
         $view->setMiddleWare($this);
         $view->setPartAlias();
         $result = $view->render();
@@ -197,6 +200,10 @@ class CController {
         $url = $this->url($url);
         Header("Location: $url");
         exit();
+    }
+
+    public function setContext($name, $value) {
+        $this->context[$name] = $value;
     }
 
 }

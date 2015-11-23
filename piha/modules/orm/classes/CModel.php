@@ -494,4 +494,20 @@ class CModel extends CDataObject {
         return self::StaticUpdate($fields, $where);
     }
 
+    //  ArrayAccess interface
+    public function offsetExists($offset) {
+        return parent::offsetExists($this->toVar($offset));
+    }
+    /** @ignore */
+    public function offsetGet ( $offset ) {
+        return parent::offsetGet( $this->toVar($offset));
+    }
+    /** @ignore */
+    public function offsetSet ( $offset ,  $value ) {
+        return parent::offsetSet( $this->toVar($offset), $value);
+    }
+    /** @ignore */
+    public function offsetUnset ( $offset ) {
+        return parent::offsetUnset( $this->toVar($offset));
+    }
 }
