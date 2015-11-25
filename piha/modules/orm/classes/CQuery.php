@@ -402,7 +402,8 @@ class CQuery extends AExtendClass {
             if ($groups) {
                 $d = &$data;
                 foreach($groups as $group) {
-                    if (!isset($r[$group])) throw new CException('Key for group by "'.$group. '" not found in ' . implode(',', array_keys($r)));
+                    if (!array_key_exists($group, $r)) throw new CException('Key for group by "'.$group. '" not found in ' . implode(',', array_keys($r)));
+                    if (!isset($r[$group])) throw new CException('Value for group by "'.$group. '" is empty');
                     if (!isset($d[$r[$group]])) $d[$r[$group]] = array();
                     $d = &$d[$r[$group]];
                 }
