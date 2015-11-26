@@ -17,7 +17,7 @@ class CForm extends CFormModel {
 		return parent::__construct(array_replace($default, $options));
 	}
 
-	public function start($options) {
+	public function start($options = array()) {
 		$default = array(
 			'class' => self::HORIZONTAL
 		);

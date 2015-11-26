@@ -202,7 +202,7 @@ class CModel extends CDataObject {
       * Переопределение метода
       * @return array
       */
-    public function fromArray(Array $data = null) {
+    public function fromArray(Array $data = null, Array $props = null) {
         $data = array_replace($this->getEmpty(), $data ?: array());
         $keys = array_keys($this->getColumns());
         $this->_isUpperCase = COrmModule::Config('uppercase', $this->_isUpperCase);
@@ -213,15 +213,15 @@ class CModel extends CDataObject {
         foreach($data as $key => $value) {
             $dataObj[$this->toVar($key)] = $value;
         }
-        parent::fromArray($dataObj);
+        parent::fromArray($dataObj, $props);
     }
     /**
       * Вернуть данные из модели в виде массива
       * @return array
       */
-    public function toArray() {
+    public function toArray(Array $props = null) {
         $result = array();
-        $data = parent::toArray();
+        $data = parent::toArray($props);
         foreach($data as $key => $value) {
             $result[$this->toKey($key)] = $value;
         }
