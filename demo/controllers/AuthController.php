@@ -9,7 +9,10 @@ class AuthController extends CController {
 	public $layout = 'main';
 	public function actionLogin() {
 		$loginForm = CForm::post(array('model' => new CUserModel()));
-		if ($loginForm->isSubmit()) {
+		$loginForm->fieldEmail('EMAIL', array('require'));
+		$loginForm->fieldPassword('PASSWORD', array('min' => 6, 'max' => 16, 'require'));
+
+		if ($loginForm->isSubmit() && $loginForm->isValid()) {
 			$userModel = $loginForm->getModel();
 			if($authModel = $userModel->authorize()) {
 				CStore::session()->set('auth', $authModel->id);
@@ -23,7 +26,11 @@ class AuthController extends CController {
 
 	public function actionReg() {
 		$regForm = CForm::post(array('model' => new CUserModel()));
-		if ($regForm->isSubmit()) {
+		$regForm->fieldEmail('EMAIL', array('require'));
+		$regForm->fieldPassword('PASSWORD', array('require'));
+		$regForm->fieldPassword('CONFIRM_PASSWORD', array('require'));
+		$regForm->fieldText('LOGIN', array('require'));
+		if ($regForm->isSubmit() && $regForm->isValid()) {
 			$userModel = $regForm->getModel();
 			if ($userModel->password === $userModel->confirmPassword) {
 				if ($authModel = $userModel->registration()) {
