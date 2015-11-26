@@ -66,4 +66,13 @@ class CForm extends CFormModel {
 		);
 		return $this->createControl($options, $this->password(array_replace($defaults, $options)));
 	}
+
+	public function fieldGroup($name, $options = array()) {
+		$defaults = array(
+			'class' => 'form-control'
+		);
+		$options['name'] = $name;
+		return $this->createControl($options, $this->getField($name, array_replace($defaults, $options)));
+	}
+
 }

@@ -146,12 +146,12 @@ class CController {
       * @return null
       */
     public function render($renderName = '', Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context));
+        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()));
         $view->setMiddleWare($this);
         $result = '';
         if ($this->layout) {
             $context['content'] = $view->render();
-            $layoutView = new CView('/' . $this->layout, array_replace($this->context, $context));
+            $layoutView = new CView('/' . $this->layout, array_replace($this->context, $context?: array()));
             $layoutView->setMiddleWare($this);
             $result = $layoutView->render();
         } else {
@@ -171,7 +171,7 @@ class CController {
       * @return string
       */
     public function part($renderName = null, Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context));
+        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()));
         $view->setMiddleWare($this);
         $view->setPartAlias();
         $result = $view->render();

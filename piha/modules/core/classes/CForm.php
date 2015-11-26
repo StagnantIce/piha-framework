@@ -6,14 +6,29 @@ use piha\CException;
 
 class CForm {
 
+	const TYPE_TEXT = 0;
+	const TYPE_DATETIME = 1;
+	const TYPE_INT = 2;
+	const TYPE_FLOAT = 3;
+	const TYPE_EMAIL = 4;
+	const TYPE_URL = 5;
+
 	protected $_html = null;
 	protected $_values = array();
 	protected $_errors = array();
+	protected $_fields = array();
 	protected $_name = 'Form';
 	private $_method = '';
 	private $_isSubmit = false;
 	private $_isError = false;
 
+	protected $_errorMessages = array();
+	public $_defaultErrorMessages = array(
+		'type' => 'Значение имеет неверный формат',
+		'min'  => 'Значение слишком маленькое',
+		'max'  => 'Значение слишком большое',
+		'require' => 'Значение не может быть пустым'
+	);
 
 	public function __construct($options) {
 		$this->_html = CHtml::popOption($options, 'html') ?: CHtml::create();
@@ -28,6 +43,10 @@ class CForm {
 	public function addError($error, $name = '') {
 		$this->_isError = true;
 		$this->_errors[$name][] = $error;
+	}
+
+	public function addErrorMessage($name, $typeError, $text) {
+		$this->_errorMessages[$name][$typeError] = $text;
 	}
 
 	public function getError($name = '') {
@@ -60,8 +79,169 @@ class CForm {
 		return isset($this->_values[$name]) ? $this->_values[$name] : null;
 	}
 
+	public function fieldEmail($name, $options = array()) {
+		return $this->addField(self::TYPE_EMAIL, $name, array_replace(array('widget' => 'email'), $options));
+	}
+
+	public function fieldText($name, $options = array()) {
+		return $this->addField(self::TYPE_TEXT, $name, array_replace(array('widget' => 'text'), $options));
+	}
+
+	public function fieldPassword($name, $options = array()) {
+		return $this->addField(self::TYPE_TEXT, $name, array_replace(array('widget' => 'password'), $options));
+	}
+
+	public function fieldInt($name, $options = array()) {
+		return $this->addField(self::TYPE_INT, $name, array_replace(array('widget' => 'number'), $options));
+	}
+
+	public function fieldFloat($name, $options = array()) {
+		return $this->addField(self::TYPE_FLOAT, $name, array_replace(array('widget' => 'number'), $options));
+	}
+
+	public function fieldDateTime($name, $options = array()) {
+		return $this->addField(self::TYPE_DATETIME, $name, array_replace(array('widget' => 'datetime'), $options));
+	}
+
+	public function fieldUrl($name, $options = array()) {
+		return $this->addField(self::TYPE_URL, $name, array_replace(array('widget' => 'url'), $options));
+	}
+
+	private function addField($type, $name, $options) {
+		$this->_fields[$name]['type'] = $type;
+		foreach($options as $key => $option) {
+			$this->_fields[$name]['require'] = false;
+			if ($option == 'require') {
+				$this->_fields[$name]['require'] = true;
+				continue;
+			}
+			if (!in_array($key, array('min', 'max', 'widget', 'error'))) {
+				throw new CException("Field option {$option} not defined.");
+			}
+			$this->_fields[$name][$key] = $option;
+		}
+		return $this;
+	}
+
+	public function getField($name, $options) {
+		if (!isset($this->_fields[$name])) {
+			throw new CException("Field form {$name} not found.");
+		}
+		if (!isset($this->_fields[$name]['widget'])) {
+			throw new CException("Widget for {$name} field form not found.");
+		}
+		$widget = $this->_fields[$name]['widget'];
+		if (method_exists($this, $widget)) {
+			return $this->$widget(array_replace(array('name' => $name), $options));
+		}
+		throw new CException("Widget {$widget} not found.");
+	}
+
 	public function isValid() {
-		return $this->_isSubmit && $this->_values;
+		$errors = array();
+		foreach($this->_fields as $name => $field) {
+			if (!isset($this->_values[$name])) {
+				throw new CException("Field {$name} is not sent.");
+			}
+			$val = trim($this->_values[$name]);
+			if ($val === '') {
+				if ($field['require']) {
+					$errors[] = 'require';
+				} else {
+					continue;
+				}
+			} else {
+				switch($field['type']) {
+					case self::TYPE_TEXT:
+						if (isset($field['min'])) {
+							if (mb_strlen($val) < (int)$field['min']) {
+								$errors[] = 'min';
+							}
+						}
+						if (isset($field['max'])) {
+							if (mb_strlen($val) > (int)$field['max']) {
+								$errors[] = 'max';
+							}
+						}
+					break;
+					case self::TYPE_INT:
+						if (!is_numeric($val) || $val != (int)$val) {
+							$errors[] = 'type';
+						} else {
+							$val = (int)$val;
+							if (isset($field['min'])) {
+								if ($val < (int)$field['min']) {
+									$errors[] = 'min';
+								}
+							}
+							if (isset($field['max'])) {
+								if ($val > (int)$field['max']) {
+									$errors[] = 'max';
+								}
+							}
+						}
+					break;
+					case self::TYPE_FLOAT:
+						if (!is_numeric($val) || $val != (float)$val) {
+							$errors[] = 'type';
+						} else {
+							$val = (float)$val;
+							if (isset($field['min'])) {
+								if ($val < (float)$field['min']) {
+									$errors[] = 'min';
+								}
+							}
+							if (isset($field['max'])) {
+								if ($val > (float)$field['max']) {
+									$errors[] = 'max';
+								}
+							}
+						}
+					break;
+					case self::TYPE_DATETIME:
+						if(strtotime($val) === false) {
+							$errors[] = 'type';
+						} else {
+							$val = date('Y-m-d H:i:s', $val);
+							if (isset($field['min'])) {
+								if (strtotime($val) < strtotime($field['min'])) {
+									$errors[] = 'min';
+								}
+							}
+							if (isset($field['max'])) {
+								if (strtotime($val) > strtotime($field['max'])) {
+									$errors[] = 'max';
+								}
+							}
+						}
+					break;
+					case self::TYPE_EMAIL:
+						if(filter_var($val, FILTER_VALIDATE_EMAIL) === false) {
+							$errors[] = 'type';
+						}
+					break;
+					case self::TYPE_URL:
+						if(filter_var($val, FILTER_VALIDATE_URL) === false) {
+							$errors[] = 'type';
+						}
+					break;
+				}
+			}
+			if (count($errors) > 0) {
+				$result = array();
+				foreach($errors as $error) {
+					if (isset($this->_errorMessages[$name][$error])) {
+						$result[] = $this->_errorMessages[$name][$error];
+					} else {
+						$result[] = $this->_defaultErrorMessages[$error];
+					}
+				}
+				foreach(array_unique($result) as $text) {
+					$this->addError($text, $name);
+				}
+			}
+		}
+		return !$error;
 	}
 
 	public function isSubmit() {
