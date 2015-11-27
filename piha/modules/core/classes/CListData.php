@@ -33,11 +33,11 @@ class CListData {
 	}
 
 	public function getCurrentPage() {
-		return \Piha::request()->get('currentPage' . $this->id, 1);
+		return intval(\Piha::request()->get('currentPage' . $this->id, 1));
 	}
 
 	public function getPageSize() {
-		return \Piha::request()->get('pageSize' . $this->id, 10);
+		return intval(\Piha::request()->get('pageSize' . $this->id, 10));
 	}
 
 	public function nextUrl() {
