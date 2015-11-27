@@ -46,5 +46,6 @@ class CGridWidget {
 			)
 		);
 		$view->setAlias(array(__DIR__, '..', 'views'));
+		echo $view->render();
 	}
 }

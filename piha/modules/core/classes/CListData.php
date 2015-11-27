@@ -37,7 +37,7 @@ class CListData {
 	}
 
 	public function getPageSize() {
-		return \Piha::request()->get('pageSize' . $this->id, 20);
+		return \Piha::request()->get('pageSize' . $this->id, 10);
 	}
 
 	public function nextUrl() {
@@ -56,17 +56,17 @@ class CListData {
 
 	public function nearUrl($count = 10) {
 		$urls = array();
-		// find page start
 		$page = $this->getCurrentPage();
+		// find page start
 		while ($page > $this->getCurrentPage() - $count / 2 + 1 && $page > 1) {
 			$page--;
 		}
 
-		while($page >  $this->pageCount - $count) {
+		while($page >  $this->pageCount - $count && $page > 1) {
 			$page--;
 		}
 
-		for($i = $page; $i < min($page + $count, $this->pageCount); $i++) {
+		for($i = $page; $i <= min($page + $count, $this->pageCount); $i++) {
 			$urls[$i] = \Piha::request()->url(array('currentPage'. $this->id => $i));
 		}
 
