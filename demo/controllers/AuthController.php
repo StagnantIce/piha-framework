@@ -10,7 +10,7 @@ class AuthController extends CController {
 	public function actionLogin() {
 		$loginForm = CForm::post(array('model' => new CUserModel()));
 		$loginForm->fieldEmail('EMAIL', array('require'));
-		$loginForm->fieldPassword('PASSWORD', array('min' => 6, 'max' => 16, 'require'));
+		$loginForm->fieldPassword('PASSWORD', array('require'));
 
 		if ($loginForm->isSubmit() && $loginForm->isValid()) {
 			$userModel = $loginForm->getModel();
@@ -27,7 +27,7 @@ class AuthController extends CController {
 	public function actionReg() {
 		$regForm = CForm::post(array('model' => new CUserModel()));
 		$regForm->fieldEmail('EMAIL', array('require'));
-		$regForm->fieldPassword('PASSWORD', array('require'));
+		$regForm->fieldPassword('PASSWORD', array('min' => 6, 'max' => 16, 'require'));
 		$regForm->fieldPassword('CONFIRM_PASSWORD', array('require'));
 		$regForm->fieldText('LOGIN', array('require'));
 		if ($regForm->isSubmit() && $regForm->isValid()) {
@@ -48,6 +48,11 @@ class AuthController extends CController {
 			}
 		}
 		$this->render('reg', array('form' => $regForm));
+	}
+
+	public function actionLogout() {
+		\Piha::user()->delId();
+		$this->redirect('home/index');
 	}
 
 	public function actionRecovery() {
