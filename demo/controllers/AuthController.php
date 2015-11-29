@@ -15,7 +15,7 @@ class AuthController extends CController {
 		if ($loginForm->isSubmit() && $loginForm->isValid()) {
 			$userModel = $loginForm->getModel();
 			if($authModel = $userModel->authorize()) {
-				CStore::session()->set('auth', $authModel->id);
+				\Piha::user()->setId($authModel->id);
 				$this->redirect('home/index');
 			} else {
 				$loginForm->addError('Логин или пароль введены не верно');
@@ -35,10 +35,10 @@ class AuthController extends CController {
 			if ($userModel->password === $userModel->confirmPassword) {
 				if ($authModel = $userModel->registration()) {
 					if ($authModel->authorize()) {
-						CStore::session()->set('auth', $authModel->id);
+						\Piha::user()->setId($authModel->id);
 						$this->redirect('home/index');
 					} else {
-						$regForm->addError('Error');
+						$regForm->addError('Ошибка авторизации');
 					}
 				} else {
 					$regForm->addError('Такой пользователь уже зарегистрирован');

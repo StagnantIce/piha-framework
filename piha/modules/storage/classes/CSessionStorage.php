@@ -1,14 +1,14 @@
 <?php
 
-namespace piha\modules\store\classes;
+namespace piha\modules\storage\classes;
 use piha\AClass;
-use piha\modules\store\CStoreModule;
+use piha\modules\storage\CStorageModule;
 
-class CSessionStore extends AStore {
+class CSessionStorage extends AStorage {
 
 	private static $prefix = '';
 	public function __construct($name) {
-		self::$prefix = CStoreModule::config('prefix', '') . $name . '_';
+		self::$prefix = CStorageModule::config('prefix', '') . $name . '_';
 	}
 
 	public function set($name, $value) {

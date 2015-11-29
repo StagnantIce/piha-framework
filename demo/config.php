@@ -1,5 +1,7 @@
 <?php
 
+use \piha\modules\storage\classes\CSessionStorage;
+
 return array(
     'orm' =>  array(
         'database' => array(
@@ -10,6 +12,10 @@ return array(
             'prefix' => 'piha_',
             'encode' => 'utf8'
         )
+    ),
+    'user' => array(
+        'modelClass' => 'CUserModel',
+        'storageClass' => CSessionStorage::className()
     ),
     'core' => array(
         'prettyUrl' => true,

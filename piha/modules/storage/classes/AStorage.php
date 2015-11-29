@@ -1,9 +1,9 @@
 <?php
 
-namespace piha\modules\store\classes;
+namespace piha\modules\storage\classes;
 use piha\AClass;
 
-abstract class AStore extends AClass {
+abstract class AStorage extends AClass {
 
 	abstract public function set($name, $value);
 	abstract public function get($name);

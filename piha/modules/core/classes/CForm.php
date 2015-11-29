@@ -138,8 +138,8 @@ class CForm {
 	}
 
 	public function isValid() {
-		$errors = array();
 		foreach($this->_fields as $name => $field) {
+			$errors = array();
 			if (!isset($this->_values[$name])) {
 				throw new CException("Field {$name} is not sent.");
 			}
@@ -225,6 +225,9 @@ class CForm {
 							$errors[] = 'type';
 						}
 					break;
+					default:
+						$errors[] = 'type';
+					break;
 				}
 			}
 			if (count($errors) > 0) {
@@ -241,7 +244,7 @@ class CForm {
 				}
 			}
 		}
-		return !$error;
+		return !$this->_isError;
 	}
 
 	public function isSubmit() {

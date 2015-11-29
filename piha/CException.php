@@ -49,7 +49,7 @@ class CException extends \Exception {
      */
     public static function ErrorHandler($backtrace=1, $html=true) {
         $trace = '';
-        if (PIHA_CONSOLE) {
+        if (defined('PIHA_CONSOLE') && PIHA_CONSOLE) {
             $html = false;
         }
         $backtrace = is_numeric($backtrace) ? self::GetBacktrace($backtrace) : $backtrace;

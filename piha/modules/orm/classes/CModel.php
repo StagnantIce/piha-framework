@@ -335,6 +335,7 @@ class CModel extends CDataObject {
       */
     public function Save() {
         $data = self::StaticUpdateOrInsert($this->toArray(), $this->id);
+        $this->id = $data->id;
         return $data->id;
     }
 

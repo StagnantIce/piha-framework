@@ -18,10 +18,7 @@ require 'IModule.php';
 class Piha extends AModule implements IModule {
 
     private $start_time = null;
-    private $request = null;
-    private $router = null;
-    private $controller = null;
-
+    private static $objects = array();
 
     public static function getDir() {
         return __DIR__;
@@ -46,16 +43,22 @@ class Piha extends AModule implements IModule {
         return (time() + microtime()) - self::app()->start_time;
     }
 
-    public static function request() {
-        return self::app()->request;
+    public static function service($name, $mixed) {
+        if (isset(self::$objects[$name])) {
+             throw new CException("Object '{$name}' is already exists in Service Locator.");
+        }
+        self::$objects[$name] = $mixed;
     }
 
-    public static function router() {
-        return self::app()->router;
-    }
-
-    public static function controller() {
-        return self::app()->controller;
+    public static function __callStatic($name, $params) {
+        if (!isset(self::$objects[$name])) {
+            throw new CException("Object '{$name}' is not register in Service Locator.");
+        }else if (is_callable(self::$objects[$name])) {
+            return call_user_func(self::$objects[$name]);
+        } else if (is_object(self::$objects[$name])) {
+            return self::$objects[$name];
+        }
+        throw new CException("Object '{$name}' is not callable in Service Locator.");
     }
 
     public static function app($dir=__DIR__) {
@@ -97,11 +100,14 @@ class Piha extends AModule implements IModule {
         defined('PIHA_CONSOLE') or define('PIHA_CONSOLE', false);
         defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
 
-        $this->request = new CRequest();
-        $this->router = new CRouter($this->request);
+        $request = new CRequest();
+        $router = new CRouter($request);
+        $this->service('request', $request);
+        $this->service('router', $router);
         if (PIHA_CONSOLE === false && PIHA_INCLUDE === false) {
-            $this->controller = $this->router->getController();
-            $this->controller->runAction();
+            $controller = $router->getController();
+            $this->service('controller', $controller);
+            $controller->runAction();
         }
     }
 }

@@ -7,8 +7,10 @@ return array(
             array('@webroot', 'models')
         )
     ),
-    'store' => array(
+    'storage' => array(
         'prefix' => 'piha_'
+    ),
+    'user' => array(
     ),
     'core' => array(
         'homeController' => 'home/index',
