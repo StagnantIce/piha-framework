@@ -291,7 +291,7 @@ class CModel extends CDataObject {
         $key = strtoupper($name . '_' . $this->_pk);
         if ($object = static::StaticGetObject($key)) {
             $data = $this->toArray();
-            return isset($data[$key]) ? $object::GetAll($data[$key]) : null;
+            return isset($data[$key]) ? $object::Get($data[$key]) : null;
         }
         return parent::__get($name);
     }
