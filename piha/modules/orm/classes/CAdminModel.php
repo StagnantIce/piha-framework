@@ -161,7 +161,7 @@ class CAdminModel {
             }
         }
         $data = array();
-        foreach($model->StaticGetFieldKeys as $key) {
+        foreach($model->StaticGetFieldKeys() as $key) {
             $type = $model->getType($key);
             if ($type == 'file' && isset($_FILES[ $key ]) && $_FILES[ $key ]["tmp_name"] <> "") {
                 //$size = self::getSize($key);
@@ -190,7 +190,7 @@ class CAdminModel {
       */
     public static function InsertForm(CModel $model) {
         $data = array();
-        foreach($model->StaticGetFieldKeys as $key) {
+        foreach($model->StaticGetFieldKeys() as $key) {
             $type = $model->getType($key);
             if ($type == 'file' && isset($_FILES[ $key ]) && $_FILES[ $key ]["tmp_name"] <> "") {
                 $size = self::getSize($key);
