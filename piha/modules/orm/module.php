@@ -4,6 +4,7 @@ namespace piha\modules\orm;
 
 use piha\IModule;
 use piha\AModule;
+use piha\modules\orm\classes\CMigrationCommand;
 
 class COrmModule extends AModule implements IModule {
 
@@ -13,6 +14,7 @@ class COrmModule extends AModule implements IModule {
 
     public function configure(Array $config=null) {
     	parent::configure($config);
+        //conect
 		$db = $this->config('database');
 		$className = $this->config('className');
         $conn = $className::$conn;
@@ -20,6 +22,8 @@ class COrmModule extends AModule implements IModule {
     		$className::$conn = new \mysqli($db['host'], $db['login'], $db['password'], $db['name']);
     		$className::$conn->query("SET NAMES '".$db['encode']."'");
         }
+        //register migrate
+        \Piha::command('migrate', CMigrationCommand::className());
     }
 
     public static function quoteTableName($name)

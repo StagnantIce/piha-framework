@@ -50,4 +50,14 @@ class CUser extends AClass {
 	public function delId() {
 		$this->getStorage()->del('user.id');
 	}
+
+	public function hasPermission($name) {
+		\Piha::IncludeModule('permission');
+		return \Piha::permission()->hasPermission($this->getId(), $name);
+	}
+
+	public function assign($name) {
+		\Piha::IncludeModule('permission');
+		return \Piha::permission()->assign($this->getId(), $name);
+	}
 }

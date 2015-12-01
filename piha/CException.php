@@ -72,7 +72,7 @@ class CException extends \Exception {
                 $v['line'] = '';
             }
             $fileName = $v['file'];
-            if (isset($_SERVER['DOCUMENT_ROOT']) && strpos($v['file'], $_SERVER['DOCUMENT_ROOT']) !== false) {
+            if (isset($_SERVER['DOCUMENT_ROOT']) && $_SERVER['DOCUMENT_ROOT'] && strpos($v['file'], $_SERVER['DOCUMENT_ROOT']) !== false) {
                 $v['file'] = substr($v['file'], strlen($_SERVER['DOCUMENT_ROOT']), strlen($v['file']));
             }
             $line = 1;
@@ -82,7 +82,7 @@ class CException extends \Exception {
                 while ($line < $v['line'] + 3 && !feof($handle)) {
                     $buffer = fgets($handle);
                     if ($line > $v['line'] - 3) {
-                        $trace .= $html ? '<tr><td style="background:#FFFFEE; color: #999999; padding: 0 5px; width:20px; border-right:1px solid #CCCCCC">'.$line.'</td>' : '';
+                        $trace .= $html ? '<tr><td style="background:#FFFFEE; color: #999999; padding: 0 5px; width:20px; border-right:1px solid #CCCCCC">'.$line.'</td>' : $line . ':';
                         if ($line == $v['line']) {
                             $trace .= $html ? '<td style="background:#FCE3E3">' :  '*';
                         } else {

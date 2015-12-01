@@ -19,6 +19,7 @@ class Piha extends AModule implements IModule {
 
     private $start_time = null;
     private static $objects = array();
+    private static $commands = array();
 
     public static function getDir() {
         return __DIR__;
@@ -41,6 +42,48 @@ class Piha extends AModule implements IModule {
 
     public function getTime() {
         return (time() + microtime()) - self::app()->start_time;
+    }
+
+    public static function command($name, $command) {
+        if (isset(self::$commands[$name])) {
+             throw new CException("Command '{$name}' is already exists.");
+        }
+        self::$commands[$name] = $command;
+    }
+
+    public static function execute($name, $args) {
+        if (!isset(self::$commands[$name])) {
+            throw new CException("Command '{$name}' not found.");
+        }
+        if (class_exists(self::$commands[$name])) {
+            if (!isset($args['method']) || !$args['method']) {
+                throw new CException("Command method for command '{$name}' not defined.");
+            }
+            $class = self::$commands[$name];
+            $method = $args['method'];
+            unset($args['method']);
+            $params = array();
+            if ($args) {
+                $f = new \ReflectionMethod($class, $method);
+                $fParams = $f->getParameters();
+                foreach ($fParams as $param) {
+                    $params[$param->name] = null;
+                    if (isset($args[$param->name])) {
+                        $params[$param->name] = isset($args[$param->name]);
+                        unset($args[$param->name]);
+                    }
+                }
+            }
+            if ($args) {
+                throw new CException("Undefine params: '".implode(', ', array_keys($args))."' for {$class}::{$method}() command.");
+            }
+            return call_user_func_array(array(new $class(), $method), $params);
+        }
+
+        if (!is_callable(self::$commands[$name])) {
+            throw new CException("Command '{$name}' is not callable.");
+        }
+        return call_user_func_array(self::$commands[$name], array($args));
     }
 
     public static function service($name, $mixed) {
@@ -74,7 +117,7 @@ class Piha extends AModule implements IModule {
         parent::configure($configs['piha']);
         unset($configs['piha']);
         foreach($configs as $key => $config) {
-            AModule::Add($key);
+            self::Add($key);
             self::GetInstance($key)->configure($config);
         }
         return self::GetInstance();
@@ -82,6 +125,12 @@ class Piha extends AModule implements IModule {
 
     public static function shutdown() {
         echo new CException();
+    }
+
+    public static function IncludeModule($id=null) {
+        if (!self::HasInstance($id)) {
+            self::Add($id);
+        }
     }
 
     private function __construct($dir) {
@@ -99,6 +148,10 @@ class Piha extends AModule implements IModule {
     public function start() {
         defined('PIHA_CONSOLE') or define('PIHA_CONSOLE', false);
         defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
+
+        if (PIHA_CONSOLE === false) {
+            session_start();
+        }
 
         $request = new CRequest();
         $router = new CRouter($request);

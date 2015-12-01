@@ -36,8 +36,9 @@ abstract class AModule extends AClass {
         $this->getObjectModule()->config = is_array($config) ? $config : (is_string($config) ? CAlias::requireFile($config) : null);
     }
 
-    public static function HasInstance() {
-        return isset(self::$modules[static::GetID()]);
+    public static function HasInstance($id=null) {
+        $id = $id?:static::GetID();
+        return isset(self::$modules[$id]);
     }
 
     public static function SetInstance($obj) {

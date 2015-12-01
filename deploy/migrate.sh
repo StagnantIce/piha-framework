@@ -11,6 +11,7 @@ use piha\modules\orm\models\CMigrationModel;
 use piha\modules\orm\classes\CQuery;
 use piha\modules\orm\COrmModule;
 use piha\CAlias;
+use piha\CException;
 
 CMigrationModel::schema()->createTable();
 
@@ -124,8 +125,9 @@ switch ($argv[1]) {
                     $className::down();
                     CMigrationModel::Delete(array('NAME' => $className));
                     CQuery::commit();
-                } catch ( Exception $e ) {
+                } catch ( CException $e ) {
                     CQuery::rollback();
+                    echo $e;
                     echo "!!! ERROR DOWNGRATE: $className\n\n";
                     exit();
                 }
@@ -172,9 +174,9 @@ switch ($argv[1]) {
                     $className::up();
                     CMigrationModel::Insert(array('NAME' => $className, 'TIMESTAMP' => $t));
                     CQuery::commit();
-                } catch ( Exception $e ) {
+                } catch ( CException $e ) {
                     CQuery::rollback();
-                    echo $e->getMessage();
+                    echo $e;
                     echo "!!! ERROR MIGRATE: $className\n\n";
                     exit();
                 }

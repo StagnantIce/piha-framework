@@ -23,8 +23,8 @@ return array(
     'orm' =>  array(
         'className' => 'piha\modules\orm\classes\CMysqlConnection',
         'migrationPaths' => array(
-            'piha' => array('@webroot', 'piha', 'deploy', 'migrations'),
-            'app'  => array('@webroot', 'migrations')
+            'app'  => array('@webroot', 'migrations'),
+            'permission' => array('@permission', 'migrations')
         ),
         'database' => array(
             'host' => '127.0.0.1',
@@ -34,5 +34,7 @@ return array(
             'prefix' => 'piha_',
             'encode' => 'utf8'
         )
+    ),
+    'permission' => array(
     )
 );
