@@ -9,7 +9,7 @@ class AuthController extends CController {
 	public $layout = 'main';
 	public function actionLogin() {
 		$loginForm = CForm::post(array('model' => new CUserModel()));
-		$loginForm->fieldEmail('EMAIL', array('require'));
+		$loginForm->fieldText('EMAIL', array('require'));
 		$loginForm->fieldPassword('PASSWORD', array('require'));
 
 		if ($loginForm->isSubmit() && $loginForm->isValid()) {

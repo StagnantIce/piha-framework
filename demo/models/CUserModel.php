@@ -27,12 +27,11 @@ class CUserModel extends CModel {
 
 	public function authorize() {
 		$model = false;
-		if ($this->email) {
-			$model = self::Get(array('EMAIL' => $this->email));
-		} elseif ($this->login) {
-			$model = self::Get(array('LOGIN' => $this->login));
+		$model = self::Get(array('EMAIL' => $this->email));
+		if(!$model) {
+			$model = self::Get(array('LOGIN' => $this->email));
 		}
-		if ($model && sha1($this->password) === $model->password) {
+		if ($model && \Piha::user()->verifyPassword($this->password, $model->password)) {
 			return $model;
 		}
 		return false;
@@ -47,7 +46,7 @@ class CUserModel extends CModel {
 		}
 		if (!$model) {
 			$pass = $this->password;
-			$this->password = sha1($this->password);
+			$this->password = \Piha::user()->hashPassword($this->password);
 			if ($this->save()) {
 				$this->password = $pass;
 				return $this;

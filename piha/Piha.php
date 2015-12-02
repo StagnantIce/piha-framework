@@ -8,6 +8,7 @@ use piha\modules\core\classes\CRouter;
 use piha\modules\core\classes\CRequest;
 use piha\modules\core\classes\CController;
 use piha\modules\core\classes\CView;
+use piha\modules\core\classes\CCommand;
 
 require 'AClass.php';
 require 'CException.php';
@@ -51,39 +52,19 @@ class Piha extends AModule implements IModule {
         self::$commands[$name] = $command;
     }
 
-    public static function execute($name, $args) {
+    public static function execute($name, $argv) {
         if (!isset(self::$commands[$name])) {
             throw new CException("Command '{$name}' not found.");
         }
         if (class_exists(self::$commands[$name])) {
-            if (!isset($args['method']) || !$args['method']) {
-                throw new CException("Command method for command '{$name}' not defined.");
-            }
             $class = self::$commands[$name];
-            $method = $args['method'];
-            unset($args['method']);
-            $params = array();
-            if ($args) {
-                $f = new \ReflectionMethod($class, $method);
-                $fParams = $f->getParameters();
-                foreach ($fParams as $param) {
-                    $params[$param->name] = null;
-                    if (isset($args[$param->name])) {
-                        $params[$param->name] = isset($args[$param->name]);
-                        unset($args[$param->name]);
-                    }
-                }
-            }
-            if ($args) {
-                throw new CException("Undefine params: '".implode(', ', array_keys($args))."' for {$class}::{$method}() command.");
-            }
-            return call_user_func_array(array(new $class(), $method), $params);
+            return new $class($name, $argv);
         }
 
         if (!is_callable(self::$commands[$name])) {
             throw new CException("Command '{$name}' is not callable.");
         }
-        return call_user_func_array(self::$commands[$name], array($args));
+        return call_user_func_array(self::$commands[$name], array(CCommand::parse($argv)));
     }
 
     public static function service($name, $mixed) {

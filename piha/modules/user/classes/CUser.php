@@ -60,4 +60,34 @@ class CUser extends AClass {
 		\Piha::IncludeModule('permission');
 		return \Piha::permission()->assign($this->getId(), $name);
 	}
+
+	public function hashPassword($password) {
+		if (!function_exists('crypt')) {
+			throw new CException("Crypt lib not found");
+		}
+		return crypt($password);
+	}
+
+	public function verifyPassword($password, $hash) {
+		if (!function_exists('crypt')) {
+			throw new CException("Crypt lib not found");
+		}
+		$ret = crypt($password, $hash);
+		if (!is_string($ret) || $this->_strlen($ret) != $this->_strlen($hash) || $this->_strlen($ret) <= 13) {
+			return false;
+		}
+		$status = 0;
+		for ($i = 0; $i < $this->_strlen($ret); $i++) {
+			$status |= (ord($ret[$i]) ^ ord($hash[$i]));
+		}
+		return $status === 0;
+	}
+
+
+	private function _strlen($binary_string) {
+		if (function_exists('mb_strlen')) {
+			return mb_strlen($binary_string, '8bit');
+		}
+		return strlen($binary_string);
+	}
 }

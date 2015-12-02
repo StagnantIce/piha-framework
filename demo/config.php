@@ -21,4 +21,7 @@ return array(
         'prettyUrl' => true,
         'smartUrl' => true,
     ),
+    'permission' => array(
+        'modelClass' => 'CUserModel'
+    )
 );
