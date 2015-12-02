@@ -8,8 +8,7 @@ class CListData {
 	private $id = 0;
 	protected $data = array();
 	private static $selfCount = 0;
-	protected $pageCount = 0;
-	protected $total = 0;
+	protected $pageSize = 10;
 
 	public function __construct() {
 		self::$selfCount++;
@@ -25,11 +24,11 @@ class CListData {
 	}
 
 	public function getTotal() {
-		return $this->total;
+		return count($this->data);
 	}
 
 	public function getPageCount() {
-		return $this->pageCount;
+		return ceil($this->getTotal() / $this->getPageSize());
 	}
 
 	public function getCurrentPage() {
@@ -37,11 +36,11 @@ class CListData {
 	}
 
 	public function getPageSize() {
-		return intval(\Piha::request()->get('pageSize' . $this->id, 10));
+		return intval(\Piha::request()->get('pageSize' . $this->id, $this->pageSize));
 	}
 
 	public function nextUrl() {
-		if ($this->getCurrentPage() < $this->pageCount) {
+		if ($this->getCurrentPage() < $this->getPageCount()) {
 			return \Piha::request()->url(array('currentPage'. $this->id => $this->getCurrentPage() + 1));
 		}
 		return false;
@@ -57,16 +56,17 @@ class CListData {
 	public function nearUrl($count = 10) {
 		$urls = array();
 		$page = $this->getCurrentPage();
+		$pageCount = $this->getPageCount();
 		// find page start
 		while ($page > $this->getCurrentPage() - $count / 2 + 1 && $page > 1) {
 			$page--;
 		}
 
-		while($page >  $this->pageCount - $count && $page > 1) {
+		while($page > $pageCount - $count && $page > 1) {
 			$page--;
 		}
 
-		for($i = $page; $i <= min($page + $count, $this->pageCount); $i++) {
+		for($i = $page; $i <= min($page + $count, $pageCount); $i++) {
 			$urls[$i] = \Piha::request()->url(array('currentPage'. $this->id => $i));
 		}
 
