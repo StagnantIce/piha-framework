@@ -5,7 +5,7 @@
 ?>
 <div class="pagination">
 	<ul>
-		<? if ($listData->prevUrl()): ?>
+		<? if ($prevUrl = $listData->prevUrl()): ?>
 			<li><a href="<?=$prevUrl;?>">Prev</a></li>
 		<? endif; ?>
 		<? foreach($listData->nearUrl() as $number => $url): ?>
@@ -15,7 +15,7 @@
 				<li><a href="<?=$url;?>"><?=$number;?></a></li>
 			<? endif; ?>
 		<? endforeach; ?>
-		<? if ($listData->nextUrl()): ?>
+		<? if ($nextUrl = $listData->nextUrl()): ?>
 			<li><a href="<?=$nextUrl;?>">Next</a></li>
 		<? endif; ?>
 	</ul>

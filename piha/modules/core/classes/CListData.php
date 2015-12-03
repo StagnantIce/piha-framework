@@ -8,7 +8,7 @@ class CListData {
 	private $id = 0;
 	protected $data = array();
 	private static $selfCount = 0;
-	protected $pageSize = 10;
+	public $pageSize = 10;
 
 	public function __construct() {
 		self::$selfCount++;
@@ -68,6 +68,10 @@ class CListData {
 
 		for($i = $page; $i <= min($page + $count, $pageCount); $i++) {
 			$urls[$i] = \Piha::request()->url(array('currentPage'. $this->id => $i));
+		}
+
+		if (count($urls) == 1) {
+			return false;
 		}
 
 		return $urls;
