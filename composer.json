@@ -1,5 +1,5 @@
 {
-    "name": "vendor/piha",
+    "name": "stag/piha",
     "description": "Piha php micro framework",
     "keywords": ["framework","micro", "orm", "bitrix"],
     "homepage": "https://github.com/StagnantIce/",
