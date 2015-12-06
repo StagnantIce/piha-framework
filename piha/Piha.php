@@ -57,8 +57,7 @@ class Piha extends AModule implements IModule {
         $configs = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
         parent::configure($configs['piha']);
         unset($configs['piha']);
-        $modules = array_merge($configs, self::Config('modules', array()));
-        foreach($modules as $key => $config) {
+        foreach($configs as $key => $config) {
             self::Add($key, isset($config['path']) ? $config['path'] : '@modules');
             if (isset($config['route'])) {
                 $this->moduleRoutes[$config['route']] = $key;
