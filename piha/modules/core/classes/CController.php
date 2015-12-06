@@ -9,9 +9,10 @@
 namespace piha\modules\core\classes;
 use piha\modules\core\CCoreModule;
 use piha\CAlias;
+use piha\AClass;
 use piha\CException;
 
-class CController {
+class CController extends AClass {
 
     const METHOD_NAME = 'action';
 
@@ -20,6 +21,9 @@ class CController {
 
     /** @var string $action_id - id экшена */
     public $action_id = '';
+
+    /** @var AModule $module - модуль */
+    public $module = '';
 
     /** @var array $context - контекст для рендеринга */
     private $context = array();
@@ -39,10 +43,32 @@ class CController {
       * @param array $params - параметры для передачи в метод контроллера
       * @return CController
       */
-    public function __construct($action_id, Array $params = null) {
+    public function __construct($module, $action_id, Array $params = null) {
+        $this->module = $module;
         $this->action_id = $action_id ?: $this->defaultAction;
         $this->id = static::GetID();
         $this->params = $params;
+    }
+
+
+    /**
+      * Получить алиас до главного шаблона
+      * @return string|array алиас
+      */
+    public function getLayoutPath() {
+        $module = \Piha::Config('defaultModule');
+        if (!$module) {
+            throw new CException("Default module config not found.");
+        }
+        return $this->module->config('layoutPath', \Piha::GetInstance($module)->config('layoutPath'));
+    }
+
+    /**
+      * Получить алиас до шаблонов
+      * @return string|array алиас
+      */
+    public function getViewPath() {
+        return $this->module->config('viewPath', \Piha::GetModule()->config('viewPath'));
     }
 
     /**
@@ -106,6 +132,9 @@ class CController {
         if (strpos($route, '/') === false) {
             $route = $this->id . '/' . $route;
         }
+        if ($moduleRoute = $this->module->config('route')) {
+            $route = $moduleRoute . '/' . $route;
+        }
         return \Piha::router()->buildUrl($route, $params);
     }
 
@@ -126,6 +155,7 @@ class CController {
       * @param string $type тип сообщения
       * @param mixed $message сообщение, False в случае проверки и null в случае извлечения
       * @return mixed null, boolean или сообщение в случае извлечения
+      * @deprecated
       */
     public function flash($type, $message = null) {
         if ($message === False) {
@@ -146,12 +176,12 @@ class CController {
       * @return null
       */
     public function render($renderName = '', Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()));
+        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()), $this);
         $view->setMiddleWare($this);
         $result = '';
         if ($this->layout) {
             $context['content'] = $view->render();
-            $layoutView = new CView('/' . $this->layout, array_replace($this->context, $context?: array()));
+            $layoutView = new CView('/' . $this->layout, array_replace($this->context, $context?: array()), $this);
             $layoutView->setMiddleWare($this);
             $result = $layoutView->render();
         } else {
@@ -171,7 +201,7 @@ class CController {
       * @return string
       */
     public function part($renderName = null, Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()));
+        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()), $this);
         $view->setMiddleWare($this);
         $view->setPartAlias();
         $result = $view->render();

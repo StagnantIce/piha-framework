@@ -30,6 +30,7 @@
         </div>
       </div>
    </div>
+
 	<footer class="footer">
 		<div class="container">
 			<p class="text-muted">Piha framework <?=date('Y');?>.</p>

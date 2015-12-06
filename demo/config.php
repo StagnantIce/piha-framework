@@ -3,6 +3,16 @@
 use \piha\modules\storage\classes\CSessionStorage;
 
 return array(
+    'admin' => array(
+        'path' => array('@webroot', 'modules'),
+        'route' => 'admin',
+        'autoload' => array(
+            array('@admin', 'controllers'),
+            array('@admin', 'models')
+        ),
+        'viewPath' => array('@admin', 'views'),
+        'layoutPath' => array('@admin', 'views', 'layouts')
+    ),
     'orm' =>  array(
         'database' => array(
             'host' => '127.0.0.1',

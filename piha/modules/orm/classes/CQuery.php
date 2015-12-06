@@ -217,6 +217,7 @@ class CQuery extends AExtendClass {
         if (!$object = $this->_object) {
             throw new CException("Execute objects() method without object.");
         }
+        $result = array();
         $data = $this->all();
         foreach($data as $d) {
             $result[] = new $object($d);
@@ -652,8 +653,9 @@ class CQuery extends AExtendClass {
                     continue;
                 } else if (isset($this->_columns[$field]) && $rel = $this->_columns[$field]) {
                     if (isset($rel['object'])) {
-                        $tableName = self::GetTableName($rel['object']);
-                        $cond = "`{$alias}`.ID = ".$this->getName().".`{$field}`";
+                        $obj = $rel['object'];
+                        $tableName = self::GetTableName($obj);
+                        $cond = "`{$alias}`.".$obj::m()->_pk." = ".$this->getName().".`{$field}`";
                     } else {
                         throw new CException("JOIN Error. Expected string or array for '$field' field.");
                     }
@@ -829,7 +831,7 @@ class CQuery extends AExtendClass {
         $where = false;
         if ($mixed) {
             if (is_numeric($mixed) || is_array($mixed) && key($mixed) === 0 && is_numeric(current($mixed))) {
-                $where = $this->condition(array('ID' => self::int($mixed)));
+                $where = $this->condition(array('id' => self::int($mixed)));
             } else if (is_array($mixed)) {
                 $where = $this->condition($mixed, $cond);
             }

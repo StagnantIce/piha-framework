@@ -47,8 +47,12 @@ class CFormModel extends CForm {
 		parent::beforeLabel($options);
 	}
 
-	public function getModel() {
+	public function setValues($values) {
+		parent::setValues($values);
 		$this->_model->fromArray($this->_values);
+	}
+
+	public function getModel() {
 		return $this->_model;
 	}
 }

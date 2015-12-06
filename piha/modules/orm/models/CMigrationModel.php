@@ -10,7 +10,7 @@ class CMigrationModel extends CModel {
 
 	public function getColumns() {
 		return array(
-			'ID'        => array('type' => 'int'),
+			'ID'        => array('type' => 'pk'),
 			'NAME'      => array('type' => 'string'),
 			'TIMESTAMP' => array('type' => 'int')
 		);

@@ -17,14 +17,13 @@ class CForm extends CFormModel {
 		return parent::__construct(array_replace($default, $options));
 	}
 
-	public function start($options) {
+	public function start($options = array()) {
 		$error = '';
 		if ($error = $this->getError()) {
 			$error = $this->_html->p(array('class' => 'text-danger'))->html(implode('', $error))->render(true);
 		}
 		return $error.parent::start($options);
 	}
-
 
 	private function createControl($options, $control) {
 		$label = $this->label(array('for' => $options['name'], 'label' => CHtmlBase::popOption($options, 'label')));
@@ -73,6 +72,13 @@ class CForm extends CFormModel {
 		);
 		$options['name'] = $name;
 		return $this->createControl($options, $this->getField($name, array_replace($defaults, $options)));
+	}
+
+	public function submit($options = array()) {
+		$defaults = array(
+			'class' => array(CHtml::BUTTON, CHtml::BUTTON_PRIMARY)
+		);
+		return parent::submit(array_replace($defaults, $options));
 	}
 
 }

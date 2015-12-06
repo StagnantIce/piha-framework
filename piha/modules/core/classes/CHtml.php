@@ -109,7 +109,7 @@ class CHtml {
       * @param string $name параметр для извлечения
 	  */
 	public static function popOption(&$options, $name) {
-		if (isset($options[$name])) {
+		if (array_key_exists($name, $options)) {
 			$option = $options[$name];
 			unset($options[$name]);
 			return $option;

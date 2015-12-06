@@ -6,6 +6,7 @@ class CCategoryModel extends CModel {
 
 	public $_name = '{{category}}';
 	public $_label = 'Категории';
+	public $childs;
 
 	public function getColumns() {
 	    return array(
@@ -14,8 +15,24 @@ class CCategoryModel extends CModel {
 			'CODE'           => array('type' => 'string'),
 			'DESCRIPTION'    => array('type' => 'text'),
 			'STATUS'         => array('type' => 'tinyint'),
-			'IS_ACTIVE'      => array('type' => 'varchar', 'default' => 'Y'),
-			'PARENT_ID'      => array('type' => 'int')
+			'SORT'           => array('type' => 'tinyint'),
+			'IS_ACTIVE'      => array('type' => 'char', 'default' => 'Y'),
+			'PARENT_ID'      => array('type' => 'int', 'default' => null)
 		);
+	}
+
+	public static function GetByParent($parent = null) {
+		return self::q()
+			->where(array('PARENT_ID' => $parent))
+			->order(array('SORT' => 'ASC'))
+			->objects();
+	}
+
+	public static function GetTree($parent = null) {
+		$cats = self::GetByParent($parent);
+		foreach($cats as $c) {
+			$c->childs = self::GetTree($c->id);
+		}
+		return $cats;
 	}
 }

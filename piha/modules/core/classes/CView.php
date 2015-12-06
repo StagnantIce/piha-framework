@@ -18,17 +18,20 @@ class CView extends AClass {
     /** @var object $_middleWare - объект для расши */
     private $_middleWare = null;
 
-	/** @var string $_file - имя файла представления */
-	private $_file = '';
+    /** @var string $_file - имя файла представления */
+    private $_file = '';
 
-	/** @var array $_context - контекст для передачи в представление */
-	private $_context = null;
+    /** @var array $_context - контекст для передачи в представление */
+    private $_context = null;
 
-	/** @var string $_alias - путь до файла представления */
-	private $_alias = '';
+    /** @var string $_alias - путь до файла представления */
+    private $_alias = '';
 
-	/** @var string $partAlias - относительный путь до файла представления */
-	private static $partAlias = '';
+    /** @var string $partAlias - относительный путь до файла представления */
+    private static $partAlias = '';
+
+    /** @var string $viewPath - где искать шаблоны */
+    public $controller = null;
 
     /**
       * Создать новое представление
@@ -36,9 +39,10 @@ class CView extends AClass {
       * @param array $context - контекст в рамках которого будет отображаться представление
       * @return CView
       */
-    public function __construct($file, Array $context = null) {
+    public function __construct($file, Array $context = null, $controller = null) {
         $this->_file = $file;
         $this->_context = $context;
+        $this->controller = $controller;
     }
 
     /**
@@ -61,9 +65,9 @@ class CView extends AClass {
     	if (strncmp($file,'//',2) === 0) {
     		return '@webroot';
     	} else if (strncmp($file,'/',1) === 0) {
-    		return CCoreModule::Config('layoutPath');
+    		return $this->controller->getLayoutPath();
     	} else {
-    		return CCoreModule::Config('viewPath');
+    		return $this->controller->getViewPath();
     	}
     }
 

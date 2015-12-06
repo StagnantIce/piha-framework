@@ -2,23 +2,25 @@
 
 return array(
     'piha' => array(
-        'autoload' => array(
-            array('@webroot', 'controllers'),
-            array('@webroot', 'models')
-        )
+        'defaultModule' => 'core'
     ),
     'storage' => array(
         'prefix' => 'piha_'
     ),
     'user' => array(
+        'authPage' => 'auth/login'
     ),
     'core' => array(
-        'homeController' => 'home/index',
+        'defaultController' => 'home/index',
         'configFile' => __FILE__,
         'viewPath' => array('@webroot', 'views'),
         'layoutPath' => array('@webroot', 'views', 'layouts'),
         'prettyUrl' => false,
         'smartUrl' => false,
+        'autoload' => array(
+            array('@webroot', 'controllers'),
+            array('@webroot', 'models')
+        ),
     ),
     'orm' =>  array(
         'className' => 'piha\modules\orm\classes\CMysqlConnection',

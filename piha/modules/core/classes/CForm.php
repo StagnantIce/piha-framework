@@ -57,10 +57,14 @@ class CForm {
 		return $this->_isError;
 	}
 
+	public function setValues($values) {
+		$this->_values = $values;
+	}
+
 	public static function post($options) {
 		$obj = new static(array_replace($options, array('method' => 'POST')));
 		if ($postData = \Piha::request()->post($obj->_name)) {
-			$obj->_values = $postData;
+			$obj->setValues($postData);
 			$obj->_isSubmit = true;
 		}
 		return $obj;
@@ -69,7 +73,7 @@ class CForm {
 	public static function get($options) {
 		$obj = new static(array_replace($options, array('method' => 'GET')));
 		if ($getData = \Piha::request()->get($obj->_name)) {
-			$obj->_values = $getData;
+			$obj->setValues($getData);
 			$obj->_isSubmit = true;
 		}
 		return $obj;

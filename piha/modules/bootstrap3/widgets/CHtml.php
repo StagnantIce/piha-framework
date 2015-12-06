@@ -1,6 +1,6 @@
 <?php
 
-namespace piha\modules\bootstrap\widgets;
+namespace piha\modules\bootstrap3\widgets;
 
 use piha\CException;
 use piha\modules\core\classes\CHtml as CBaseHtml;
@@ -8,7 +8,7 @@ use piha\modules\core\classes\CHtml as CBaseHtml;
 
 class CHtml extends CBaseHtml {
 
-	const BUTTON = 'btn';
+	const BUTTON = 'btn btn-default';
 	const BUTTON_INFO = 'btn-info';
 	const BUTTON_PRIMARY = 'btn-primary';
 	const BUTTON_SUCCESS = 'btn-success';
@@ -20,10 +20,10 @@ class CHtml extends CBaseHtml {
 	const TABLE_BORDERED = 'table-bordered';
 	const TABLE_STRIPED = 'table-striped';
 
-	const ICON = '';
-	const ICON_PENCIL = 'icon-pencil';
-	const ICON_REMOVE = 'icon-remove';
-	const ICON_WHITE = 'icon-inverse';
+	const ICON = 'glyphicon';
+	const ICON_PENCIL = 'glyphicon-pencil';
+	const ICON_REMOVE = 'glyphicon-remove';
+	const ICON_WHITE = 'glyphicon-inverse';
 
 	public function a($options = array()) {
 		$default = array(

@@ -48,8 +48,8 @@ class CAlias extends AClass {
 	 * @return string
 	 */
 	public static function GetAlias($name) {
-		if (!isset(self::$aliases[$mixed])) {
-			throw new CException("Alias name {$mixed} not found");
+		if (!isset(self::$aliases[$name])) {
+			throw new CException("Alias name {$name} not found");
 		}
 		return self::$aliases[$mixed];
 	}

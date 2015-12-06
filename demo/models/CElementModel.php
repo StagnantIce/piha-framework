@@ -14,9 +14,9 @@ class CElementModel extends CModel {
 			'CODE'      => array('type' => 'string'),
 			'DESCRIPTION'      => array('type' => 'text'),
 			'STATUS'    => array('type' => 'tinyint'),
-			'IS_ACTIVE' => array('type' => 'varchar', 'default' => 'Y'),
+			'IS_ACTIVE' => array('type' => 'char', 'default' => 'Y'),
 			'TAGS'      => array('type' => 'string'),
-			'TYPE_ID'   => array('type' => 'int', 'object' => CElementType::className()),
+			'TYPE_ID'   => array('type' => 'int', 'object' => CElementTypeModel::className()),
 		);
 	}
 }

@@ -47,7 +47,6 @@ class CModel extends CDataObject {
     protected $_label = '';
 
     private $_schema = '';
-
     /** @var array Псевдо поля */
     //public $_fields = array();
 
@@ -72,6 +71,11 @@ class CModel extends CDataObject {
 
     public function getColumns() {
         return array();
+    }
+
+    public function isNew() {
+        $pk = $this->toVar($this->_pk);
+        return !$this->$pk;
     }
 
     /**
@@ -300,19 +304,15 @@ class CModel extends CDataObject {
      * @param string $className Имя класса
      * @return bool|CModel
      */
-    public static function m($className = "") {
-        if ($className === "") {
-            $className = self::className();
+    public static function m() {
+        $className = static::className();
+
+        if(isset(self::$_models[$className])) {
+            return self::$_models[$className];
         }
 
-        if(isset(self::$_models[$className]))
-            return self::$_models[$className];
-        elseif(class_exists($className)) {
-            self::$_models[$className] = new $className(null);
-            return self::$_models[$className];
-        } else {
-            return false;
-        }
+        self::$_models[$className] = new static();
+        return self::$_models[$className];
     }
 
     public static function q() {

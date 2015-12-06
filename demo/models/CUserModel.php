@@ -5,6 +5,7 @@ use piha\modules\orm\classes\CModel;
 class CUserModel extends CModel {
 
 	public $_name = '{{user}}';
+	public $_label = 'Пользователи';
 	public $confirmPassword = '';
 
 	public function getColumns() {

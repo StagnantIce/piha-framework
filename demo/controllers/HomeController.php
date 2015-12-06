@@ -6,6 +6,9 @@ class HomeController extends CController {
 
 	public $layout = 'main';
 	public function actionIndex() {
-		$this->render();
+		$categories = CCategoryModel::GetTree();
+		$this->render('index', array(
+			'categories' => $categories
+		));
 	}
 }

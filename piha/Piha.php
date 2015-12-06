@@ -19,8 +19,8 @@ require 'IModule.php';
 class Piha extends AModule implements IModule {
 
     private $start_time = null;
-    private static $objects = array();
-    private static $commands = array();
+    public $moduleRoutes = array();
+    private static $autoloaderPaths = array();
 
     public static function getDir() {
         return __DIR__;
@@ -35,7 +35,7 @@ class Piha extends AModule implements IModule {
             array_pop($className);
             CAlias::requireFile($fileName, $className);
         } else {
-            foreach(self::app()->config('autoload', array()) as $path) {
+            foreach(self::$autoloaderPaths as $path) {
                 CAlias::includeFile(end($className) . '.php', $path);
             }
         }
@@ -43,46 +43,6 @@ class Piha extends AModule implements IModule {
 
     public function getTime() {
         return (time() + microtime()) - self::app()->start_time;
-    }
-
-    public static function command($name, $command) {
-        if (isset(self::$commands[$name])) {
-             throw new CException("Command '{$name}' is already exists.");
-        }
-        self::$commands[$name] = $command;
-    }
-
-    public static function execute($name, $argv) {
-        if (!isset(self::$commands[$name])) {
-            throw new CException("Command '{$name}' not found.");
-        }
-        if (class_exists(self::$commands[$name])) {
-            $class = self::$commands[$name];
-            return new $class($name, $argv);
-        }
-
-        if (!is_callable(self::$commands[$name])) {
-            throw new CException("Command '{$name}' is not callable.");
-        }
-        return call_user_func_array(self::$commands[$name], array(CCommand::parse($argv)));
-    }
-
-    public static function service($name, $mixed) {
-        if (isset(self::$objects[$name])) {
-             throw new CException("Object '{$name}' is already exists in Service Locator.");
-        }
-        self::$objects[$name] = $mixed;
-    }
-
-    public static function __callStatic($name, $params) {
-        if (!isset(self::$objects[$name])) {
-            throw new CException("Object '{$name}' is not register in Service Locator.");
-        }else if (is_callable(self::$objects[$name])) {
-            return call_user_func(self::$objects[$name]);
-        } else if (is_object(self::$objects[$name])) {
-            return self::$objects[$name];
-        }
-        throw new CException("Object '{$name}' is not callable in Service Locator.");
     }
 
     public static function app($dir=__DIR__) {
@@ -97,8 +57,17 @@ class Piha extends AModule implements IModule {
         $configs = array_replace_recursive(CAlias::requireFile('config.php', '@piha'), $config);
         parent::configure($configs['piha']);
         unset($configs['piha']);
-        foreach($configs as $key => $config) {
-            self::Add($key);
+        $modules = array_merge($configs, self::Config('modules', array()));
+        foreach($modules as $key => $config) {
+            self::Add($key, isset($config['path']) ? $config['path'] : '@modules');
+            if (isset($config['route'])) {
+                $this->moduleRoutes[$config['route']] = $key;
+            }
+            if (isset($config['autoload'])) {
+                foreach((array)$config['autoload'] as $autoload) {
+                    self::$autoloaderPaths[] = $autoload;
+                }
+            }
             self::GetInstance($key)->configure($config);
         }
         return self::GetInstance();
@@ -112,6 +81,16 @@ class Piha extends AModule implements IModule {
         if (!self::HasInstance($id)) {
             self::Add($id);
         }
+    }
+
+    public static function GetModule($id=null) {
+        if (!$id) {
+            $id = self::Config('defaultModule');
+        }
+        if (!$id) {
+            throw new CException("Module '$id' not found.");
+        }
+        return self::GetInstance($id);
     }
 
     private function __construct($dir) {

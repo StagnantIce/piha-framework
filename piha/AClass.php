@@ -20,7 +20,7 @@ abstract class AClass {
                     return array($class, $method);
                 }
             }
-            throw new CException('Not callable ' . $class . '::' . $method);
+            throw new CException('Not callable ' . $class . '::' . $method . ' for classes ' . implode(', ', $classes));
         }
         throw new CException('Not callable method');
     }

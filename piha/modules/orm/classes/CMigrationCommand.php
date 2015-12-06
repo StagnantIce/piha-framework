@@ -35,7 +35,6 @@ class CMigrationCommand extends CCommand {
 		} else {
 		    $migrationPath = reset($migrationPaths);
 		}
-
 		return CAlias::GetPath($migrationPath);
 	}
 
@@ -126,6 +125,7 @@ class CMigrationCommand extends CCommand {
 	public function commandUp($alias = 'app') {
 		$ds = CAlias::ds();
 		$migrationPath = $this->getMigrationPath($alias);
+        echo $migrationPath . "...\n\n";
         echo "START DATABASE MIGRATION......\n\n";
 
         $skipMigrations = CMigrationModel::GetAll(array(), 'TIMESTAMP');

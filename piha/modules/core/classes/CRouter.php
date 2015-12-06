@@ -5,10 +5,12 @@ namespace piha\modules\core\classes;
 use piha\modules\core\CCoreModule;
 use piha\CException;
 
+
 class CRouter {
 
     const PARAM_NAME = 'r';
     private $_route = '';
+
 
     public function __construct(CRequest $request) {
         $route = false;
@@ -21,10 +23,10 @@ class CRouter {
     }
 
     public function getController() {
-        list($controller, $action, $params) = $this->getControllerParams($this->_route);
+        list($module, $controller, $action, $params) = $this->getControllerParams($this->_route);
 
         if (class_exists($controller)) {
-           return new $controller($action, $params);
+           return new $controller($module::GetInstance(), $action, $params);
         } else {
             throw new CException("Error route '{$this->_route}'. Controller '{$controller}' not found.");
         }
@@ -39,14 +41,15 @@ class CRouter {
         } else {
             $params[self::PARAM_NAME] = $route;
         }
-        list($controller, $action, $ps) = $this->getControllerParams($route);
+        list($module, $controller, $action, $ps) = $this->getControllerParams($route);
         if (!class_exists($controller)) {
             throw new CException("Controller class {$controller} not found.");
         }
         $action = $controller::getActionName($action);
-        if (!method_exists($controller, $action)) {
-            throw new CException("Action method {$action}() for controller {$controller} not found.");
-        }
+        $controller::className($action);
+        //if (!method_exists($controller, $action)) {
+        //    throw new CException("Action method {$action}() for controller {$controller} not found.");
+        //}
         if (CCoreModule::Config('smartUrl', false)) {
             $f = new \ReflectionMethod($controller, $action);
             $fParams = array_slice($f->getParameters(), count($ps));
@@ -61,16 +64,32 @@ class CRouter {
     }
 
     private function getControllerParams($route = '') {
-        if (!$route) {
-            $route = CCoreModule::Config('homeController');
+        $module = \Piha::Config('defaultModule');
+        if (!$module) {
+            throw new CException("Default module config not found.");
         }
-        $arrRoute = explode('/', $route);
+        $arrRoute = array();
+        if ($route) {
+            $arrRoute = explode('/', $route);
+            if (count($arrRoute) > 0) {
+                if (isset(\Piha::app()->moduleRoutes[$arrRoute[0]])) {
+                    $module = \Piha::app()->moduleRoutes[$arrRoute[0]];
+                    $arrRoute = array_slice($arrRoute, 1);
+                    $route = implode('/', $arrRoute);
+                }
+            }
+        }
+        $moduleObj = \Piha::GetModule($module);
+        if (!$arrRoute) {
+            $arrRoute = explode('/', $moduleObj::Config('defaultController'));
+        }
+
         if (count($arrRoute) < 2) {
-            throw new CException("Error route url {$route}");
+            throw new CException("Error route url '{$route}' for module '{$module}'");
         }
         $controller = $arrRoute[0];
         $action = $arrRoute[1];
         $params = array_slice($arrRoute, 2);
-        return array(ucfirst($controller) . 'Controller', $action, $params);
+        return array($moduleObj, $moduleObj::Config('controllerNamespace', '\\') . ucfirst($controller) . 'Controller', $action, $params);
     }
 }

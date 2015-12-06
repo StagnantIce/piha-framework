@@ -71,7 +71,7 @@ class CListData {
 		}
 
 		if (count($urls) == 1) {
-			return false;
+			return array();
 		}
 
 		return $urls;
