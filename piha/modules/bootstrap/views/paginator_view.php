@@ -3,8 +3,8 @@
 @var CListData $listData
 */
 ?>
-<div>
-	<ul class="pagination">
+<div class="pagination">
+	<ul>
 		<? if ($prevUrl = $listData->prevUrl()): ?>
 			<li><a href="<?=$prevUrl;?>">Prev</a></li>
 		<? endif; ?>
