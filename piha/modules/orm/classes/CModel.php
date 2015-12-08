@@ -41,7 +41,7 @@ class CModel extends CDataObject {
     private static $_models = array();
 
     /** @var string Имя таблицы в Базе Данных */
-    protected $_name = '';
+    public $_name = '';
 
     /** @var string Имя модели, для вывода */
     protected $_label = '';
