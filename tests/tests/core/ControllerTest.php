@@ -8,7 +8,7 @@ use piha\modules\core\classes\CRouter;
 class ControllerTest extends PHPUnit_Framework_TestCase {
 
 	public function testRun() {
-		$controller = new AuthController('login');
+		$controller = new AuthController(CCoreModule::GetInstance(), 'login');
 		$this->assertEquals('auth', $controller->id);
 		$this->assertEquals('login', $controller->action_id);
 		$this->assertEquals(AuthController::getActionName('login'), 'actionLogin');
@@ -20,7 +20,7 @@ class ControllerTest extends PHPUnit_Framework_TestCase {
 		$this->assertContains('Авторизация', $out);
 		$this->assertContains('<html', $out);
 
-		$out = $controller->part('part/menu', null, true);
+		$out = $controller->part('part/menu_left', null, true);
 		$this->assertContains('nav', $out);
 
 		$controller->flash('error', 'test');
@@ -41,7 +41,13 @@ class ControllerTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function testPiha() {
-		$this->assertEquals(Piha::controller(), null);
 		$this->assertNotEquals(Piha::app(), null);
+	}
+
+   /**
+     * @expectedException piha\CException
+     */
+	public function testController() {
+		$this->assertEquals(Piha::controller(), null);
 	}
 }

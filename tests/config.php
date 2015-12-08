@@ -1,6 +1,18 @@
 <?php
 
+use \piha\modules\storage\classes\CSessionStorage;
+
 return array(
+    'admin' => array(
+        'path' => array('@demo', 'modules'),
+        'route' => 'admin',
+        'autoload' => array(
+            array('@admin', 'controllers'),
+            array('@admin', 'models')
+        ),
+        'viewPath' => array('@admin', 'views'),
+        'layoutPath' => array('@admin', 'views', 'layouts')
+    ),
     'piha' => array(
     ),
     'core' => array(
@@ -20,5 +32,9 @@ return array(
             'prefix' => 'piha_',
             'encode' => 'utf8'
         )
-    )
+    ),
+    'user' => array(
+        'modelClass' => 'CUserModel',
+        'storageClass' => CSessionStorage::className()
+    ),
 );

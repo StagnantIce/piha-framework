@@ -58,7 +58,7 @@ class CQuery extends AExtendClass {
     }
 
     public static function GetTableName($className) {
-        $object = CModel::m($className);
+        $object = $className::m();
         if ($object) {
             return COrmModule::quoteTableName($object->_name);
         }

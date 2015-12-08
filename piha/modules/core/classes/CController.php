@@ -39,6 +39,7 @@ class CController extends AClass {
 
     /**
       * Создать контроллер
+      * @param AModule $module - модуль
       * @param string $action_id - id экшена
       * @param array $params - параметры для передачи в метод контроллера
       * @return CController
