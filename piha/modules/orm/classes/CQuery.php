@@ -641,7 +641,9 @@ class CQuery extends AExtendClass {
       * @return CQuery
       */
     public function join($table = false, $rewrite_cond = "", $type = "") {
-        if (!$table) return;
+        if (!$table) {
+            return $this;
+        }
         $q = "";
         if (!is_array($table)) $table = array($table);
         foreach($table as $alias => $field) {
