@@ -558,33 +558,31 @@ class CQuery extends AExtendClass {
         return $this->condition($result, $type, true);
     }
 
-    private function joinRelation($fieldName, $joinType) {
-        if (!$this->_object || !$this->_relations) {
-            return false;
-        }
-        foreach($this->_relations as $type => $relations) {
+    private function joinWith($modelClass, $modelRelation, $joinType) {
+        foreach($modelClass::m()->getRelations() as $type => $relations) {
             foreach($relations as $relationName => $relation) {
-                if ($relationName === $fieldName) {
+                if ($relationName === $modelRelation) {
 
                     $field = array_shift($relation);
 
                     $prevClass = null;
                     if (!$relation || count($relation) > 2) {
-                        throw new CException("Inocorrect arguments number in relation {$fieldName} for model {$this->_object}");
+                        throw new CException("Inocorrect arguments number in relation {$modelRelation} for model {$modelClass}");
                     }
+
                     $className = array_shift($relation);
 
                     $cond = array();
-                    $class = $this->_object;
+                    $class = $modelClass;
 
                     $pk = $class::m()->_pk;
                     if (!$relation) {
-                        $cond['__table'] = $fieldName;
+                        $cond['__table'] = $modelRelation;
                     } else {
-                        $cond['__table'] = $fieldName . '__between';
+                        $cond['__table'] = $modelRelation . '__between';
                     }
                     if ($field === $pk) {
-                        $joinField = $className::GetObjectField($this->_object); // ID => MODEL_ID
+                        $joinField = $className::GetObjectField($modelClass); // ID => MODEL_ID
                     } else if (!$relation) {
                         $joinField = $pk; // MODEL_ID -> ID
                     } else if ($object = $class::GetObject($field)) {
@@ -595,24 +593,31 @@ class CQuery extends AExtendClass {
                         }
                     }
                     if (!$joinField) {
-                        throw new CException("Error join {$className} to {$this->_object}. No object for {$this->_object} class in {$className} class.");
+                        throw new CException("Error join {$className} to {$modelClass}. No object for {$modelClass} class in {$className} class.");
                     }
-                    $cond['#.'.$joinField] = '*.'.$field;
 
-                    $this->join(array($className => $cond), '', $joinType);
+                    $classJoin = $className;
+                    if($this->_object && $this->_object != $modelClass) {
+                        $classJoin = $modelClass;
+                        $cond['__table'] = $modelClass::tableName();
+                        $cond[$className::tableName() .'.'.$joinField] = $modelClass::tableName().'.'.$field;
+                    } else {
+                        $cond['#.'.$joinField] = $modelClass::tableName().'.'.$field;
+                    }
+
+                    $this->join(array($classJoin => $cond), '', $joinType);
                     if ($relation) {
                         $nextClass = array_shift($relation);
                         $joinField = $className::GetObjectField($nextClass);
                         if (!$joinField) {
                             throw new CException("Error join {$nextClass} to {$className}. No object for {$nextClass} class in {$className} class.");
                         }
-                        $this->join(array($nextClass => array('#.'.$nextClass::m()->_pk => $fieldName . '__between' .'.'.$joinField, '__table' => $fieldName)), '', $joinType);
+                        $this->join(array($nextClass => array('#.'.$nextClass::m()->_pk => $modelRelation . '__between' .'.'.$joinField, '__table' => $modelRelation)), '', $joinType);
                     }
                     return true;
                 }
             }
         }
-        return false;
     }
 
     /**
@@ -649,7 +654,9 @@ class CQuery extends AExtendClass {
                     list($alias, $field) = array($field, $alias);
                 }
 
-                if ($this->joinRelation($field, $type)) {
+                if (class_exists($alias) && $this->joinWith($alias, $field, $type)) {
+                    continue;
+                } else if ($this->_object && $this->joinWith($this->_object, $field, $type)) {
                     continue;
                 } else if (isset($this->_columns[$field]) && $rel = $this->_columns[$field]) {
                     if (isset($rel['object'])) {
