@@ -49,7 +49,9 @@ class CFormModel extends CForm {
 
 	public function setValues($values) {
 		parent::setValues($values);
-		$this->_model->fromArray($this->_values);
+		if ($this->_model) {
+			$this->_model->fromArray($this->_values);
+		}
 	}
 
 	public function getModel() {
