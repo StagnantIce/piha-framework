@@ -788,7 +788,7 @@ class CQuery extends AExtendClass {
                     $value = $this->findAndReplaceTableName($value);
                 }
                 // Для Join запросов, считаем все, что с точкой - формула
-                if ( (strpos($value, '`.') === false || $is_join == false) && self::isField($value) === false) { // функции и поля пропускаем
+                if ( (strpos($value, '.') === false || $is_join == false) && self::isField($value) === false) { // функции и поля пропускаем
                     $value = '"'.self::escape($value).'"';
                 }
             } elseif (is_null($value) || $value === 'NULL') {
