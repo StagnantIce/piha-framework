@@ -786,11 +786,10 @@ class CQuery extends AExtendClass {
             } elseif (is_string($value)) {
                 if (strpos($value, '*.') !== false) {
                     $value = $this->findAndReplaceTableName($value);
+                }
                 // Для Join запросов, считаем все, что с точкой - формула
-                } elseif ( (strpos($value, '.') === false || $is_join == false) && self::isField($value) === false) { // функции и поля пропускаем
+                if ( (strpos($value, '`.') === false || $is_join == false) && self::isField($value) === false) { // функции и поля пропускаем
                     $value = '"'.self::escape($value).'"';
-                } else {
-                    $value = self::escape($value);
                 }
             } elseif (is_null($value) || $value === 'NULL') {
                 $c = ($c == '=' ? ' IS ' : ' IS NOT ');

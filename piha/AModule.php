@@ -36,6 +36,16 @@ abstract class AModule extends AClass {
 
     public function configure(Array $config=null) {
         $this->getObjectModule()->config = is_array($config) ? $config : (is_string($config) ? CAlias::requireFile($config) : null);
+        if (isset($config['services'])) {
+            foreach($config['services'] as $name => $service) {
+                self::service($name, $service);
+            }
+        }
+        if (isset($config['commands'])) {
+            foreach($config['commands'] as $name => $command) {
+                self::command($name, $command);
+            }
+        }
     }
 
     public static function HasInstance($id=null) {
@@ -104,7 +114,7 @@ abstract class AModule extends AClass {
         if (!is_callable(self::$commands[$name])) {
             throw new CException("Command '{$name}' is not callable.");
         }
-        return call_user_func_array(self::$commands[$name], array(CCommand::parse($argv)));
+        return call_user_func_array(self::$commands[$name], array($name, $argv));
     }
 
     public static function service($name, $mixed) {
