@@ -13,8 +13,13 @@ class CGridWidget {
 	private $listData;
 	private $columns;
 	private $model;
+	private $htmlOptions = array(
+		'table' => array(
+			'class' => 'table table-bordered table-striped'
+		)
+	);
 
-	public function __construct(CListData $l, Array $columns = null) {
+	public function __construct(CListData $l, Array $columns = null, $htmlOptions = array()) {
 		$this->listData = $l;
 		$this->columns = $columns ?: array();
 		if ($this->listData instanceof CListModel) {
@@ -27,13 +32,15 @@ class CGridWidget {
 				}
 			}
 		}
+		$this->htmlOptions = array_replace($this->htmlOptions, $htmlOptions);
 	}
 
 	public function render() {
 		$view = new CView('grid_view', array(
 				'columns' => $this->columns,
 				'listData' => $this->listData,
-				'model' => $this->model
+				'model' => $this->model,
+				'htmlOptions' => $this->htmlOptions
 			)
 		);
 		$view->setAlias(array(__DIR__, '..', 'views'));

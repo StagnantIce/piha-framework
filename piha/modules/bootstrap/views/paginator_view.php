@@ -2,6 +2,7 @@
 /*
 @var CListData $listData
 */
+
 ?>
 <div class="pagination">
 	<ul>

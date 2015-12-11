@@ -103,6 +103,10 @@ class CHtml {
 		return call_user_func_array(array($this, 'tag'), $ps);
 	}
 
+	public function __toString() {
+		return $this->render(true);
+	}
+
 	/**
 	  * Извлечь параметр из опций и вернуть его
       * @param array $options параметры

@@ -2,9 +2,18 @@
 /*
 	@var CListData $listData
 	@var array $columns
+	@var CModel $model
+	@var array $htmlOptions
 */
+use piha\modules\core\classes\CHtml;
+use piha\modules\core\classes\CView;
+
+$html = CHtml::create();
+$trOptions = CHtml::popOption($htmlOptions, 'tr');
 ?>
-<table class = "table table-bordered table-striped">
+
+
+<?= $html->table(CHtml::popOption($htmlOptions, 'table'), false); ?>
 	<thead>
 		<?foreach($columns as $column): ?>
 			<th>
@@ -14,7 +23,7 @@
 	</thead>
 	<tbody>
 		<?foreach($listData->getData() as $row): ?>
-			<tr>
+			<?= $html->tr(CView::Value($trOptions, array( $model ? new $model($row) : $row)), false);?>
 				<?foreach($columns as $column): ?>
 					<td>
 						<?
@@ -31,7 +40,7 @@
 						?>
 					</td>
 				<? endforeach; ?>
-			</tr>
+			<?= $html->end('tr');?>
 		<? endforeach; ?>
 	</tbody>
-</table>
+<? $html->end('table')->render(); ?>
