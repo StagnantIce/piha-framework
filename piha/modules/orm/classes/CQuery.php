@@ -207,7 +207,7 @@ class CQuery extends AExtendClass {
       * Выполняет запрос и возвращает объекты
       * @return array
       */
-    public function objects($mixed = false, $cond = 'AND') {
+    public function objects($mixed = false, $cond = 'AND', $group = null) {
         if ($mixed) {
             if ($this->_where) {
                 throw new CException("Use objects() method with where().");
@@ -220,7 +220,11 @@ class CQuery extends AExtendClass {
         $result = array();
         $data = $this->all();
         foreach($data as $d) {
-            $result[] = new $object($d);
+            if ($group && isset($d[$group])) {
+                $result[$d[$group]] = new $object($d);
+            } else {
+                $result[] = new $object($d);
+            }
         }
         return $result;
     }

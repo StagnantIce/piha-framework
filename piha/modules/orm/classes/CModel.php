@@ -409,6 +409,12 @@ class CModel extends CDataObject {
     /**
       * @ignore
       */
+    public static function StaticGetArrayObjects($key='ID', $where = array(), $order = array()) {
+        return self::q()->order($order)->objects($where, 'AND', $key);
+    }
+    /**
+      * @ignore
+      */
     public static function StaticGetArrayName($where = array(), $order = array()) {
         return self::StaticGetArray('ID', 'NAME', $where, $order);
     }
