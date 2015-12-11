@@ -609,6 +609,12 @@ class CQuery extends AExtendClass {
                     if ($relation) {
                         $nextClass = array_shift($relation);
                         $joinField = $className::GetObjectField($nextClass);
+                        $field = $nextClass::m()->_pk;
+                        if (!$joinField) {
+                            if ($field = $nextClass::GetObjectField($className)) {
+                                $joinField = $className::m()->_pk;
+                            }
+                        }
                         if (!$joinField) {
                             throw new CException("Error join {$nextClass} to {$className}. No object for {$nextClass} class in {$className} class.");
                         }
