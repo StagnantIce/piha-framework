@@ -41,6 +41,11 @@ class CForm extends CFormModel {
 		return $this->createControl($label, $this->select($options));
 	}
 
+	public function checkboxGroup($options = array()) {
+		$label = $this->label(array('class' =>'control-label', 'for' => $options['name'], 'label' => CHtmlBase::popOption($options, 'label')));
+		return $this->createControl($label, $this->checkbox($options));
+	}
+
 	public function textGroup($options = array()) {
 		$label = $this->label(array('class' =>'control-label', 'for' => $options['name'], 'label' => CHtmlBase::popOption($options, 'label')));
 		return $this->createControl($label, $this->text($options));
