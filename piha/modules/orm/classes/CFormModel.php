@@ -25,6 +25,9 @@ class CFormModel extends CForm {
 
 	public function loadModels() {
 		foreach($this->_models as $key => $mixed) {
+
+			$this->_models[$key] = $mixed;
+
 			if (is_array($mixed)) {
 				$mixed = $mixed[0];
 			}
@@ -33,7 +36,6 @@ class CFormModel extends CForm {
 			} else {
 				$className = $mixed;
 			}
-			$this->_models[$key] = $mixed;
 
 			$name = $this->getNameByClass($className);
 
