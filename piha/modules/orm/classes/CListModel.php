@@ -3,6 +3,7 @@
 namespace piha\modules\orm\classes;
 
 use piha\modules\core\classes\CListData;
+use piha\CException;
 
 class CListModel extends CListData {
 
@@ -16,7 +17,12 @@ class CListModel extends CListData {
 	}
 
 	public function getModel() {
-		return $this->q->getModel();
+		if ($this->q) {
+			return $this->q->getModel();
+		} else if ($this->data) {
+			return $this->data[0];
+		}
+		return false;
 	}
 
 	public function getTotal() {
@@ -24,8 +30,17 @@ class CListModel extends CListData {
 	}
 
 	public function getData() {
-		$this->data = $this->data ?: $this->q->limit(($this->getCurrentPage() -1) * $this->getPageSize(), $this->getPageSize())->execute()->all(false, 'ID');
-		$this->total = CQuery::getTotal();
+		if ($this->data) {
+			$result = array();
+			foreach($this->data as $d) {
+				$result[] = $d->toArray();
+			}
+			$this->total = count($result);
+			return $result;
+		} else if ($this->q) {
+			$this->data = $this->q->limit(($this->getCurrentPage() -1) * $this->getPageSize(), $this->getPageSize())->execute()->all(false, 'ID');
+			$this->total = CQuery::getTotal();
+		}
 		return $this->data;
 	}
 }

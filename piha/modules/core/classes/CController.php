@@ -37,6 +37,9 @@ class CController extends AClass {
     /** @var string $defaultAction - имя дефолтового экшена */
     protected $defaultAction = 'index';
 
+    /** @var передача вьюшки из CView */
+    public $view = null;
+
     /**
       * Создать контроллер
       * @param AModule $module - модуль
@@ -57,11 +60,7 @@ class CController extends AClass {
       * @return string|array алиас
       */
     public function getLayoutPath() {
-        $module = \Piha::Config('defaultModule');
-        if (!$module) {
-            throw new CException("Default module config not found.");
-        }
-        return $this->module->config('layoutPath', \Piha::GetInstance($module)->config('layoutPath'));
+        return $this->module->config('layoutPath', \Piha::GetModule()->config('layoutPath'));
     }
 
     /**
@@ -178,13 +177,11 @@ class CController extends AClass {
       */
     public function render($renderName = '', Array $context = null, $return = false) {
         $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()), $this);
-        $view->setMiddleWare($this);
         $result = '';
         if ($this->layout) {
-            $context['content'] = $view->render();
+            $context['content'] = $view->render($this->getViewPath());
             $layoutView = new CView('/' . $this->layout, array_replace($this->context, $context?: array()), $this);
-            $layoutView->setMiddleWare($this);
-            $result = $layoutView->render();
+            $result = $layoutView->render($this->getLayoutPath());
         } else {
             $result = $view->render();
         }
@@ -202,10 +199,8 @@ class CController extends AClass {
       * @return string
       */
     public function part($renderName = null, Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()), $this);
-        $view->setMiddleWare($this);
-        $view->setPartAlias();
-        $result = $view->render();
+        $view = new CView($renderName, array_replace($this->context, $context ?: array()), $this);
+        $result = $view->render($this->view ? $this->view->getPath() : $this->getViewPath());
         if ($return) {
             return $result;
         }

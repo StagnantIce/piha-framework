@@ -43,7 +43,7 @@ class CGridWidget {
 				'htmlOptions' => $this->htmlOptions
 			)
 		);
-		$view->setAlias(array(__DIR__, '..', 'views'));
+		$view->setPath(array(__DIR__, '..', 'views'));
 		echo $view->render();
 	}
 
@@ -52,7 +52,7 @@ class CGridWidget {
 				'listData' => $this->listData
 			)
 		);
-		$view->setAlias(array(__DIR__, '..', 'views'));
+		$view->setPath(array(__DIR__, '..', 'views'));
 		echo $view->render();
 	}
 }
