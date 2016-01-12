@@ -337,7 +337,10 @@ class CForm {
 
 	public function checkbox($options = array()) {
 		$this->before($options);
-		return $this->_html->input(array_replace($options, array('type' => 'checkbox')))->render(true);
+		if ($options['value'] == 1) {
+			$options['checked'] = 'checked';
+		}
+		return $this->_html->input(array_replace($options, array('type' => 'checkbox', 'value' => 1)))->render(true);
 	}
 
 	public function button($options = array()) {
