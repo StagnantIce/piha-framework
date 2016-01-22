@@ -232,4 +232,8 @@ class CController extends AClass {
         $this->context[$name] = $value;
     }
 
+    public function getContext($name) {
+        return $this->context[$name];
+    }
+
 }
