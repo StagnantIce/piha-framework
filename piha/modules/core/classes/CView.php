@@ -27,6 +27,8 @@ class CView extends AClass {
     /** @var string $_path - путь до файла представления */
     private $_path = '';
 
+    public static $currentPath = '';
+
     /**
       * Создать новое представление
       * @param string $file - имя файла относительно алиаса
@@ -94,12 +96,23 @@ class CView extends AClass {
       * @return string
       */
     public function render($path=null, $ext='php') {
+        // если не задали путь, ищем по алиасу
         if (!$path) {
             $path = $this->getAlias($this->_file);
         }
+
+        // если нет алиаса, и не передали путь, считаем как текущий
+        if (!$path) {
+            $path = self::$currentPath;
+        }
+
+        if ($path) {
+            self::$currentPath = $path;
+        }
+
         $file = CAlias::file(self::getFile($this->_file, $ext), $path);
         if (!file_exists($file)) {
-            throw new CException("Error render {$this->_file}. File {$file} not found.");
+            throw new CException("Error render {$this->_file}. File {$file} not found. Path: $path");
         }
         $this->_path = dirname($file);
         ob_start();
