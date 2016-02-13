@@ -32,7 +32,7 @@ class CController extends AClass {
     private $params = null;
 
     /** @var string $layout - имя лейаута для вьюшки */
-    public $layout = '';
+    public $layoutName = '';
 
     /** @var string $defaultAction - имя дефолтового экшена */
     protected $defaultAction = 'index';
@@ -180,11 +180,11 @@ class CController extends AClass {
         $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()), $this);
         $view->setMiddleWare($this);
         $result = '';
-        if ($this->layout) {
+        if ($this->layoutName) {
             $context['content'] = $view->render();
-            $layoutView = new CView('/' . $this->layout, array_replace($this->context, $context?: array()), $this);
-            $layoutView->setMiddleWare($this);
-            $result = $layoutView->render();
+            $this->layout = new CLayout($this->layoutName, array_replace($this->context, $context?: array()), $this);
+            $this->layout->setMiddleWare($this);
+            $result = $this->layout->render();
         } else {
             $result = $view->render();
         }
