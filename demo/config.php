@@ -4,6 +4,7 @@ use \piha\modules\storage\classes\CSessionStorage;
 
 return array(
     'admin' => array(
+        'controllerNamespace' => 'admin',
         'path' => array('@webroot', 'modules'),
         'route' => 'admin',
         'autoload' => array(

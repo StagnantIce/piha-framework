@@ -1,25 +1,21 @@
-  <h1 class="page-header">Dashboard</h1>
+  <h1 class="page-header">О фреймворке</h1>
 
   <div class="row placeholders">
     <div class="col-xs-6 col-sm-3 placeholder">
-      <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail">
-      <h4>Label</h4>
-      <span class="text-muted">Something else</span>
+      <h4>Простая ORM для Базы данных</h4>
+      <span class="text-muted">ориентированная на скорость разработки.</span>
     </div>
     <div class="col-xs-6 col-sm-3 placeholder">
-      <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail">
-      <h4>Label</h4>
-      <span class="text-muted">Something else</span>
+      <h4>Конструктор форм</h4>
+      <span class="text-muted">позволяет жестко связать формы сайта и их обработку на сервере</span>
     </div>
     <div class="col-xs-6 col-sm-3 placeholder">
-      <img data-src="holder.js/200x200/auto/sky" class="img-responsive" alt="Generic placeholder thumbnail">
-      <h4>Label</h4>
-      <span class="text-muted">Something else</span>
+      <h4>Гибкость использования</h4>
+      <span class="text-muted">фреймворк можно использовать как отдельно, так и совместно с любым PHP кодом.</span>
     </div>
     <div class="col-xs-6 col-sm-3 placeholder">
-      <img data-src="holder.js/200x200/auto/vine" class="img-responsive" alt="Generic placeholder thumbnail">
-      <h4>Label</h4>
-      <span class="text-muted">Something else</span>
+      <h4>Помощь и поддержка</h4>
+      <span class="text-muted">используйте <a target="__blank" href="https://github.com/StagnantIce/piha-framework">Github</a> чтобы написать в техподдержку</span>
     </div>
   </div>
 

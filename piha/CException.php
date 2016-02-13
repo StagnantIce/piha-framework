@@ -61,8 +61,10 @@ class CException extends \Exception {
                     if (is_array($item) && count($item) > 10) {
                         $item = array_slice($item, 0, 10);
                         $item[] = count($item) .' elements';
+                        $item = print_r($item, true);
+                    } else if (!is_string($item)) {
+                        $item = 'object';
                     }
-                    $item = print_r($item, true);
                 }
             });
             if (!isset($v['file'])) {

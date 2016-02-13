@@ -37,13 +37,13 @@ class CRouter {
         $host = '/';
         $route = trim($route, '/');
         if (CCoreModule::Config('prettyUrl', false)) {
-            $host .= $route . '/';
+            $host .= $route ? $route . '/': '';
         } else {
             $params[self::PARAM_NAME] = $route;
         }
         list($module, $controller, $action, $ps) = $this->getControllerParams($route);
         if (!class_exists($controller)) {
-            throw new CException("Controller class {$controller} not found.");
+            throw new CException("Controller class {$controller} not found. Route: $route.");
         }
         $action = $controller::getActionName($action);
         $controller::className($action);
@@ -84,12 +84,12 @@ class CRouter {
             $arrRoute = explode('/', $moduleObj::Config('defaultController'));
         }
 
-        if (count($arrRoute) < 2) {
+        if (count($arrRoute) < 1) {
             throw new CException("Error route url '{$route}' for module '{$module}'");
         }
         $controller = $arrRoute[0];
-        $action = $arrRoute[1];
+        $action = isset($arrRoute[1]) ? $arrRoute[1] : '';
         $params = array_slice($arrRoute, 2);
-        return array($moduleObj, $moduleObj::Config('controllerNamespace', '\\') . ucfirst($controller) . 'Controller', $action, $params);
+        return array($moduleObj, $moduleObj::Config('controllerNamespace', '') . '\\'. ucfirst($controller) . 'Controller', $action, $params);
     }
 }

@@ -23,6 +23,7 @@ class CLayout extends CView {
 	}
 
 	public function title($title = '') {
-		CHtml::create()->title()->html($title ?: $this->title)->render();
+		$this->title = $title ?: $this->title;
+		CHtml::create()->title()->html($this->title)->render();
 	}
 }

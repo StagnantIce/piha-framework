@@ -88,6 +88,11 @@ class CController extends AClass {
       * @return string название метода
       */
     public static function getActionName($action_id) {
+        if (!$action_id) {
+            $obj = new self(null, null, null);
+            $action_id = $obj->defaultAction;
+            unset($obj);
+        }
         return self::METHOD_NAME . ucfirst($action_id);
     }
 
@@ -139,12 +144,14 @@ class CController extends AClass {
         if (!$route) {
             $route = $this->action_id ?: $this->defaultAction;
         }
-        $route = trim($route, '/');
-        if (strpos($route, '/') === false) {
-            $route = $this->id . '/' . $route;
-        }
-        if ($moduleRoute = $this->module->config('route')) {
-            $route = $moduleRoute . '/' . $route;
+        if (strncmp($route,'/',1) !== 0) {
+            $route = trim($route, '/');
+            if (strpos($route, '/') === false) {
+                $route = $this->id . '/' . $route;
+            }
+            if ($moduleRoute = $this->module->config('route')) {
+                $route = $moduleRoute . '/' . $route;
+            }
         }
         return \Piha::router()->buildUrl($route, $params);
     }
@@ -192,9 +199,9 @@ class CController extends AClass {
         if ($this->layoutName) {
             $context['content'] = $view->render($this->getViewPath());
             $this->layout = new CLayout($this->layoutName, array_replace($this->context, $context?: array()), $this);
-            $result = $this->layout->render();
+            $result = $this->layout->render($this->getLayoutPath());
         } else {
-            $result = $view->render();
+            $result = $view->render($this->getViewPath());
         }
         if ($return) {
             return $result;
