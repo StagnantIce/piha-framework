@@ -61,9 +61,22 @@ class CForm {
 		$this->_values = $values;
 	}
 
+	public function getRequest($name = null) {
+		if (!$name) {
+			$name = $this->_name;
+		}
+		if ($this->_method == 'POST') {
+			return \Piha::request()->post($name);
+		}
+		if ($this->_method == 'GET') {
+		    return \Piha::request()->get($name);
+		}
+		throw new CException("Form method not define");
+	}
+
 	public static function post($options) {
 		$obj = new static(array_replace($options, array('method' => 'POST')));
-		if ($postData = \Piha::request()->post($obj->_name)) {
+		if ($postData = $obj->getRequest()) {
 			$obj->setValues($postData);
 			$obj->_isSubmit = true;
 		}
@@ -72,7 +85,7 @@ class CForm {
 
 	public static function get($options) {
 		$obj = new static(array_replace($options, array('method' => 'GET')));
-		if ($getData = \Piha::request()->get($obj->_name)) {
+		if ($getData = $obj->getRequest()) {
 			$obj->setValues($getData);
 			$obj->_isSubmit = true;
 		}
@@ -255,7 +268,7 @@ class CForm {
 		return $this->_isSubmit;
 	}
 
-	public static function getFieldName($options) {
+	public static function getFieldName(&$options) {
 		if (isset($options['name'])) {
 			$name = $options['name'];
 			$pos = strpos($name, '[');
@@ -264,16 +277,19 @@ class CForm {
 		return '';
 	}
 
+	public function getFieldNamePrefix() {
+		return $this->_name;
+	}
+
 	public function before(&$options) {
 		if (isset($options['name'])) {
 			if (isset($this->_values[$options['name']])) {
 				$options['value'] = $this->_values[$options['name']];
 			}
-
 			if (strpos($options['name'], '[') !== false) {
-				$options['name'] = $this->_name . '[' . self::getFieldName($options) . ']' . substr($options['name'], strpos($options['name'], '['));
+				$options['name'] = $this->getFieldNamePrefix() . '[' . self::getFieldName($options) . ']' . substr($options['name'], strpos($options['name'], '['));
 			} else {
-				$options['name'] = $this->_name . '['.$options['name'] .']';
+				$options['name'] = $this->getFieldNamePrefix()  . '['.$options['name'] .']';
 			}
 		}
 	}
@@ -321,7 +337,10 @@ class CForm {
 
 	public function checkbox($options = array()) {
 		$this->before($options);
-		return $this->_html->input(array_replace($options, array('type' => 'checkbox')))->render(true);
+		if ($options['value'] == 1) {
+			$options['checked'] = 'checked';
+		}
+		return $this->_html->input(array_replace($options, array('type' => 'checkbox', 'value' => 1)))->render(true);
 	}
 
 	public function button($options = array()) {

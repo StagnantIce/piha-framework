@@ -337,6 +337,8 @@ class CQuery extends AExtendClass {
                             $value = intval($value);
                         } else if (is_string($value) && strtotime($value) !== false) {
                             $value = '"' . self::escape($value) . '"';
+                        } else if (!trim($value)) {
+                            $value = 'NULL';
                         } else {
                             $value = serialize($value);
                             throw new CException("Error prepare $param field with not date/time value $value.");

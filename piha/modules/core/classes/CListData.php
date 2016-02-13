@@ -20,7 +20,7 @@ class CListData {
 	}
 
 	public function getData() {
-		return $this->data;
+		return array_slice($this->data, ($this->getCurrentPage() -1) * $this->getPageSize(), $this->getPageSize());
 	}
 
 	public function getTotal() {

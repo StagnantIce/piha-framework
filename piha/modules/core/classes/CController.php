@@ -37,6 +37,9 @@ class CController extends AClass {
     /** @var string $defaultAction - имя дефолтового экшена */
     protected $defaultAction = 'index';
 
+    /** @var передача вьюшки из CView */
+    public $view = null;
+
     /**
       * Создать контроллер
       * @param AModule $module - модуль
@@ -235,6 +238,10 @@ class CController extends AClass {
 
     public function setContext($name, $value) {
         $this->context[$name] = $value;
+    }
+
+    public function getContext($name) {
+        return $this->context[$name];
     }
 
 }

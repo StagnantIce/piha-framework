@@ -15,7 +15,7 @@ use piha\AClass;
 
 class CView extends AClass {
 
-    /** @var object $_middleWare - объект для расши */
+    /** @var object $_middleWare - объект для расширения (например контроллер) */
     private $_middleWare = null;
 
     /** @var string $_file - имя файла представления */
@@ -24,14 +24,8 @@ class CView extends AClass {
     /** @var array $_context - контекст для передачи в представление */
     private $_context = null;
 
-    /** @var string $_alias - путь до файла представления */
-    private $_alias = '';
-
-    /** @var string $partAlias - относительный путь до файла представления */
-    private static $partAlias = '';
-
-    /** @var string $viewPath - где искать шаблоны */
-    public $controller = null;
+    /** @var string $_path - путь до файла представления */
+    private $_path = '';
 
     /**
       * Создать новое представление
@@ -39,73 +33,80 @@ class CView extends AClass {
       * @param array $context - контекст в рамках которого будет отображаться представление
       * @return CView
       */
-    public function __construct($file, Array $context = null, $controller = null) {
+    public function __construct($file, Array $context = null, $middleware = null) {
         $this->_file = $file;
         $this->_context = $context;
-        $this->controller = $controller;
+        $this->_middleWare = $middleware;
+    }
+
+    public function getPath() {
+        return $this->_path;
     }
 
     /**
-      * Установить путь до представления в виде алиаса
+      * Установить путь до представления в виде алиаса или пути
       * @return null
       */
-    public function setAlias($alias) {
-    	$this->_alias = $alias;
+    public function setPath($path) {
+    	$this->_path = $path;
     }
 
     /**
       * Получить путь до файла представления по имени файла
       * @return string
       */
-    public function getAlias() {
-    	if ($this->_alias) {
-    		return $this->_alias;
-    	}
-    	$file = $this->_file;
+    public function getAlias($file) {
     	if (strncmp($file,'//',2) === 0) {
     		return '@webroot';
     	} else if (strncmp($file,'/',1) === 0) {
-    		return $this->controller->getLayoutPath();
+    		return $this->_middleWare->getLayoutPath();
     	} else {
-    		return $this->controller->getViewPath();
+    		return $this->getPath();
     	}
+    }
+
+    public function css($file, $path=null) {
+        if (!$path) {
+            $path = $this->getAlias($file);
+        }
+        $file = CAlias::file(self::getFile($file,'css'), $path);
+        \Piha::asset()->css($file);
+    }
+
+    public function js($file, $path=null) {
+        if (!$path) {
+            $path = $this->getAlias($file);
+        }
+        $file = CAlias::file(self::getFile($file,'js'), $path);
+        \Piha::asset()->js($file);
     }
 
     /**
       * Получить имя файла
       * @return string
       */
-    public function getFile() {
-    	return ltrim($this->_file, '/') . '.php';
-    }
-
-    /**
-      * Установить представлению относительный путь
-      * @return null
-      */
-    public function setPartAlias() {
-    	$this->_alias = self::$partAlias;
+    public static function getFile($file, $ext='php') {
+    	return ltrim($file, '/') . '.'.$ext;
     }
 
     /**
       * Вернуть представление в рамках контекста
       * @return string
       */
-    public function render() {
-        self::$partAlias = $this->getAlias();
-        $file = CAlias::file($this->getFile(), self::$partAlias);
-        if (!file_exists($file)) {
-            throw new CException("File {$file} not found.");
+    public function render($path=null, $ext='php') {
+        if (!$path) {
+            $path = $this->getAlias($this->_file);
         }
+        $file = CAlias::file(self::getFile($this->_file, $ext), $path);
+        if (!file_exists($file)) {
+            throw new CException("Error render {$this->_file}. File {$file} not found.");
+        }
+        $this->_path = dirname($file);
         ob_start();
         ob_implicit_flush(false);
         extract($this->_context ?: array(), EXTR_OVERWRITE);
         require($file);
         return ob_get_clean();
-    }
-
-    public function setMiddleWare($middleware) {
-        $this->_middleWare = $middleware;
     }
 
     /**
@@ -115,6 +116,7 @@ class CView extends AClass {
       */
     public function __get($name) {
         if ($this->_middleWare) {
+           $this->_middleWare->view = $this;
     	   return $this->_middleWare->$name;
         }
         return parent::__get($name);
@@ -128,6 +130,7 @@ class CView extends AClass {
       */
     public function __call($method, $ps) {
         if ($this->_middleWare) {
+           $this->_middleWare->view = $this;
     	   return call_user_func_array(array($this->_middleWare, $method), $ps);
         }
         return parent::__call($method, $ps);

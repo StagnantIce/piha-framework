@@ -4,11 +4,6 @@ use piha\CAlias;
 use piha\AModule;
 use piha\IModule;
 use piha\CException;
-use piha\modules\core\classes\CRouter;
-use piha\modules\core\classes\CRequest;
-use piha\modules\core\classes\CController;
-use piha\modules\core\classes\CView;
-use piha\modules\core\classes\CCommand;
 
 require 'AClass.php';
 require 'CException.php';
@@ -105,21 +100,6 @@ class Piha extends AModule implements IModule {
     }
 
     public function start() {
-        defined('PIHA_CONSOLE') or define('PIHA_CONSOLE', false);
-        defined('PIHA_INCLUDE') or define('PIHA_INCLUDE', false);
-
-        if (PIHA_CONSOLE === false) {
-            session_start();
-        }
-
-        $request = new CRequest();
-        $router = new CRouter($request);
-        $this->service('request', $request);
-        $this->service('router', $router);
-        if (PIHA_CONSOLE === false && PIHA_INCLUDE === false) {
-            $controller = $router->getController();
-            $this->service('controller', $controller);
-            $controller->runAction();
-        }
+        self::GetInstance('core')->start();
     }
 }
