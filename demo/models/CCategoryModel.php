@@ -17,18 +17,18 @@ class CCategoryModel extends CModel {
 			'STATUS'         => array('type' => 'tinyint'),
 			'SORT'           => array('type' => 'tinyint'),
 			'IS_ACTIVE'      => array('type' => 'char', 'default' => 'Y'),
-			'PARENT_ID'      => array('type' => 'int', 'default' => null)
+			'PARENT_ID'      => array('type' => 'int', 'default' => 0)
 		);
 	}
 
-	public static function GetByParent($parent = null) {
+	public static function GetByParent($parent = 0) {
 		return self::q()
 			->where(array('PARENT_ID' => $parent))
 			->order(array('SORT' => 'ASC'))
 			->objects();
 	}
 
-	public static function GetTree($parent = null) {
+	public static function GetTree($parent = 0) {
 		$cats = self::GetByParent($parent);
 		foreach($cats as $c) {
 			$c->childs = self::GetTree($c->id);

@@ -4,8 +4,9 @@ use piha\modules\core\classes\CController;
 
 class CategoryController extends CController {
 
+	public $layoutName = 'main';
 
-	public function actionIndex() {
-		
+	public function actionView() {
+		$this->render('view');
 	}
 }
