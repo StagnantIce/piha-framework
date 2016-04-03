@@ -11,13 +11,21 @@ class CCategoryModel extends CModel {
 	public function getColumns() {
 	    return array(
 			'ID'             => array('type' => 'pk'),
-			'NAME'           => array('type' => 'string'),
-			'CODE'           => array('type' => 'string'),
-			'DESCRIPTION'    => array('type' => 'text'),
+			'NAME'           => array('type' => 'string', 'label' => 'Название'),
+			'CODE'           => array('type' => 'string', 'label' => 'Код'),
+			'DESCRIPTION'    => array('type' => 'text', 'label' => 'Описание'),
 			'STATUS'         => array('type' => 'tinyint'),
 			'SORT'           => array('type' => 'tinyint'),
 			'IS_ACTIVE'      => array('type' => 'char', 'default' => 'Y'),
 			'PARENT_ID'      => array('type' => 'int', 'default' => 0)
+		);
+	}
+
+	public function getRelations() {
+		return array(
+			self::TYPE_MANY => array(
+				'elements' => array('ID', CElementCategoryModel::className(), CElementModel::className())
+			)
 		);
 	}
 

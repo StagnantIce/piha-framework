@@ -6,7 +6,8 @@ class CategoryController extends CController {
 
 	public $layoutName = 'main';
 
-	public function actionView() {
-		$this->render('view');
+	public function actionView($id) {
+		$categories = CCategoryModel::GetTree($id);
+		$this->render('view', array('categories' => $categories, 'category' => CCategoryModel::StaticGet($id)));
 	}
 }

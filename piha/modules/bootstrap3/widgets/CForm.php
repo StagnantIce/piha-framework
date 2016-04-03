@@ -42,7 +42,10 @@ class CForm extends CFormModel {
 	}
 
 	public function selectGroup($options = array()) {
-		return $this->createControl($label, $this->select($options));
+		$defaults = array(
+			'class' => 'form-control'
+		);
+		return $this->createControl($options, $this->select(array_replace($defaults, $options)));
 	}
 
 	public function textGroup($options = array()) {
@@ -50,6 +53,13 @@ class CForm extends CFormModel {
 			'class' => 'form-control'
 		);
 		return $this->createControl($options, $this->text(array_replace($defaults, $options)));
+	}
+
+	public function textareaGroup($options = array()) {
+		$defaults = array(
+			'class' => 'form-control'
+		);
+		return $this->createControl($options, $this->textarea(array_replace($defaults, $options)));
 	}
 
 	public function emailGroup($options = array()) {

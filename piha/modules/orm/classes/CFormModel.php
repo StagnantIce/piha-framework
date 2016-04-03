@@ -123,7 +123,7 @@ class CFormModel extends CForm {
 	public function setValues($values) {
 		parent::setValues($values);
 		if ($this->_model) {
-			$this->_model->fromArray($this->_values);
+			$this->_model->merge($this->_values);
 		}
 	}
 

@@ -202,12 +202,16 @@ class CModel extends CDataObject {
         return strtoupper(preg_replace('/([A-Z])([a-z]+)/', '_$1$2', lcfirst($var)));
     }
 
+    public function merge(Array $data = null, Array $props = null) {
+        $data = array_replace($this->toArray(), $data ?: array());
+        return $this->fromArray($data, $props);
+    }
+
     /**
       * Переопределение метода
       * @return array
       */
     public function fromArray(Array $data = null, Array $props = null) {
-        $data = array_replace($this->getEmpty(), $data ?: array());
         $keys = array_keys($this->getColumns());
         $this->_isUpperCase = COrmModule::Config('uppercase', $this->_isUpperCase);
         if($this->_isUpperCase && $keys !== array_map('strtoupper', $keys)) {
@@ -239,6 +243,7 @@ class CModel extends CDataObject {
       * @return CModel
       */
     public function __construct(Array $data = null) {
+        $data = array_replace($this->getEmpty(), $data ?: array());
         $this->fromArray($data);
     }
 
@@ -272,8 +277,9 @@ class CModel extends CDataObject {
             } else {
                 $field = $fieldName;
             }
-            if (!$this->$field) {
-                throw new CException("Relation field {$field} not defined");
+            $columns = $this->getColumns();
+            if (!isset($columns[$fieldName])) {
+                throw new CException("Relation field '{$field}' not defined");
             }
             $q = null;
             $prevClassName = null;

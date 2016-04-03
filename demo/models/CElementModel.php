@@ -19,4 +19,13 @@ class CElementModel extends CModel {
 			'TYPE_ID'   => array('type' => 'int', 'object' => CElementTypeModel::className()),
 		);
 	}
+
+	public function getRelations() {
+		return array(
+			self::TYPE_MANY => array(
+				'categories' => array('ID', CElementCategoryModel::className(), CCategoryModel::className())
+			)
+		);
+	}
+
 }

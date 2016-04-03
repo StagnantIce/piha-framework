@@ -5,6 +5,12 @@ use piha\modules\orm\COrmModule;
 use piha\CException;
 
 class CMigration {
+    
+    const TYPE_PK = 'pk';
+    const TYPE_INT = 'int';
+    const TYPE_STRING = 'string';
+    const TYPE_TEXT = 'text';
+    const TYPE_BOOLEAN = 'boolean';
 
     public $columnTypes=array(
         'pk' => 'int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY',
