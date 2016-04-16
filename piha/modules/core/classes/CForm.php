@@ -430,7 +430,9 @@ class CForm {
 				$attr['selected'] = 'selected';
 			}
 			$attr['value'] = $value;
-			$this->_html->option($attr)->html(CHtml::safe($text))->end();
+			if ($text !== null) {
+				$this->_html->option($attr)->html(CHtml::safe($text))->end();
+			}
 		}
 		return $this->_html->render(true);
 	}

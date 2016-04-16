@@ -66,6 +66,7 @@ abstract class AAdminController extends CController {
     	$form = CForm::post(array('model' => $model));
 		if ($form->isSubmit() && $form->isValid()) {
 			if ($model->save()) {
+				$model->saveRelations();
 				$this->redirect('index');
 			}
 		}

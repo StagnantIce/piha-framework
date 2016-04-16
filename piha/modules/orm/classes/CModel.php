@@ -47,6 +47,8 @@ class CModel extends CDataObject {
     protected $_label = '';
 
     private $_schema = '';
+
+    private $_relationData = array();
     /** @var array Псевдо поля */
     //public $_fields = array();
 
@@ -207,6 +209,39 @@ class CModel extends CDataObject {
         return $this->fromArray($data, $props);
     }
 
+    private function collectRelationData(Array $data = null) {
+        $this->_relationData = array();
+        foreach($this->getRelations() as $type => $relation) {
+            foreach($relation as $name => $classes) {
+                if (isset($data[$name])) {
+                    $this->_relationData[$name] = $data[$name];
+                }
+            }
+        }
+    }
+
+    public function saveRelations() {
+        $data = $this->_relationData;
+        foreach($data as $name => $values) {
+            $relations = $this->getRelations();
+            if (isset($relations[self::TYPE_MANY][$name])) {
+                $relation = $relations[self::TYPE_MANY][$name];
+            } else if (isset($relations[self::TYPE_ONE][$name])) {
+                $relation = $relations[self::TYPE_ONE][$name];
+            }
+            if (count($relation) == 3) {
+                $relationModel = $relation[2];
+                $className = $relation[1];
+                $fieldOwn = $className::StaticGetObjectField(static::className());
+                $fieldNext = $className::StaticGetObjectField($relationModel);
+                $className::StaticDelete(array($fieldOwn => $this->id));
+                foreach((array)$values as $id) {
+                    $className::StaticGetOrCreate(array($fieldOwn => $this->id, $fieldNext => $id));
+                }
+            }
+        }
+    }
+
     /**
       * Переопределение метода
       * @return array
@@ -217,6 +252,7 @@ class CModel extends CDataObject {
         if($this->_isUpperCase && $keys !== array_map('strtoupper', $keys)) {
             throw new CException("Column names not in upper case.");
         }
+        $this->collectRelationData($data);
         $dataObj = array();
         foreach($data as $key => $value) {
             $dataObj[$this->toVar($key)] = $value;

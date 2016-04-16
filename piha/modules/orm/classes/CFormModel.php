@@ -91,7 +91,18 @@ class CFormModel extends CForm {
 
 			if (!isset($options['value'])) {
 				$key = $model->toVar(self::getFieldName($options));
-				$this->_values[$options['name']] = $model->$key;
+				$value = $model->$key;
+				if ($value instanceof CModel) {
+					$value = $value->id;
+				}
+				if (is_array($value)) {
+					foreach($value as &$v) {
+						if ($v instanceof CModel) {
+							$v = $v->id;
+						}
+					}
+				}
+				$this->_values[$options['name']] = $value;
 			}
 		}
 		parent::before($options);

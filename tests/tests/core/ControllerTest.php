@@ -20,7 +20,7 @@ class ControllerTest extends PHPUnit_Framework_TestCase {
 		$this->assertContains('Авторизация', $out);
 		$this->assertContains('<html', $out);
 
-		$out = $controller->part('part/menu_left', null, true);
+		$out = $controller->part('part/menu_left', array('categories' => array()), true);
 		$this->assertContains('nav', $out);
 
 		$controller->flash('error', 'test');

@@ -1,16 +1,16 @@
 <?
 use piha\modules\bootstrap3\widgets\CNavWidget;
 
-$items = array();
+function renderCats($categories, $c) {
+	$items = array();
 
-function render($categories, $c) {
 	foreach($categories as $cat) {
-		$items[] = array('href' => $c->url('category/view', array('id' => $cat->id)), 'label' => $cat->name, 'childs' => render($cat->childs, $c));
+		$items[] = array('href' => $c->url('category/view', array('id' => $cat->id)), 'label' => $cat->name, 'childs' => renderCats($cat->childs, $c));
 	}
 	return $items;
 }
 
-$nav = new CNavWidget(render($categories, $this));
+$nav = new CNavWidget(renderCats($categories, $this));
 
 $nav->render();
 
