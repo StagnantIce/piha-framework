@@ -20,8 +20,6 @@ if (isset($_GET['argv'])) {
 	throw new piha\CException("No argument params. Use argv param with GET request.");
 }
 
-$script_name = array_shift($argv);
-
 if (!$argv) {
 	echo "\nYou need write command name\n\n";
 	exit(0);

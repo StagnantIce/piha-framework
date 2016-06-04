@@ -9,6 +9,10 @@ use piha\CException;
 
 class CMigrationCommand extends CCommand {
 
+    protected function before() {
+        CMigrationModel::schema()->createTable();
+    }
+
 	protected function help($method = null, $argv = null, $message = null) {
 		if (!$method) {
 		    echo "\nplease use command: 'create', 'up', 'insert', 'delete', 'down'\n\n";
@@ -95,7 +99,7 @@ class CMigrationCommand extends CCommand {
 
 	public function commandDown($name) {
         if ($name && $name = preg_replace('/[^A-Za-z_]/', '', $name)) {
-            $mname = CMigrationModel::GetAll(array('%NAME' => $name), 'NAME');
+            $mname = CMigrationModel::StaticGetAll(array('%NAME' => $name), 'NAME');
             if (count($mname) == 1) {
                 $file = $mname[0] . '.php';
                 CQuery::transaction();
@@ -128,7 +132,7 @@ class CMigrationCommand extends CCommand {
         echo $migrationPath . "...\n\n";
         echo "START DATABASE MIGRATION......\n\n";
 
-        $skipMigrations = CMigrationModel::GetAll(array(), 'TIMESTAMP');
+        $skipMigrations = CMigrationModel::StaticGetAll(array(), 'TIMESTAMP');
 
         $migrations = Array();
         $dir = opendir($migrationPath);

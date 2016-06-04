@@ -17,5 +17,4 @@ piha\CFile::Copy(__DIR__ . '/demo', __DIR__ . '/../');
 \Piha::execute('migrate', array('up', '--alias=app'));
 \Piha::execute('migrate', array('up', '--alias=permission'));
 
-piha\CFile::Delete(__FILE__);
 echo "Successfully installed!";

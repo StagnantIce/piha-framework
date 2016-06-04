@@ -4,7 +4,7 @@ namespace piha;
 
 class CFile {
 
-	public static function Copy($src, $dst) {
+	public static function Copy($src, $dst, $replace = false) {
 		if (!file_exists($src)) {
 			throw new CException("Path $src not found");
 		}
@@ -16,12 +16,17 @@ class CFile {
 
 
 	    while(false !== ( $file = readdir($dir)) ) {
+	    	$dstFile = $dst . CAlias::ds() . $file;
+	    	if (!$replace && file_exists($dstFile)) {
+	    		continue;
+	    	}
+
 	        if (( $file != '.' ) && ( $file != '..' )) {
 	            if ( is_dir($src . CAlias::ds() . $file) ) {
-	                self::Copy($src . CAlias::ds() . $file,$dst . CAlias::ds() . $file);
+	                self::Copy($src . CAlias::ds() . $file, $dstFile);
 	            }
 	            else {
-	                copy($src . CAlias::ds() . $file,$dst . CAlias::ds() . $file);
+	                copy($src . CAlias::ds() . $file, $dstFile);
 	            }
 	        }
 	    }
