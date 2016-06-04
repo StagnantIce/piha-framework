@@ -97,14 +97,16 @@ class CMigrationCommand extends CCommand {
         }
 	}
 
-	public function commandDown($name) {
+	public function commandDown($name, $alias = 'app') {
+        $ds = CAlias::ds();
+        $migrationPath = $this->getMigrationPath($alias);
         if ($name && $name = preg_replace('/[^A-Za-z_]/', '', $name)) {
             $mname = CMigrationModel::StaticGetAll(array('%NAME' => $name), 'NAME');
             if (count($mname) == 1) {
                 $file = $mname[0] . '.php';
                 CQuery::transaction();
                 echo "$file...";
-                require('migrations/'.$file);
+                require($migrationPath . $ds . $file);
                 $className = str_replace('.php', '', $file);
                 try {
                     $className::down();

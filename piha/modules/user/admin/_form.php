@@ -21,6 +21,9 @@ foreach($model::m()->GetColumns() as $key => $column) {
 			default:
 				echo $form->textGroup(array('name' => $key));
 			break;
+			case 'boolean':
+				echo $form->checkboxGroup(array('name' => $key));
+			break;
 		endswitch;
 	}
 }
@@ -31,7 +34,7 @@ foreach($model->getRelations() as $type => $relation) {
 			case CModel::TYPE_MANY:
 				$relationModel = end($classes);
 
-				echo $form->selectGroup(array('name' => $name, 'options' => $relationModel::StaticGetArray('ID', 'NAME'), 'label' => $relationModel::label()));
+				echo $form->selectGroup(array('name' => $name, 'options' => $relationModel::StaticGetArray('ID', 'NAME'), 'multiple' => 'multiple', 'label' => $relationModel::label()));
 				break;
 		}
 	}

@@ -10,7 +10,7 @@ if (file_exists(__DIR__ . '/../config.php')) {
 	$config = require(__DIR__ . '/../config.php'); 
 }
 
-piha\CFile::Copy(__DIR__ . '/demo', __DIR__ . '/../');
+piha\CFile::Copy(__DIR__ . '/demo', __DIR__ . '/../', true);
 
 \Piha::app(__DIR__ . '/../')->configure($config)->start();
 

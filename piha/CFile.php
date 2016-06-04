@@ -23,7 +23,7 @@ class CFile {
 
 	        if (( $file != '.' ) && ( $file != '..' )) {
 	            if ( is_dir($src . CAlias::ds() . $file) ) {
-	                self::Copy($src . CAlias::ds() . $file, $dstFile);
+	                self::Copy($src . CAlias::ds() . $file, $dstFile, $replace);
 	            }
 	            else {
 	                copy($src . CAlias::ds() . $file, $dstFile);

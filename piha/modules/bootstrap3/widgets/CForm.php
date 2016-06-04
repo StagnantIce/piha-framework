@@ -76,6 +76,13 @@ class CForm extends CFormModel {
 		return $this->createControl($options, $this->password(array_replace($defaults, $options)));
 	}
 
+	public function checkboxGroup($options = array()) {
+		$defaults = array(
+			'class' => 'checkbox'
+		);
+		return $this->createControl($options, $this->checkbox(array_replace($defaults, $options)));
+	}
+
 	public function fieldGroup($name, $options = array()) {
 		$defaults = array(
 			'class' => 'form-control'

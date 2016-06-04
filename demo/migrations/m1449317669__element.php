@@ -9,6 +9,7 @@
     class m1449317669__element {
 
         public static function up() {
+            self::down();
             CCategoryModel::schema()->createTable();
             CElementModel::schema()->createTable();
             CElementCategoryModel::schema()->createTable(true);

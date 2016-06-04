@@ -16,8 +16,8 @@ class CCategoryModel extends CModel {
 			'DESCRIPTION'    => array('type' => 'text', 'label' => 'Описание'),
 			'STATUS'         => array('type' => 'tinyint'),
 			'SORT'           => array('type' => 'tinyint'),
-			'IS_ACTIVE'      => array('type' => 'char', 'default' => 'Y'),
-			'PARENT_ID'      => array('type' => 'int', 'default' => 0)
+			'IS_ACTIVE'      => array('type' => 'boolean', 'default' => 1),
+			'PARENT_ID'      => array('type' => 'int', 'default' => 0, 'object' => self::className())
 		);
 	}
 

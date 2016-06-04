@@ -340,7 +340,10 @@ class CForm {
 		if (isset($options['value']) && $options['value'] == 1) {
 			$options['checked'] = 'checked';
 		}
-		return $this->_html->input(array_replace($options, array('type' => 'checkbox', 'value' => 1)))->render(true);
+		return $this->_html
+			->input(array('type' => 'hidden', 'value' => 0, 'name' => isset($options['name']) ? $options['name']: ''))
+			->input(array_replace($options, array('type' => 'checkbox', 'value' => 1)))
+			->render(true);
 	}
 
 	public function button($options = array()) {
