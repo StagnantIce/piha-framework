@@ -4,12 +4,14 @@ use piha\CAlias;
 use piha\AModule;
 use piha\IModule;
 use piha\CException;
+use piha\CFile;
 
 require 'AClass.php';
 require 'CException.php';
 require 'CAlias.php';
 require 'AModule.php';
 require 'IModule.php';
+require 'CFile.php';
 
 class Piha extends AModule implements IModule {
 

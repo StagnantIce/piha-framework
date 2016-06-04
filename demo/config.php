@@ -1,7 +1,5 @@
 <?php
 
-use \piha\modules\storage\classes\CSessionStorage;
-
 return array(
     'admin' => array(
         'controllerNamespace' => 'admin',
@@ -26,7 +24,7 @@ return array(
     ),
     'user' => array(
         'modelClass' => 'CUserModel',
-        'storageClass' => CSessionStorage::className()
+        'storageClass' => '\piha\modules\storage\classes\CSessionStorage'
     ),
     'core' => array(
         'prettyUrl' => true,
