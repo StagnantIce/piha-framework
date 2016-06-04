@@ -9,7 +9,7 @@ return array(
         'route' => 'admin',
         'autoload' => array(
             array('@admin', 'controllers'),
-            array('@admin', 'models')
+            array('@admin', 'models'),
         ),
         'viewPath' => array('@admin', 'views'),
         'layoutPath' => array('@admin', 'views', 'layouts')

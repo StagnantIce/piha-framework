@@ -19,7 +19,8 @@ return array(
         'smartUrl' => false,
         'autoload' => array(
             array('@webroot', 'controllers'),
-            array('@webroot', 'models')
+            array('@webroot', 'models'),
+            array('@webroot', 'classes')
         ),
     ),
     'orm' =>  array(

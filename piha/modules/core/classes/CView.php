@@ -29,6 +29,10 @@ class CView extends AClass {
 
     public static $currentPath = '';
 
+    public function getContext($context) {
+        return $context;
+    }
+
     /**
       * Создать новое представление
       * @param string $file - имя файла относительно алиаса
@@ -37,7 +41,7 @@ class CView extends AClass {
       */
     public function __construct($file, Array $context = null, $middleware = null) {
         $this->_file = $file;
-        $this->_context = $context;
+        $this->_context = $this->getContext($context);
         $this->_middleWare = $middleware;
     }
 

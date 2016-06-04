@@ -7,6 +7,8 @@ use piha\modules\store\classes\CStore;
 class AuthController extends CController {
 
 	public $layoutName = 'main';
+	public $layoutClass = 'CMainLayout';
+	
 	public function actionLogin() {
 		$loginForm = CForm::post(array('model' => new CUserModel()));
 		$loginForm->fieldText('EMAIL', array('require'));

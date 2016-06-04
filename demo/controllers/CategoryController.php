@@ -5,10 +5,16 @@ use piha\modules\core\classes\CController;
 class CategoryController extends CController {
 
 	public $layoutName = 'main';
+	public $layoutClass = 'CMainLayout';
 
 	public function actionView($id) {
-		$categories = CCategoryModel::GetTree();
 		$elementCategories = CCategoryModel::GetTree($id);
-		$this->render('view', array('elementCategories' => $elementCategories, 'categories' => $categories, 'category' => CCategoryModel::StaticGet($id)));
+		$this->render(
+			'view',
+			array(
+				'elementCategories' => $elementCategories,
+				'category' => CCategoryModel::StaticGet($id)
+			)
+		);
 	}
 }

@@ -37,6 +37,10 @@ class CController extends AClass {
     /** @var string $layout - объект лейаута */
     public $layout = null;
 
+    public $layoutClass = null;
+
+    public $viewClass = null;
+
     /** @var string $defaultAction - имя дефолтового экшена */
     protected $defaultAction = 'index';
 
@@ -52,6 +56,8 @@ class CController extends AClass {
       */
     public function __construct($module, $action_id, Array $params = null) {
         $this->module = $module;
+        $this->layoutClass = $this->layoutClass ?: CLayout::className();
+        $this->viewClass = $this->viewClass ?: CView::className();
         $this->action_id = $action_id ?: $this->defaultAction;
         $this->id = static::GetID();
         $this->params = $params;
@@ -194,11 +200,13 @@ class CController extends AClass {
       * @return null
       */
     public function render($renderName = '', Array $context = null, $return = false) {
-        $view = new CView($this->getViewId($renderName), array_replace($this->context, $context ?: array()), $this);
+        $viewClass = $this->viewClass;
+        $layoutClass = $this->layoutClass; 
+        $view = new $viewClass($this->getViewId($renderName), array_replace($this->context, $context ?: array()), $this);
         $result = '';
         if ($this->layoutName) {
             $context['content'] = $view->render($this->getViewPath());
-            $this->layout = new CLayout($this->layoutName, array_replace($this->context, $context?: array()), $this);
+            $this->layout = new $layoutClass($this->layoutName, array_replace($this->context, $context?: array()), $this);
             $result = $this->layout->render($this->getLayoutPath());
         } else {
             $result = $view->render($this->getViewPath());

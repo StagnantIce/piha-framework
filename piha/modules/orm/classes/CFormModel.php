@@ -44,12 +44,12 @@ class CFormModel extends CForm {
 					$this->_models[$key] = array();
 					foreach($data as $index => $dataModel) {
 						$model = new $className;
-						$model->fromArray($dataModel);
+						$model->merge($dataModel);
 						$this->_models[$key][] = $model;
 					}
 				} else {
 					$this->_models[$key] = new $className;
-					$this->_models[$key]->fromArray($data);
+					$this->_models[$key]->merge($data);
 				}
 			}
 		}

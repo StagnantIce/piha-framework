@@ -19,11 +19,16 @@ class CLayout extends CView {
 
 	public function __construct($file, Array $context = null, $controller = null) {
 		$this->name = $file;
+		$context = $this->getContext($context);
 		parent::__construct('/'. $file, $context, $controller);
 	}
 
 	public function title($title = '') {
 		$this->title = $title ?: $this->title;
 		CHtml::create()->title()->html($this->title)->render();
+	}
+
+	public function getContext($context) {
+		return $context;
 	}
 }
