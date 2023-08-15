@@ -9,7 +9,7 @@ This framework work on PHP 5.3+ or PHP 8.2 and MySQL (Bitrix as optional). As op
 
 <h2> Fast start </h2>
 
-1) Clone to directory mysite/install
+1) Clone to directory mysite/piha
 2) Run mysite/install/demo.sh and open mysite like your site.
 
 <h2> Features </h2>
