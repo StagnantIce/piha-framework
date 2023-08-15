@@ -13,8 +13,13 @@ This framework work on PHP 5.3+ or PHP 8.2 and MySQL (Bitrix as optional). As op
 2) Run sudo chown -R www-data:www-data mysite if need, because we need right to create assets directory.
 
 For apache2 ypu can set it in /etc/apache2/envvars
+
 export APACHE_RUN_USER=www-data
 export APACHE_RUN_GROUP=www-data
+
+For php sessions:
+
+chown -R www-data:www-data /var/lib/php/sessions
 
 3) Run mysite/piha/demo.sh and open mysite like your site.
 
