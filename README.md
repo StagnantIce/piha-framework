@@ -11,6 +11,11 @@ This framework work on PHP 5.3+ or PHP 8.2 and MySQL (Bitrix as optional). As op
 
 1) Clone to directory mysite/piha like install path.
 2) Run sudo chown -R www-data:www-data mysite if need, because we need right to create assets directory.
+
+For apache2 ypu can set it in /etc/apache2/envvars
+export APACHE_RUN_USER=www-data
+export APACHE_RUN_GROUP=www-data
+
 3) Run mysite/piha/demo.sh and open mysite like your site.
 
 <h2> Features </h2>
