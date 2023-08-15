@@ -7,6 +7,11 @@ This framework work on PHP 5.3+ or PHP 8.2 and MySQL (Bitrix as optional). As op
 <img src="https://img.shields.io/badge/php-7.3-blue.svg"/>
 <img src="https://img.shields.io/badge/php-8.2-blue.svg"/>
 
+<h2> Fast start </h2>
+
+1) Clone to directory mysite/install
+2) Run mysite/install/demo.sh and open mysite like your site.
+
 <h2> Features </h2>
 1) Own fast and simple ORM and SQL builder. With many features.
 
