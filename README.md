@@ -4,6 +4,8 @@ This framework work on PHP 5.3+ or PHP 8.2 and MySQL (Bitrix as optional). As op
 
 <img src="https://img.shields.io/badge/coverage-70%25-yellowgreen.svg"/>
 <img src="https://img.shields.io/badge/php-5.3-blue.svg"/>
+<img src="https://img.shields.io/badge/php-7.3-blue.svg"/>
+<img src="https://img.shields.io/badge/php-8.2-blue.svg"/>
 
 <h2> Features </h2>
 1) Own fast and simple ORM and SQL builder. With many features.
