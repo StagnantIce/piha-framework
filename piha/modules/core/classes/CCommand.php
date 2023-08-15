@@ -46,7 +46,7 @@ class CCommand extends AClass {
         	exit(0);
         }
         $params = array();
-        $f = new \ReflectionMethod(get_class($this), $method);
+        $f = new \ReflectionMethod($class = get_class($this), $method);
         $fParams = $f->getParameters();
         foreach ($fParams as $param) {
             if ($args && isset($args[$param->name])) {

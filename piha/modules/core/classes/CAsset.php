@@ -8,6 +8,7 @@
 */
 
 namespace piha\modules\core\classes;
+use piha\CFile;
 use piha\modules\core\CCoreModule;
 use piha\CAlias;
 use piha\CException;
@@ -18,7 +19,7 @@ class CAsset extends AClass {
     public function getAssetPath() {
         $assetPath = CAlias::GetPath(CCoreModule::Config('assetPath', '@webroot/assets'));
         if (!file_exists($assetPath)) {
-            mkdir($assetPath);
+            CFile::MkDir($assetPath);
         }
         return $assetPath;
     }
@@ -26,11 +27,11 @@ class CAsset extends AClass {
     public function getPath($name, $file) {
         $path = CAlias::GetPath(array($this->getAssetPath(), $name));
         if (!file_exists($path)) {
-            mkdir($path);
+            CFile::MkDir($path);
         }
         $path = CAlias::GetPath(array($this->getAssetPath(), $name, $this->id($file)));
         if (!file_exists($path)) {
-            mkdir($path);
+            CFile::MkDir($path);
         }
         return $path;
     }
@@ -55,8 +56,8 @@ class CAsset extends AClass {
         if (!file_exists($file)) {
             if (file_exists($pathName)) {
                 array_map('unlink', glob("$pathName/*.*"));
-                rmdir($pathName);
-                mkdir($pathName);
+                CFile::Delete($pathName);
+                CFile::MkDir($pathName);
             }
             $f = fopen($file, 'w+');
             fputs($f, file_get_contents($originalFile));

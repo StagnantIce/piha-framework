@@ -9,7 +9,7 @@ class CFile {
 			throw new CException("Path $src not found");
 		}
 	    if (!file_exists($dst)) {
-	    	mkdir($dst);
+	    	self::MkDir($dst);
 	    }
 
 	    $dir = opendir($src);
@@ -33,6 +33,13 @@ class CFile {
 	    closedir($dir);
 	}
 
+    public static function MkDir($src) {
+        mkdir($src,0755,true);
+        if (!file_exists($src)) {
+            throw new CException("Path $src can`t created");
+        }
+    }
+
 	public static function Delete($src) {
 		if (!file_exists($src)) {
 			throw new CException("Path $src not found");
@@ -42,6 +49,8 @@ class CFile {
 		} else {
 			unlink($src);
 		}
+        if (file_exists($src)) {
+            throw new CException("Path $src not deleted");
+        }
 	}
-
 }
