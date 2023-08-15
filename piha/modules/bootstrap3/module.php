@@ -1,4 +1,4 @@
-<?
+<?php
 
 namespace piha\modules\bootstrap3;
 

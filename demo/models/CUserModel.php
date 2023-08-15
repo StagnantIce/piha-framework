@@ -27,7 +27,6 @@ class CUserModel extends CModel {
 	}
 
 	public function authorize() {
-		$model = false;
 		$model = self::Get(array('EMAIL' => $this->email));
 		if(!$model) {
 			$model = self::Get(array('LOGIN' => $this->email));

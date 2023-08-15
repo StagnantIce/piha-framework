@@ -95,11 +95,17 @@ abstract class AModule extends AClass {
         throw new CException('Error '.static::GetID().'::config. Please, see documentation');
     }
 
-    public static function command($name, $command) {
+    public static function command($name, $command)
+    {
         if (isset(self::$commands[$name])) {
              throw new CException("Command '{$name}' is already exists.");
         }
         self::$commands[$name] = $command;
+    }
+
+    public static function getCommands()
+    {
+        print_r(array_keys(self::$commands));
     }
 
     public static function execute($name, $argv) {

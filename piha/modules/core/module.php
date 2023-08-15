@@ -32,6 +32,7 @@ class CCoreModule extends AModule implements IModule {
         \Piha::service('request', $request);
         \Piha::service('router', $router);
         \Piha::service('asset', new CAsset());
+        \Piha::command('help', '\Piha::getCommands');
         if (PIHA_CONSOLE === false && PIHA_INCLUDE === false) {
             $controller = $router->getController();
             \Piha::service('controller', $controller);
