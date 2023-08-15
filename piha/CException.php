@@ -90,7 +90,7 @@ class CException extends \Exception {
                         } else {
                             $trace .= $html ? '<td style="background:#FFFFEE">' : '';
                         }
-                        $trace .= $html ? htmlspecialchars($buffer, ENT_QUOTES).'<br/>' : $buffer."\n";
+                        $trace .= $html ? htmlspecialchars($buffer, ENT_QUOTES).'<br/>' : $buffer;
                         $trace .= $html ? '</td></tr>': '';
                     }
                     $line++;
@@ -112,8 +112,11 @@ class CException extends \Exception {
         }
         ob_start();
 
-        echo '<h2>' . $this->getMessage() . '</h2><br/>';
-        echo self::ErrorHandler($this->backtrace);
-        exit();
+        $html = true;
+        if (defined('PIHA_CONSOLE') && PIHA_CONSOLE) {
+            $html = false;
+        }
+        echo $html ? '<h2>' . $this->getMessage() . '</h2><br/>' : $this->getMessage();
+        return self::ErrorHandler($this->backtrace, $html);
     }
 }

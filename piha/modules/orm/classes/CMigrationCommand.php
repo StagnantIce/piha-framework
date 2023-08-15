@@ -1,4 +1,5 @@
-<?
+<?php
+
 namespace piha\modules\orm\classes;
 use piha\modules\orm\models\CMigrationModel;
 use piha\modules\orm\classes\CQuery;
@@ -137,6 +138,9 @@ class CMigrationCommand extends CCommand {
         $skipMigrations = CMigrationModel::StaticGetAll(array(), 'TIMESTAMP');
 
         $migrations = Array();
+        if (!file_exists($migrationPath)) {
+            throw new CException("Migration path $migrationPath for $alias not found");
+        }
         $dir = opendir($migrationPath);
         while ($file = readdir($dir)) {
             if ( $file != "." && $file != ".." && !is_dir( $dir . $file ) && strpos($file,'.php') > 0) {

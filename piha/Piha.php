@@ -1,4 +1,4 @@
-<?
+<?php
 
 use piha\CAlias;
 use piha\AModule;
@@ -95,7 +95,7 @@ class Piha extends AModule implements IModule {
         CAlias::SetAlias('@webroot', $dir);
         CAlias::SetAlias('@demo', array('@piha', '..', 'demo'));
 
-        $this->start_time = time() + microtime();
+        $this->start_time = time() + (int)microtime();
         spl_autoload_register('Piha::autoloader');
         //register_shutdown_function(self::className('shutdown'));
         date_default_timezone_set('Europe/Moscow');

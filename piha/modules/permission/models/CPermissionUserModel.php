@@ -13,7 +13,7 @@ class CPermissionUserModel extends CModel {
 		return array(
 			'ID'              => array('type' => 'pk'),
 			'PERMISSION_ID'   => array('type' => 'int', 'object' => CPermissionModel::className()),
-			'USER_ID'         => array('type' => 'string', 'object' => CPermissionModule::Config('modelClass')),
+			'USER_ID'         => array('type' => 'int', 'object' => CPermissionModule::Config('modelClass')),
 		);
 	}
 }

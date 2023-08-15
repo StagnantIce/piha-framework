@@ -1,4 +1,4 @@
-<?
+<?php
 
 namespace piha\modules\permission;
 use piha\modules\permission\classes\CPermissionCommand;

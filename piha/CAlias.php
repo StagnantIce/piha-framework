@@ -1,4 +1,4 @@
-<?
+<?php
 
 /**
 * CAlias
@@ -51,7 +51,7 @@ class CAlias extends AClass {
 		if (!isset(self::$aliases[$name])) {
 			throw new CException("Alias name {$name} not found");
 		}
-		return self::$aliases[$mixed];
+		return self::$aliases[$name];
 	}
 
 	/**

@@ -29,6 +29,7 @@ return array(
     'core' => array(
         'prettyUrl' => true,
         'smartUrl' => true,
+        'sitePath' => 'demo'
     ),
     'permission' => array(
         'modelClass' => 'CUserModel'

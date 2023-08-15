@@ -1,6 +1,7 @@
 <?php
 
 define("PIHA_INCLUDE", true);
+define('PIHA_CONSOLE', true);
 
 require_once('piha/Piha.php');
 

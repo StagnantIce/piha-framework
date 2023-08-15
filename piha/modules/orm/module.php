@@ -2,6 +2,7 @@
 
 namespace piha\modules\orm;
 
+use piha\CException;
 use piha\IModule;
 use piha\AModule;
 use piha\modules\orm\classes\CMigrationCommand;
@@ -19,7 +20,14 @@ class COrmModule extends AModule implements IModule {
 		$className = $this->config('className');
         $conn = $className::$conn;
         if (is_null($conn)) {
-    		$className::$conn = new \mysqli($db['host'], $db['login'], $db['password'], $db['name']);
+            if (!function_exists('mysqli_init') && !extension_loaded('mysqli')) {
+                throw new CException("We don\'t have mysqli!!!");
+            }
+            try {
+                $className::$conn = new \mysqli($db['host'], $db['login'], $db['password'], $db['name']);
+            } catch (\Exception $e) {
+                throw new CException($e->getMessage() . ' ' . \json_encode($db) . '. Please configure mysql settings in config.php');
+            }
     		$className::$conn->query("SET NAMES '".$db['encode']."'");
         }
         //register migrate

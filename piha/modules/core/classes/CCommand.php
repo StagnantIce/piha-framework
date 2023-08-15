@@ -22,9 +22,9 @@ class CCommand extends AClass {
 		$args = array();
 		foreach ($argv as $arg) {
 			$arg = trim($arg);
-		    if (ereg('^--([^=]+)=(.*)$',$arg,$reg)) {
+		    if (preg_match('/^--([^=]+)=(.*)$/',$arg,$reg)) {
 		        $args[$reg[1]] = $reg[2];
-		    } elseif(ereg('^-([a-zA-Z0-9])$',$arg,$reg)) {
+		    } elseif(preg_match('/^-([a-zA-Z0-9])$/',$arg,$reg)) {
 		        $args[$reg[1]] = true;
 		    } else {
 		    	echo "\n\nError param format for '{$arg}'. Please, use '--param=value' or '-p' format\n\n";

@@ -1,4 +1,4 @@
-<?
+<?php
 use piha\modules\bootstrap3\widgets\CNavWidget;
 
 function renderElements($cat, $c) {

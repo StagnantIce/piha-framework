@@ -1,4 +1,4 @@
-<?
+<?php
   	use piha\modules\bootstrap3\widgets\CNavbarWidget;
   	if ($user = \Piha::user()->getModel()) {
   		$urls = array(

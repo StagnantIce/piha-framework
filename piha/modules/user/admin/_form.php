@@ -1,4 +1,4 @@
-<?
+<?php
 
 use piha\modules\bootstrap3\widgets\CHtml;
 use piha\modules\bootstrap3\widgets\CForm;

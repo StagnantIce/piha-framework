@@ -13,11 +13,13 @@ class CRouter {
 
 
     public function __construct(CRequest $request) {
-        $route = false;
         if (CCoreModule::Config('prettyUrl', false)) {
             $route = trim($request->path, '/');
         } else if ($route = $request->get(self::PARAM_NAME)) {
             $route = trim($route);
+        }
+        if ($sitePath = CCoreModule::Config('sitePath', '')) {
+            $route = str_replace($sitePath, '', $route);
         }
         $this->_route = $route;
     }

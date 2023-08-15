@@ -1,4 +1,5 @@
-<?
+<?php
+
 namespace piha\modules\permission\classes;
 use piha\modules\core\classes\CCommand;
 use piha\CException;
