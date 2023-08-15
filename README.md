@@ -10,7 +10,8 @@ This framework work on PHP 5.3+ or PHP 8.2 and MySQL (Bitrix as optional). As op
 <h2> Fast start </h2>
 
 1) Clone to directory mysite/piha like install path.
-2) Run mysite/piha/demo.sh and open mysite like your site.
+2) Run sudo chown -R www-data:www-data mysite if need, because we need right to create assets directory.
+3) Run mysite/piha/demo.sh and open mysite like your site.
 
 <h2> Features </h2>
 1) Own fast and simple ORM and SQL builder. With many features.
