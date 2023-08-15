@@ -1,9 +1,27 @@
 <h1> Piha - Easy PHP Framework</h1>
 
-This framework work on PHP 5.3+ and MySQL (Bitrix as optional). As optional you can include this framework as library to your project.
+This framework work on PHP 5.3+ or PHP 8.2 and MySQL (Bitrix as optional). As optional you can include this framework as library to your project.
 
 <img src="https://img.shields.io/badge/coverage-70%25-yellowgreen.svg"/>
 <img src="https://img.shields.io/badge/php-5.3-blue.svg"/>
+<img src="https://img.shields.io/badge/php-7.3-blue.svg"/>
+<img src="https://img.shields.io/badge/php-8.2-blue.svg"/>
+
+<h2> Fast start </h2>
+
+1) Clone to directory mysite/piha like install path.
+2) Run sudo chown -R www-data:www-data mysite if need, because we need right to create assets directory.
+
+For apache2 ypu can set it in /etc/apache2/envvars
+
+export APACHE_RUN_USER=www-data
+export APACHE_RUN_GROUP=www-data
+
+For php sessions:
+
+chown -R www-data:www-data /var/lib/php/sessions
+
+3) Run mysite/piha/demo.sh and open mysite like your site.
 
 <h2> Features </h2>
 1) Own fast and simple ORM and SQL builder. With many features.
